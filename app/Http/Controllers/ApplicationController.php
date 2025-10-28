@@ -1,0 +1,148 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Models\Application;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
+
+class ApplicationController extends Controller
+{
+    public function index()
+    {
+        $query = Application::with(['submitter', 'reviewer']);
+        
+        if (auth()->user()->isAreaUser()) {
+            $query->where('submitted_by', auth()->id());
+        }
+        
+        $applications = $query->latest()->paginate(10);
+        return view('applications.index', compact('applications'));
+    }
+
+    public function create()
+    {
+        return view('applications.create');
+    }
+
+    public function store(Request $request)
+    {
+        $validated = $request->validate([
+            'front_page_photo' => 'required|image|max:2048',
+            'name' => 'required|string|max:255',
+            'passport_no' => 'required|string|max:50',
+            'civil_id' => 'required|string|max:50|unique:applications,civil_id',
+            'mobile_number' => 'required|string|max:20',
+            'category' => 'required|in:health,finance',
+            'description' => 'nullable|string',
+        ]);
+
+        $validated['front_page_photo'] = $request->file('front_page_photo')->store('applications', 'public');
+        $validated['submitted_by'] = auth()->id();
+
+        Application::create($validated);
+        return redirect()->route('applications.index')->with('success', 'Application submitted successfully');
+    }
+
+    public function show(Application $application)
+    {
+        return view('applications.show', compact('application'));
+    }
+
+    public function edit(Application $application)
+    {
+        if ($application->submitted_by !== auth()->id() && !auth()->user()->isMekhalaUser()) {
+            abort(403);
+        }
+        return view('applications.edit', compact('application'));
+    }
+
+    public function update(Request $request, Application $application)
+    {
+        if ($application->submitted_by !== auth()->id() && !auth()->user()->isMekhalaUser()) {
+            abort(403);
+        }
+
+        $validated = $request->validate([
+            'front_page_photo' => 'nullable|image|max:2048',
+            'name' => 'required|string|max:255',
+            'passport_no' => 'required|string|max:50',
+            'civil_id' => 'required|string|max:50|unique:applications,civil_id,' . $application->id,
+            'mobile_number' => 'required|string|max:20',
+            'category' => 'required|in:health,finance',
+            'description' => 'nullable|string',
+        ]);
+
+        if ($request->hasFile('front_page_photo')) {
+            Storage::disk('public')->delete($application->front_page_photo);
+            $validated['front_page_photo'] = $request->file('front_page_photo')->store('applications', 'public');
+        }
+
+        $application->update($validated);
+        return redirect()->route('applications.index')->with('success', 'Application updated successfully');
+    }
+
+    public function destroy(Application $application)
+    {
+        if ($application->submitted_by !== auth()->id() && !auth()->user()->isMekhalaUser()) {
+            abort(403);
+        }
+
+        Storage::disk('public')->delete($application->front_page_photo);
+        $application->delete();
+        return redirect()->route('applications.index')->with('success', 'Application deleted successfully');
+    }
+
+    public function review()
+    {
+        $applications = Application::with('submitter')->latest()->paginate(10);
+        return view('applications.review', compact('applications'));
+    }
+
+    public function approve(Request $request, Application $application)
+    {
+        $validated = $request->validate([
+            'approved_amount' => 'required|numeric|min:0',
+            'expense_amount' => 'required|numeric|min:0',
+            'approved_date' => 'nullable|date',
+        ]);
+
+        $application->update([
+            'approved_amount' => $validated['approved_amount'],
+            'approved_date' => $validated['approved_date'] ?? now(),
+            'status' => 'approved',
+            'reviewed_by' => auth()->id(),
+        ]);
+
+        // Create expense for the application
+        \App\Models\Expense::create([
+            'expense_date' => $validated['approved_date'] ?? now(),
+            'particulars' => 'Application payment for ' . $application->name,
+            'amount' => $validated['expense_amount'],
+            'type' => 'application',
+            'application_id' => $application->id,
+            'entered_by' => auth()->id(),
+        ]);
+
+        return back()->with('success', 'Application approved and expense added successfully');
+    }
+
+    public function reject(Application $application)
+    {
+        $application->update([
+            'status' => 'rejected',
+            'reviewed_by' => auth()->id(),
+        ]);
+        return back()->with('success', 'Application rejected');
+    }
+
+    public function download(Application $application)
+    {
+        if (!$application->front_page_photo || !Storage::disk('public')->exists($application->front_page_photo)) {
+            abort(404, 'File not found');
+        }
+
+        $filename = 'application_' . $application->id . '_photo.' . pathinfo($application->front_page_photo, PATHINFO_EXTENSION);
+        return Storage::disk('public')->download($application->front_page_photo, $filename);
+    }
+}
