@@ -45,9 +45,11 @@
                                 <label for="area_id" class="form-label">Area</label>
                                 <select class="form-control" id="area_id" name="area_id" required>
                                     <option value="">Select Area</option>
-                                    @foreach($areas as $area)
-                                        <option value="{{ $area->id }}" {{ old('area_id') == $area->id ? 'selected' : '' }}>{{ $area->name }}</option>
-                                    @endforeach
+                                    @if(isset($areas) && $areas->count() > 0)
+                                        @foreach($areas as $area)
+                                            <option value="{{ $area->id }}" {{ old('area_id') == $area->id ? 'selected' : '' }}>{{ $area->name }}</option>
+                                        @endforeach
+                                    @endif
                                 </select>
                             </div>
                             <div class="mb-3">

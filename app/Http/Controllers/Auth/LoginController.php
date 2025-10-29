@@ -42,7 +42,11 @@ class LoginController extends Controller
 
     public function showRegisterForm()
     {
-        $areas = \App\Models\Area::all();
+        try {
+            $areas = \App\Models\Area::all();
+        } catch (\Exception $e) {
+            $areas = collect();
+        }
         return view('auth.register', compact('areas'));
     }
 
