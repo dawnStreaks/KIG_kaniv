@@ -42,7 +42,8 @@ class LoginController extends Controller
 
     public function showRegisterForm()
     {
-        return view('auth.register');
+        $areas = \App\Models\Area::all();
+        return view('auth.register', compact('areas'));
     }
 
     public function register(Request $request)
@@ -52,6 +53,8 @@ class LoginController extends Controller
             'email' => 'required|string|email|max:255|unique:users',
             'password' => 'required|string|min:8|confirmed',
             'user_type' => 'required|in:area,mekhala,center',
+            'area_id' => 'required|exists:areas,id',
+            'description' => 'nullable|string',
         ]);
 
         $user = User::create([
@@ -59,6 +62,8 @@ class LoginController extends Controller
             'email' => $request->email,
             'password' => Hash::make($request->password),
             'user_type' => $request->user_type,
+            'area_id' => $request->area_id,
+            'description' => $request->description,
             'is_active' => true,
         ]);
 
