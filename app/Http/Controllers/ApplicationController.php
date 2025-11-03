@@ -33,7 +33,7 @@ class ApplicationController extends Controller
             'passport_no' => 'required|string|max:50',
             'civil_id' => 'required|string|max:50|unique:applications,civil_id',
             'mobile_number' => 'required|string|max:20',
-            'category' => 'required|in:health,finance',
+            'category' => 'required|in:medical_support,financial_support,iqama_visa_residency,ticket',
             'description' => 'nullable|string',
         ]);
 
@@ -69,7 +69,7 @@ class ApplicationController extends Controller
             'passport_no' => 'required|string|max:50',
             'civil_id' => 'required|string|max:50|unique:applications,civil_id,' . $application->id,
             'mobile_number' => 'required|string|max:20',
-            'category' => 'required|in:health,finance',
+            'category' => 'required|in:medical_support,financial_support,iqama_visa_residency,ticket',
             'description' => 'nullable|string',
         ]);
 
@@ -144,5 +144,30 @@ class ApplicationController extends Controller
 
         $filename = 'application_' . $application->id . '_photo.' . pathinfo($application->front_page_photo, PATHINFO_EXTENSION);
         return Storage::disk('public')->download($application->front_page_photo, $filename);
+    }
+
+    public function validateField(Request $request)
+    {
+        $field = $request->input('field');
+        $value = $request->input('value');
+        $id = $request->input('id'); // For edit mode
+        
+        $exists = false;
+        
+        if ($field === 'civil_id') {
+            $query = Application::where('civil_id', $value);
+            if ($id) {
+                $query->where('id', '!=', $id);
+            }
+            $exists = $query->exists();
+        } elseif ($field === 'passport_no') {
+            $query = Application::where('passport_no', $value);
+            if ($id) {
+                $query->where('id', '!=', $id);
+            }
+            $exists = $query->exists();
+        }
+        
+        return response()->json(['exists' => $exists]);
     }
 }

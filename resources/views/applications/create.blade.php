@@ -51,8 +51,10 @@
                                 <label for="category" class="form-label">Category</label>
                                 <select class="form-control" id="category" name="category" required>
                                     <option value="">Select Category</option>
-                                    <option value="health" {{ old('category') == 'health' ? 'selected' : '' }}>Health</option>
-                                    <option value="finance" {{ old('category') == 'finance' ? 'selected' : '' }}>Finance</option>
+                                    <option value="medical_support" {{ old('category') == 'medical_support' ? 'selected' : '' }}>Medical Support</option>
+                                    <option value="financial_support" {{ old('category') == 'financial_support' ? 'selected' : '' }}>Financial Support</option>
+                                    <option value="iqama_visa_residency" {{ old('category') == 'iqama_visa_residency' ? 'selected' : '' }}>Iqama/Visa/Residency</option>
+                                    <option value="ticket" {{ old('category') == 'ticket' ? 'selected' : '' }}>Ticket</option>
                                 </select>
                             </div>
                             
@@ -71,4 +73,77 @@
             </div>
         </div>
     </div>
+
+    <script>
+        function validateField(field, value, inputElement) {
+            if (!value) {
+                clearValidation(inputElement);
+                return;
+            }
+            
+            fetch('{{ route('applications.validate-field') }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                },
+                body: JSON.stringify({
+                    field: field,
+                    value: value
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.exists) {
+                    showError(inputElement, `This ${field.replace('_', ' ')} already exists`);
+                } else {
+                    showSuccess(inputElement);
+                }
+            });
+        }
+        
+        function showError(inputElement, message) {
+            inputElement.classList.add('is-invalid');
+            inputElement.classList.remove('is-valid');
+            
+            let feedback = inputElement.parentNode.querySelector('.invalid-feedback');
+            if (!feedback) {
+                feedback = document.createElement('div');
+                feedback.className = 'invalid-feedback';
+                inputElement.parentNode.appendChild(feedback);
+            }
+            feedback.textContent = message;
+        }
+        
+        function showSuccess(inputElement) {
+            inputElement.classList.add('is-valid');
+            inputElement.classList.remove('is-invalid');
+            
+            const feedback = inputElement.parentNode.querySelector('.invalid-feedback');
+            if (feedback) {
+                feedback.remove();
+            }
+        }
+        
+        function clearValidation(inputElement) {
+            inputElement.classList.remove('is-valid', 'is-invalid');
+            const feedback = inputElement.parentNode.querySelector('.invalid-feedback');
+            if (feedback) {
+                feedback.remove();
+            }
+        }
+        
+        document.addEventListener('DOMContentLoaded', function() {
+            const civilIdInput = document.getElementById('civil_id');
+            const passportInput = document.getElementById('passport_no');
+            
+            civilIdInput.addEventListener('blur', function() {
+                validateField('civil_id', this.value, this);
+            });
+            
+            passportInput.addEventListener('blur', function() {
+                validateField('passport_no', this.value, this);
+            });
+        });
+    </script>
 @endsection

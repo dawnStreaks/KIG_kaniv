@@ -3,6 +3,7 @@
 <head>
     <title>@yield('title', 'Multi-Level Management System')</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
@@ -46,24 +47,10 @@
             <a class="nav-link" href="{{ route('dashboard') }}">Dashboard</a>
             
             @auth
-                @if(auth()->user()->isAdmin())
+                @if(auth()->user()->user_type == 'mekhala')
                     <div class="px-3 py-2">
-                        <small class="text-muted">ADMIN</small>
+                        <small class="text-muted">MEKHALA</small>
                     </div>
-                    <a class="nav-link" href="{{ route('admin.dashboard') }}">Admin Dashboard</a>
-                    <a class="nav-link" href="{{ route('admin.users.index') }}">Users</a>
-                    <a class="nav-link" href="{{ route('admin.areas.index') }}">Areas</a>
-                    <a class="nav-link" href="{{ route('admin.mekhalas.index') }}">Mekhalas</a>
-                    <a class="nav-link" href="{{ route('admin.units.index') }}">Units</a>
-                @endif
-                
-                <div class="px-3 py-2">
-                    <small class="text-muted">MAIN</small>
-                </div>
-                <a class="nav-link" href="{{ route('applications.index') }}">Applications</a>
-                <a class="nav-link" href="{{ route('collections.index') }}">Collections</a>
-                
-                @if(auth()->user()->isMekhalaUser() || auth()->user()->isAdmin())
                     <a class="nav-link" href="{{ route('applications.review') }}">Review Applications</a>
                     <a class="nav-link" href="{{ route('expenses.index') }}">Expenses</a>
                     
@@ -73,6 +60,34 @@
                     <a class="nav-link" href="{{ route('reports.financial') }}">Financial Statement</a>
                     <a class="nav-link" href="{{ route('reports.collection') }}">Collection Report</a>
                     <a class="nav-link" href="{{ route('reports.application-payment') }}">Application Payment</a>
+                @else
+                    @if(auth()->user()->user_type == 'admin' || auth()->user()->user_type == 'center')
+                        <div class="px-3 py-2">
+                            <small class="text-muted">{{ strtoupper(auth()->user()->user_type) }}</small>
+                        </div>
+                        @if(auth()->user()->user_type == 'admin')
+                            <a class="nav-link" href="{{ route('admin.dashboard') }}">Admin Dashboard</a>
+                            <a class="nav-link" href="{{ route('admin.users.index') }}">Users</a>
+                            <a class="nav-link" href="{{ route('admin.areas.index') }}">Areas</a>
+                            <a class="nav-link" href="{{ route('admin.mekhalas.index') }}">Mekhalas</a>
+                            <a class="nav-link" href="{{ route('admin.units.index') }}">Units</a>
+                        @endif
+                        
+                        <div class="px-3 py-2">
+                            <small class="text-muted">MAIN</small>
+                        </div>
+                        <a class="nav-link" href="{{ route('applications.index') }}">Applications</a>
+                        <a class="nav-link" href="{{ route('collections.index') }}">Collections</a>
+                        <a class="nav-link" href="{{ route('applications.review') }}">Review Applications</a>
+                        <a class="nav-link" href="{{ route('expenses.index') }}">Expenses</a>
+                        
+                        <div class="px-3 py-2">
+                            <small class="text-muted">REPORTS</small>
+                        </div>
+                        <a class="nav-link" href="{{ route('reports.financial') }}">Financial Statement</a>
+                        <a class="nav-link" href="{{ route('reports.collection') }}">Collection Report</a>
+                        <a class="nav-link" href="{{ route('reports.application-payment') }}">Application Payment</a>
+                    @endif
                 @endif
             @endauth
         </nav>
@@ -103,6 +118,8 @@
         </div>
     </div>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="{{ asset('js/table-utils.js') }}"></script>
     <script>
         // Set active navigation link
         document.addEventListener('DOMContentLoaded', function() {

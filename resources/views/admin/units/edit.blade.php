@@ -28,7 +28,7 @@
                     <select class="form-control @error('area_id') is-invalid @enderror" id="area_id" name="area_id" required>
                         <option value="">Select Area</option>
                         @foreach($areas as $area)
-                            <option value="{{ $area->id }}" {{ old('area_id', $unit->mekhala->area_id ?? '') == $area->id ? 'selected' : '' }}>
+                            <option value="{{ $area->id }}" {{ old('area_id', $unit->area_id) == $area->id ? 'selected' : '' }}>
                                 {{ $area->name }}
                             </option>
                         @endforeach
@@ -43,7 +43,7 @@
                     <select class="form-control @error('mekhala_id') is-invalid @enderror" id="mekhala_id" name="mekhala_id" required>
                         <option value="">Select Mekhala</option>
                         @foreach($mekhalas as $mekhala)
-                            <option value="{{ $mekhala->id }}" data-area="{{ $mekhala->area_id }}" {{ old('mekhala_id', $unit->mekhala_id) == $mekhala->id ? 'selected' : '' }}>
+                            <option value="{{ $mekhala->id }}" data-area="{{ $mekhala->id }}" {{ old('mekhala_id', $unit->area->mekhala_id ?? '') == $mekhala->id ? 'selected' : '' }}>
                                 {{ $mekhala->name }}
                             </option>
                         @endforeach

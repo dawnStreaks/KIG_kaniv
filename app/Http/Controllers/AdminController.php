@@ -177,8 +177,10 @@ class AdminController extends Controller
 
     public function editUnit(Unit $unit)
     {
+        $unit->load('area');
         $areas = Area::active()->get();
-        return view('admin.units.edit', compact('unit', 'areas'));
+        $mekhalas = Mekhala::active()->get();
+        return view('admin.units.edit', compact('unit', 'areas', 'mekhalas'));
     }
 
     public function updateUnit(Request $request, Unit $unit)

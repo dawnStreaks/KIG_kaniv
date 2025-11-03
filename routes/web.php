@@ -59,6 +59,7 @@ Route::middleware('auth')->group(function () {
     // Application routes
     Route::resource('applications', ApplicationController::class);
     Route::get('/applications/{application}/download', [ApplicationController::class, 'download'])->name('applications.download');
+    Route::post('/applications/validate-field', [ApplicationController::class, 'validateField'])->name('applications.validate-field');
     Route::get('/applications-review', [ApplicationController::class, 'review'])->name('applications.review')->middleware('mekhala');
     Route::post('/applications/{application}/approve', [ApplicationController::class, 'approve'])->name('applications.approve')->middleware('mekhala');
     Route::post('/applications/{application}/reject', [ApplicationController::class, 'reject'])->name('applications.reject')->middleware('mekhala');
