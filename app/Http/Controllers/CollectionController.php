@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Models\Collection;
 use App\Models\Unit;
 use App\Models\Area;
+use App\Models\CollectionTerm;
+use App\Models\CollectionType;
 use Illuminate\Http\Request;
 use App\Exports\CollectionsExport;
 use Maatwebsite\Excel\Facades\Excel;
@@ -31,9 +33,8 @@ class CollectionController extends Controller
             ? Unit::where('area_id', auth()->user()->area_id)->active()->get()
             : Unit::with('area')->active()->get();
             
-        // Get terms and types from session (managed by center/admin users)
-        $terms = session('collection_terms', ['Monthly', 'Quarterly', 'Yearly', 'One-time']);
-        $types = session('collection_types', ['Regular', 'Special', 'Emergency', 'Donation']);
+        $terms = CollectionTerm::active()->pluck('name')->toArray();
+        $types = CollectionType::active()->pluck('name')->toArray();
             
         return view('collections.create', compact('units', 'terms', 'types'));
     }
@@ -44,9 +45,7 @@ class CollectionController extends Controller
         if ($request->has('selected_units')) {
             $request->validate([
                 'collection_date' => 'required|date',
-                'term' => 'required|string',
-                'type' => 'required|string',
-                'year' => 'required|integer',
+                'year' => 'nullable|integer',
                 'selected_units' => 'required|array',
                 'selected_units.*' => 'exists:units,id',
             ]);
@@ -58,9 +57,10 @@ class CollectionController extends Controller
                         'unit_id' => $unitId,
                         'amount' => $request->amount[$unitId],
                         'collection_date' => $request->collection_date,
-                        'term' => $request->term,
-                        'type' => $request->type,
-                        'year' => $request->year,
+                        'term' => $request->term[$unitId] ?? null,
+                        'type' => $request->type[$unitId] ?? null,
+                        'unit_type' => $request->unit_type[$unitId] ?? null,
+                        'year' => $request->year ?? date('Y'),
                         'entered_by' => auth()->id(),
                     ]);
                     $created++;
