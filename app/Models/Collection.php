@@ -10,6 +10,9 @@ class Collection extends Model
         'unit_id',
         'amount',
         'collection_date',
+        'term',
+        'type',
+        'year',
         'entered_by',
         'notes',
     ];

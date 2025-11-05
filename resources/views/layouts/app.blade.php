@@ -52,6 +52,7 @@
                         <small class="text-muted">AREA</small>
                     </div>
                     <a class="nav-link" href="{{ route('collections.index') }}">Collections</a>
+                    <a class="nav-link" href="{{ route('collections.report') }}">Collection Report</a>
                 @elseif(auth()->user()->user_type == 'mekhala')
                     <div class="px-3 py-2">
                         <small class="text-muted">MEKHALA - {{ strtoupper(auth()->user()->role ?? 'N/A') }}</small>
@@ -68,6 +69,7 @@
                     </div>
                     <a class="nav-link" href="{{ route('reports.financial') }}">Financial Statement</a>
                     <a class="nav-link" href="{{ route('reports.collection') }}">Collection Report</a>
+                    <a class="nav-link" href="{{ route('collections.report') }}">Collection Chart Report</a>
                     <a class="nav-link" href="{{ route('reports.application-payment') }}">Application Payment</a>
                 @else
                     @if(auth()->user()->user_type == 'admin' || auth()->user()->user_type == 'center')
@@ -99,6 +101,7 @@
                         </div>
                         <a class="nav-link" href="{{ route('reports.financial') }}">Financial Statement</a>
                         <a class="nav-link" href="{{ route('reports.collection') }}">Collection Report</a>
+                        <a class="nav-link" href="{{ route('collections.report') }}">Collection Chart Report</a>
                         <a class="nav-link" href="{{ route('reports.application-payment') }}">Application Payment</a>
                     @endif
                 @endif

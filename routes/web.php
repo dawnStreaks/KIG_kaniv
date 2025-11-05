@@ -82,6 +82,8 @@ Route::middleware('auth')->group(function () {
     
     // Collection routes
     Route::get('/collections/export', [CollectionController::class, 'export'])->name('collections.export');
+    Route::get('/collections/report', [CollectionController::class, 'collectionReport'])->name('collections.report');
+    Route::get('/collections/report/drill-down', [CollectionController::class, 'collectionReportDrillDown'])->name('collections.report.drilldown');
     Route::resource('collections', CollectionController::class);
     Route::get('/unit-collections', [CollectionController::class, 'unitCollections'])->name('collections.units')->middleware('mekhala');
     Route::get('/area-collections', [CollectionController::class, 'areaCollections'])->name('collections.area')->middleware('mekhala');
