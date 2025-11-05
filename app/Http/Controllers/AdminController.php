@@ -43,6 +43,7 @@ class AdminController extends Controller
             'email' => 'required|email|unique:users',
             'password' => 'required|min:8',
             'user_type' => 'required|in:area,mekhala,center',
+            'role' => 'nullable|in:admin,chairman,treasurer',
             'area_id' => 'nullable|exists:areas,id',
             'mekhala_id' => 'nullable|exists:mekhalas,id',
         ]);
@@ -66,6 +67,7 @@ class AdminController extends Controller
             'name' => 'required|string|max:255',
             'email' => 'required|email|unique:users,email,' . $user->id,
             'user_type' => 'required|in:area,mekhala,center',
+            'role' => 'nullable|in:admin,chairman,treasurer',
             'area_id' => 'nullable|exists:areas,id',
             'mekhala_id' => 'nullable|exists:mekhalas,id',
         ]);

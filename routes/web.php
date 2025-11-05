@@ -77,8 +77,8 @@ Route::middleware('auth')->group(function () {
     Route::get('/applications/{application}/download', [ApplicationController::class, 'download'])->name('applications.download');
     Route::post('/applications/validate-field', [ApplicationController::class, 'validateField'])->name('applications.validate-field');
     Route::get('/applications-review', [ApplicationController::class, 'review'])->name('applications.review')->middleware('mekhala');
-    Route::post('/applications/{application}/approve', [ApplicationController::class, 'approve'])->name('applications.approve')->middleware('mekhala');
-    Route::post('/applications/{application}/reject', [ApplicationController::class, 'reject'])->name('applications.reject')->middleware('mekhala');
+    Route::post('/applications/{application}/approve', [ApplicationController::class, 'approve'])->name('applications.approve');
+    Route::post('/applications/{application}/reject', [ApplicationController::class, 'reject'])->name('applications.reject');
     
     // Collection routes
     Route::get('/collections/export', [CollectionController::class, 'export'])->name('collections.export');
@@ -87,8 +87,15 @@ Route::middleware('auth')->group(function () {
     Route::get('/area-collections', [CollectionController::class, 'areaCollections'])->name('collections.area')->middleware('mekhala');
     
     // Expense routes
-    Route::get('/expenses/export', [ExpenseController::class, 'export'])->name('expenses.export')->middleware('mekhala');
-    Route::resource('expenses', ExpenseController::class)->middleware('mekhala');
+    // Expense routes  
+    Route::get('/expenses/export', [ExpenseController::class, 'export'])->name('expenses.export');
+    Route::get('/expenses', [ExpenseController::class, 'index'])->name('expenses.index');
+    Route::get('/expenses/create', [ExpenseController::class, 'create'])->name('expenses.create');
+    Route::post('/expenses', [ExpenseController::class, 'store'])->name('expenses.store');
+    Route::get('/expenses/{expense}', [ExpenseController::class, 'show'])->name('expenses.show');
+    Route::get('/expenses/{expense}/edit', [ExpenseController::class, 'edit'])->name('expenses.edit');
+    Route::put('/expenses/{expense}', [ExpenseController::class, 'update'])->name('expenses.update');
+    Route::delete('/expenses/{expense}', [ExpenseController::class, 'destroy'])->name('expenses.destroy');
     
     // Report routes
     Route::middleware('mekhala')->prefix('reports')->name('reports.')->group(function () {

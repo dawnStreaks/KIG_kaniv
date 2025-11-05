@@ -21,6 +21,7 @@
                             <th>Name</th>
                             <th>Email</th>
                             <th>User Type</th>
+                            <th>Role</th>
                             <th>Status</th>
                             <th>Actions</th>
                         </tr>
@@ -38,6 +39,7 @@
                             <td>{{ $user->name }}</td>
                             <td>{{ $user->email }}</td>
                             <td>{{ ucfirst($user->user_type) }}</td>
+                            <td>{{ $user->role ? ucfirst($user->role) : 'N/A' }}</td>
                             <td>{{ $user->is_active ? 'Active' : 'Inactive' }}</td>
                             <td><a href="{{ route('admin.users.edit', $user->id) }}" class="btn btn-sm btn-warning">Edit</a></td>
                         </tr>

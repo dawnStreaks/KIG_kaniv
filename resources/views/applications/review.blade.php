@@ -43,7 +43,7 @@
                             </td>
                             <td>{{ $application->created_at->format('Y-m-d') }}</td>
                             <td>
-                                @if($application->status == 'pending')
+                                @if($application->status == 'pending' && auth()->user()->canApproveApplications())
                                     <button type="button" class="btn btn-sm btn-success" data-bs-toggle="modal" data-bs-target="#approveModal{{ $application->id }}">Approve</button>
                                     <form method="POST" action="{{ route('applications.reject', $application->id) }}" class="d-inline">
                                         @csrf

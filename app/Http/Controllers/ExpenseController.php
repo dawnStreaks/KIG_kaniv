@@ -32,11 +32,18 @@ class ExpenseController extends Controller
 
     public function create()
     {
+        if (!auth()->user()->canAddExpenses()) {
+            abort(403, 'Only treasurers can add expenses');
+        }
         return view('expenses.create');
     }
 
     public function store(Request $request)
     {
+        if (!auth()->user()->canAddExpenses()) {
+            abort(403, 'Only treasurers can add expenses');
+        }
+
         $validated = $request->validate([
             'expense_date' => 'required|date',
             'particulars' => 'required|string|max:255',

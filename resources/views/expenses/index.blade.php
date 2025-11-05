@@ -9,7 +9,9 @@
             <div>
                 <button type="button" class="btn btn-secondary me-2" onclick="clearFilters()">Clear Filters</button>
                 <a href="{{ route('expenses.export') }}" class="btn btn-success me-2">Export Excel</a>
-                <a href="{{ route('expenses.create') }}" class="btn btn-primary">Add Expense</a>
+                @if(auth()->user()->canAddExpenses())
+                    <a href="{{ route('expenses.create') }}" class="btn btn-primary">Add Expense</a>
+                @endif
             </div>
         </div>
 

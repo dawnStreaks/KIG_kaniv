@@ -103,6 +103,10 @@ class ApplicationController extends Controller
 
     public function approve(Request $request, Application $application)
     {
+        if (!auth()->user()->canApproveApplications()) {
+            abort(403, 'Only chairmen can approve applications');
+        }
+
         $validated = $request->validate([
             'approved_amount' => 'required|numeric|min:0',
             'expense_amount' => 'required|numeric|min:0',
@@ -131,6 +135,10 @@ class ApplicationController extends Controller
 
     public function reject(Application $application)
     {
+        if (!auth()->user()->canApproveApplications()) {
+            abort(403, 'Only chairmen can reject applications');
+        }
+
         $application->update([
             'status' => 'rejected',
             'reviewed_by' => auth()->id(),

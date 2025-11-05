@@ -54,10 +54,14 @@
                     <a class="nav-link" href="{{ route('collections.index') }}">Collections</a>
                 @elseif(auth()->user()->user_type == 'mekhala')
                     <div class="px-3 py-2">
-                        <small class="text-muted">MEKHALA</small>
+                        <small class="text-muted">MEKHALA - {{ strtoupper(auth()->user()->role ?? 'N/A') }}</small>
                     </div>
-                    <a class="nav-link" href="{{ route('applications.review') }}">Review Applications</a>
-                    <a class="nav-link" href="{{ route('expenses.index') }}">Expenses</a>
+                    @if(auth()->user()->canApproveApplications())
+                        <a class="nav-link" href="{{ route('applications.review') }}">Review Applications</a>
+                    @endif
+                    @if(auth()->user()->canAddExpenses())
+                        <a class="nav-link" href="{{ route('expenses.index') }}">Expenses</a>
+                    @endif
                     
                     <div class="px-3 py-2">
                         <small class="text-muted">REPORTS</small>

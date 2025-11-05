@@ -50,13 +50,27 @@
                     <div class="mb-3">
                         <label for="user_type" class="form-label">User Type</label>
                         <select class="form-select @error('user_type') is-invalid @enderror" 
-                                id="user_type" name="user_type" required>
+                                id="user_type" name="user_type" required onchange="toggleRoleField()">
                             <option value="">Select User Type</option>
                             <option value="area" {{ old('user_type') == 'area' ? 'selected' : '' }}>Area</option>
                             <option value="mekhala" {{ old('user_type') == 'mekhala' ? 'selected' : '' }}>Mekhala</option>
                             <option value="center" {{ old('user_type') == 'center' ? 'selected' : '' }}>Center</option>
                         </select>
                         @error('user_type')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
+                    </div>
+
+                    <div class="mb-3" id="roleField" style="display: none;">
+                        <label for="role" class="form-label">Role</label>
+                        <select class="form-select @error('role') is-invalid @enderror" 
+                                id="role" name="role">
+                            <option value="">Select Role</option>
+                            <option value="admin" {{ old('role') == 'admin' ? 'selected' : '' }}>Admin</option>
+                            <option value="chairman" {{ old('role') == 'chairman' ? 'selected' : '' }}>Chairman</option>
+                            <option value="treasurer" {{ old('role') == 'treasurer' ? 'selected' : '' }}>Treasurer</option>
+                        </select>
+                        @error('role')
                             <div class="invalid-feedback">{{ $message }}</div>
                         @enderror
                     </div>
@@ -76,4 +90,27 @@
             </div>
         </div>
     </div>
+
+    <script>
+        function toggleRoleField() {
+            const userType = document.getElementById('user_type').value;
+            const roleField = document.getElementById('roleField');
+            const roleSelect = document.getElementById('role');
+            
+            if (userType === 'center') {
+                roleField.style.display = 'block';
+                roleSelect.innerHTML = '<option value="admin">Admin</option>';
+                roleSelect.value = 'admin';
+            } else if (userType === 'mekhala') {
+                roleField.style.display = 'block';
+                roleSelect.innerHTML = '<option value="">Select Role</option><option value="chairman">Chairman</option><option value="treasurer">Treasurer</option>';
+            } else {
+                roleField.style.display = 'none';
+                roleSelect.value = '';
+            }
+        }
+        
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', toggleRoleField);
+    </script>
 @endsection
