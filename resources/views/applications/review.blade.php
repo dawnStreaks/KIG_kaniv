@@ -52,6 +52,15 @@
                                 @else
                                     <span class="text-muted">{{ ucfirst($application->status) }}</span>
                                 @endif
+                                @php
+                                    $hasDuplicates = \App\Models\Application::where(function($query) use ($application) {
+                                        $query->where('civil_id', $application->civil_id)
+                                              ->orWhere('mobile_number', $application->mobile_number);
+                                    })->where('id', '!=', $application->id)->exists();
+                                @endphp
+                                @if($hasDuplicates)
+                                    <a href="{{ route('applications.history', $application) }}" class="btn btn-sm btn-outline-info">History</a>
+                                @endif
                             </td>
                         </tr>
                         @endforeach

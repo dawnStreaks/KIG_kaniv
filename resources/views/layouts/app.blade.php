@@ -47,7 +47,12 @@
             <a class="nav-link" href="{{ route('dashboard') }}">Dashboard</a>
             
             @auth
-                @if(auth()->user()->user_type == 'mekhala')
+                @if(auth()->user()->user_type == 'area')
+                    <div class="px-3 py-2">
+                        <small class="text-muted">AREA</small>
+                    </div>
+                    <a class="nav-link" href="{{ route('collections.index') }}">Collections</a>
+                @elseif(auth()->user()->user_type == 'mekhala')
                     <div class="px-3 py-2">
                         <small class="text-muted">MEKHALA</small>
                     </div>
@@ -65,13 +70,17 @@
                         <div class="px-3 py-2">
                             <small class="text-muted">{{ strtoupper(auth()->user()->user_type) }}</small>
                         </div>
-                        @if(auth()->user()->user_type == 'admin')
-                            <a class="nav-link" href="{{ route('admin.dashboard') }}">Admin Dashboard</a>
-                            <a class="nav-link" href="{{ route('admin.users.index') }}">Users</a>
-                            <a class="nav-link" href="{{ route('admin.areas.index') }}">Areas</a>
-                            <a class="nav-link" href="{{ route('admin.mekhalas.index') }}">Mekhalas</a>
-                            <a class="nav-link" href="{{ route('admin.units.index') }}">Units</a>
-                        @endif
+                        <a class="nav-link" href="{{ route('admin.dashboard') }}">Admin Dashboard</a>
+                        <a class="nav-link" href="{{ route('admin.users.index') }}">Users</a>
+                        <a class="nav-link" href="{{ route('admin.areas.index') }}">Areas</a>
+                        <a class="nav-link" href="{{ route('admin.mekhalas.index') }}">Mekhalas</a>
+                        <a class="nav-link" href="{{ route('admin.units.index') }}">Units</a>
+                        
+                        <div class="px-3 py-2">
+                            <small class="text-muted">COLLECTION SETTINGS</small>
+                        </div>
+                        <a class="nav-link" href="{{ route('admin.terms.index') }}">Manage Terms</a>
+                        <a class="nav-link" href="{{ route('admin.types.index') }}">Manage Types</a>
                         
                         <div class="px-3 py-2">
                             <small class="text-muted">MAIN</small>

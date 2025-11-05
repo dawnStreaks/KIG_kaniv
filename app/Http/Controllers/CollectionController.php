@@ -5,7 +5,11 @@ namespace App\Http\Controllers;
 use App\Models\Collection;
 use App\Models\Unit;
 use App\Models\Area;
+use App\Models\CollectionTerm;
+use App\Models\CollectionType;
 use Illuminate\Http\Request;
+use App\Exports\CollectionsExport;
+use Maatwebsite\Excel\Facades\Excel;
 
 class CollectionController extends Controller
 {
@@ -29,16 +33,49 @@ class CollectionController extends Controller
             ? Unit::where('area_id', auth()->user()->area_id)->active()->get()
             : Unit::with('area')->active()->get();
             
-        return view('collections.create', compact('units'));
+        // Get terms and types from database (managed by center/admin users)
+        $terms = CollectionTerm::active()->pluck('name')->toArray();
+        $types = CollectionType::active()->pluck('name')->toArray();
+            
+        return view('collections.create', compact('units', 'terms', 'types'));
     }
 
     public function store(Request $request)
     {
+        // Handle bulk collections for area users
+        if ($request->has('selected_units')) {
+            $request->validate([
+                'collection_date' => 'required|date',
+                'selected_units' => 'required|array',
+                'selected_units.*' => 'exists:units,id',
+            ]);
+
+            $created = 0;
+            foreach ($request->selected_units as $unitId) {
+                if ($request->amount[$unitId] && $request->amount[$unitId] > 0) {
+                    Collection::create([
+                        'unit_id' => $unitId,
+                        'amount' => $request->amount[$unitId],
+                        'collection_date' => $request->collection_date,
+                        'term' => $request->term[$unitId] ?? null,
+                        'type' => $request->type[$unitId] ?? null,
+                        'unit_type' => $request->unit_type[$unitId] ?? null,
+                        'year' => $request->year ?? date('Y'),
+                        'entered_by' => auth()->id(),
+                    ]);
+                    $created++;
+                }
+            }
+            
+            return redirect()->route('collections.index')->with('success', "$created collection entries added successfully");
+        }
+        
+        // Handle single collection for other users
         $validated = $request->validate([
             'unit_id' => 'required|exists:units,id',
             'amount' => 'required|numeric|min:0',
             'collection_date' => 'required|date',
-            'notes' => 'nullable|string',
+            'description' => 'nullable|string',
         ]);
 
         $validated['entered_by'] = auth()->id();
@@ -97,5 +134,10 @@ class CollectionController extends Controller
         });
         
         return view('collections.area-collections', compact('area', 'totalAmount'));
+    }
+
+    public function export(Request $request)
+    {
+        return Excel::download(new CollectionsExport($request), 'collections.xlsx');
     }
 }

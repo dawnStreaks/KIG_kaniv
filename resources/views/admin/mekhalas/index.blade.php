@@ -5,7 +5,10 @@
 @section('content')
     <div class="d-flex justify-content-between align-items-center mb-3">
         <h2>Mekhalas</h2>
-        <a href="{{ route('admin.mekhalas.create') }}" class="btn btn-primary">Add Mekhala</a>
+        <div>
+            <a href="{{ route('admin.mekhalas.export') }}" class="btn btn-success me-2">Export Excel</a>
+            <a href="{{ route('admin.mekhalas.create') }}" class="btn btn-primary">Add Mekhala</a>
+        </div>
     </div>
 
     <div class="card">
@@ -32,4 +35,13 @@
             </table>
         </div>
     </div>
+    
+    <script src="{{ asset('js/filtered-export.js') }}"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const table = document.querySelector('table');
+            if (!table.id) table.id = 'mekhalasTable';
+            FilteredExport.initializeExportButton('mekhalasTable', '{{ route("admin.mekhalas.export") }}');
+        });
+    </script>
 @endsection

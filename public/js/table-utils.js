@@ -15,6 +15,11 @@ class TableUtils {
     }
 
     static addFilterInputs(table) {
+        // Skip if table already has filter inputs
+        if (table.querySelector('.filter-input')) {
+            return;
+        }
+        
         const thead = table.querySelector('thead');
         const headerRow = thead.querySelector('tr');
         const filterRow = document.createElement('tr');
@@ -35,9 +40,9 @@ class TableUtils {
         if (!container) return;
         
         const header = container.querySelector('.card-header, .d-flex');
-        if (header) {
+        if (header && !header.querySelector('.export-excel-btn')) {
             const exportBtn = document.createElement('button');
-            exportBtn.className = 'btn btn-success btn-sm ms-2';
+            exportBtn.className = 'btn btn-success btn-sm ms-2 export-excel-btn';
             exportBtn.innerHTML = '<i class="fas fa-file-excel"></i> Export Excel';
             exportBtn.onclick = () => this.exportToExcel(table);
             header.appendChild(exportBtn);

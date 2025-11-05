@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Models\Expense;
 use App\Models\Application;
 use Illuminate\Http\Request;
+use App\Exports\ExpensesExport;
+use Maatwebsite\Excel\Facades\Excel;
 
 class ExpenseController extends Controller
 {
@@ -77,5 +79,10 @@ class ExpenseController extends Controller
     {
         $expense->delete();
         return redirect()->route('expenses.index')->with('success', 'Expense deleted successfully');
+    }
+
+    public function export(Request $request)
+    {
+        return Excel::download(new ExpensesExport($request), 'expenses.xlsx');
     }
 }

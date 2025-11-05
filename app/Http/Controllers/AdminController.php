@@ -6,8 +6,15 @@ use App\Models\User;
 use App\Models\Area;
 use App\Models\Mekhala;
 use App\Models\Unit;
+use App\Models\CollectionTerm;
+use App\Models\CollectionType;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use App\Exports\UsersExport;
+use App\Exports\AreasExport;
+use App\Exports\MekhalasExport;
+use App\Exports\UnitsExport;
+use Maatwebsite\Excel\Facades\Excel;
 
 class AdminController extends Controller
 {
@@ -193,5 +200,63 @@ class AdminController extends Controller
 
         $unit->update($validated);
         return redirect()->route('admin.units.index')->with('success', 'Unit updated successfully');
+    }
+
+    public function terms()
+    {
+        $terms = CollectionTerm::all();
+        return view('admin.terms.index', compact('terms'));
+    }
+
+    public function storeTerm(Request $request)
+    {
+        $request->validate(['name' => 'required|string|max:255']);
+        CollectionTerm::create(['name' => $request->name]);
+        return redirect()->route('admin.terms.index')->with('success', 'Term added successfully');
+    }
+
+    public function destroyTerm($id)
+    {
+        CollectionTerm::findOrFail($id)->delete();
+        return redirect()->route('admin.terms.index')->with('success', 'Term deleted successfully');
+    }
+
+    public function types()
+    {
+        $types = CollectionType::all();
+        return view('admin.types.index', compact('types'));
+    }
+
+    public function storeType(Request $request)
+    {
+        $request->validate(['name' => 'required|string|max:255']);
+        CollectionType::create(['name' => $request->name]);
+        return redirect()->route('admin.types.index')->with('success', 'Type added successfully');
+    }
+
+    public function destroyType($id)
+    {
+        CollectionType::findOrFail($id)->delete();
+        return redirect()->route('admin.types.index')->with('success', 'Type deleted successfully');
+    }
+
+    public function exportUsers(Request $request)
+    {
+        return Excel::download(new UsersExport($request), 'users.xlsx');
+    }
+
+    public function exportAreas(Request $request)
+    {
+        return Excel::download(new AreasExport($request), 'areas.xlsx');
+    }
+
+    public function exportMekhalas(Request $request)
+    {
+        return Excel::download(new MekhalasExport($request), 'mekhalas.xlsx');
+    }
+
+    public function exportUnits(Request $request)
+    {
+        return Excel::download(new UnitsExport($request), 'units.xlsx');
     }
 }

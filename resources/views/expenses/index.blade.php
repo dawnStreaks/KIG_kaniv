@@ -8,6 +8,7 @@
             <h2>Expenses</h2>
             <div>
                 <button type="button" class="btn btn-secondary me-2" onclick="clearFilters()">Clear Filters</button>
+                <a href="{{ route('expenses.export') }}" class="btn btn-success me-2">Export Excel</a>
                 <a href="{{ route('expenses.create') }}" class="btn btn-primary">Add Expense</a>
             </div>
         </div>
@@ -52,8 +53,12 @@
         </div>
     </div>
 
+    <script src="{{ asset('js/filtered-export.js') }}"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
+            const table = document.querySelector('table');
+            if (!table.id) table.id = 'expensesTable';
+            
             const filterInputs = document.querySelectorAll('.filter-input');
             const tableRows = document.querySelectorAll('tbody tr');
             
@@ -80,14 +85,13 @@
                     row.style.display = showRow ? '' : 'none';
                 });
             }
+            
+            // Initialize filtered export
+            FilteredExport.initializeExportButton('expensesTable', '{{ route("expenses.export") }}');
         });
         
         function clearFilters() {
-            const filterInputs = document.querySelectorAll('.filter-input');
-            filterInputs.forEach(input => {
-                input.value = '';
-                input.dispatchEvent(new Event('input'));
-            });
+            FilteredExport.clearFilters('expensesTable');
         }
     </script>
 @endsection

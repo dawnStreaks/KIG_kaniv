@@ -8,6 +8,7 @@
             <h2>Applications</h2>
             <div>
                 <button type="button" class="btn btn-secondary me-2" onclick="clearFilters()">Clear Filters</button>
+                <a href="{{ route('applications.export') }}" class="btn btn-success me-2">Export Excel</a>
                 <a href="{{ route('applications.create') }}" class="btn btn-primary">New Application</a>
             </div>
         </div>
@@ -68,6 +69,15 @@
                                         @if($application->submitted_by == auth()->id() && $application->status == 'pending')
                                             <a href="{{ route('applications.edit', $application) }}" class="btn btn-sm btn-outline-secondary">Edit</a>
                                         @endif
+                                        @php
+                                            $hasDuplicates = \App\Models\Application::where(function($query) use ($application) {
+                                                $query->where('civil_id', $application->civil_id)
+                                                      ->orWhere('mobile_number', $application->mobile_number);
+                                            })->where('id', '!=', $application->id)->exists();
+                                        @endphp
+                                        @if($hasDuplicates)
+                                            <a href="{{ route('applications.history', $application) }}" class="btn btn-sm btn-outline-info">History</a>
+                                        @endif
                                     </td>
                                 </tr>
                             @empty
@@ -84,6 +94,7 @@
         </div>
     </div>
 
+    <script src="{{ asset('js/filtered-export.js') }}"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             const table = document.getElementById('applicationsTable');
@@ -104,14 +115,13 @@
                     });
                 });
             });
+            
+            // Initialize filtered export
+            FilteredExport.initializeExportButton('applicationsTable', '{{ route("applications.export") }}');
         });
         
         function clearFilters() {
-            const filterInputs = document.querySelectorAll('.filter-input, thead tr:nth-child(2) input, thead tr:nth-child(2) select');
-            filterInputs.forEach(input => {
-                input.value = '';
-                input.dispatchEvent(new Event('input'));
-            });
+            FilteredExport.clearFilters('applicationsTable');
         }
     </script>
 @endsection

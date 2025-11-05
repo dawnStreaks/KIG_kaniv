@@ -54,9 +54,25 @@ Route::middleware('auth')->group(function () {
         Route::post('/units', [AdminController::class, 'storeUnit'])->name('units.store');
         Route::get('/units/{unit}/edit', [AdminController::class, 'editUnit'])->name('units.edit');
         Route::put('/units/{unit}', [AdminController::class, 'updateUnit'])->name('units.update');
+        
+        // Collection settings
+        Route::get('/terms', [AdminController::class, 'terms'])->name('terms.index');
+        Route::post('/terms', [AdminController::class, 'storeTerm'])->name('terms.store');
+        Route::delete('/terms/{id}', [AdminController::class, 'destroyTerm'])->name('terms.destroy');
+        Route::get('/types', [AdminController::class, 'types'])->name('types.index');
+        Route::post('/types', [AdminController::class, 'storeType'])->name('types.store');
+        Route::delete('/types/{id}', [AdminController::class, 'destroyType'])->name('types.destroy');
+        
+        // Export routes
+        Route::get('/users/export', [AdminController::class, 'exportUsers'])->name('users.export');
+        Route::get('/areas/export', [AdminController::class, 'exportAreas'])->name('areas.export');
+        Route::get('/mekhalas/export', [AdminController::class, 'exportMekhalas'])->name('mekhalas.export');
+        Route::get('/units/export', [AdminController::class, 'exportUnits'])->name('units.export');
     });
     
     // Application routes
+    Route::get('/applications/export', [ApplicationController::class, 'export'])->name('applications.export');
+    Route::get('/applications/{application}/history', [ApplicationController::class, 'history'])->name('applications.history');
     Route::resource('applications', ApplicationController::class);
     Route::get('/applications/{application}/download', [ApplicationController::class, 'download'])->name('applications.download');
     Route::post('/applications/validate-field', [ApplicationController::class, 'validateField'])->name('applications.validate-field');
@@ -65,11 +81,13 @@ Route::middleware('auth')->group(function () {
     Route::post('/applications/{application}/reject', [ApplicationController::class, 'reject'])->name('applications.reject')->middleware('mekhala');
     
     // Collection routes
+    Route::get('/collections/export', [CollectionController::class, 'export'])->name('collections.export');
     Route::resource('collections', CollectionController::class);
     Route::get('/unit-collections', [CollectionController::class, 'unitCollections'])->name('collections.units')->middleware('mekhala');
     Route::get('/area-collections', [CollectionController::class, 'areaCollections'])->name('collections.area')->middleware('mekhala');
     
     // Expense routes
+    Route::get('/expenses/export', [ExpenseController::class, 'export'])->name('expenses.export')->middleware('mekhala');
     Route::resource('expenses', ExpenseController::class)->middleware('mekhala');
     
     // Report routes

@@ -5,7 +5,10 @@
 @section('content')
     <div class="d-flex justify-content-between align-items-center mb-3">
         <h2>Units</h2>
-        <a href="{{ route('admin.units.create') }}" class="btn btn-primary">Add Unit</a>
+        <div>
+            <a href="{{ route('admin.units.export') }}" class="btn btn-success me-2">Export Excel</a>
+            <a href="{{ route('admin.units.create') }}" class="btn btn-primary">Add Unit</a>
+        </div>
     </div>
 
     <div class="card">
@@ -34,4 +37,13 @@
             </table>
         </div>
     </div>
+    
+    <script src="{{ asset('js/filtered-export.js') }}"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const table = document.querySelector('table');
+            if (!table.id) table.id = 'unitsTable';
+            FilteredExport.initializeExportButton('unitsTable', '{{ route("admin.units.export") }}');
+        });
+    </script>
 @endsection

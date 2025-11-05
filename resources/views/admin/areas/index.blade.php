@@ -5,7 +5,10 @@
 @section('content')
     <div class="d-flex justify-content-between align-items-center mb-3">
         <h2>Areas</h2>
-        <a href="{{ route('admin.areas.create') }}" class="btn btn-primary">Add Area</a>
+        <div>
+            <a href="{{ route('admin.areas.export') }}" class="btn btn-success me-2">Export Excel</a>
+            <a href="{{ route('admin.areas.create') }}" class="btn btn-primary">Add Area</a>
+        </div>
     </div>
 
     <div class="card">
@@ -34,4 +37,13 @@
             </table>
         </div>
     </div>
+    
+    <script src="{{ asset('js/filtered-export.js') }}"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const table = document.querySelector('table');
+            if (!table.id) table.id = 'areasTable';
+            FilteredExport.initializeExportButton('areasTable', '{{ route("admin.areas.export") }}');
+        });
+    </script>
 @endsection

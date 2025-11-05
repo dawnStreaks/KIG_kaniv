@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Models\Application;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use App\Exports\ApplicationsExport;
+use Maatwebsite\Excel\Facades\Excel;
 
 class ApplicationController extends Controller
 {
@@ -31,7 +33,7 @@ class ApplicationController extends Controller
             'front_page_photo' => 'required|image|max:2048',
             'name' => 'required|string|max:255',
             'passport_no' => 'required|string|max:50',
-            'civil_id' => 'required|string|max:50|unique:applications,civil_id',
+            'civil_id' => 'required|string|max:50',
             'mobile_number' => 'required|string|max:20',
             'category' => 'required|in:medical_support,financial_support,iqama_visa_residency,ticket',
             'description' => 'nullable|string',
@@ -67,7 +69,7 @@ class ApplicationController extends Controller
             'front_page_photo' => 'nullable|image|max:2048',
             'name' => 'required|string|max:255',
             'passport_no' => 'required|string|max:50',
-            'civil_id' => 'required|string|max:50|unique:applications,civil_id,' . $application->id,
+            'civil_id' => 'required|string|max:50',
             'mobile_number' => 'required|string|max:20',
             'category' => 'required|in:medical_support,financial_support,iqama_visa_residency,ticket',
             'description' => 'nullable|string',
@@ -169,5 +171,23 @@ class ApplicationController extends Controller
         }
         
         return response()->json(['exists' => $exists]);
+    }
+
+    public function history(Application $application)
+    {
+        $duplicates = Application::where(function($query) use ($application) {
+            $query->where('civil_id', $application->civil_id)
+                  ->orWhere('mobile_number', $application->mobile_number);
+        })
+        ->where('id', '!=', $application->id)
+        ->with(['submitter', 'reviewer'])
+        ->get();
+        
+        return view('applications.history', compact('application', 'duplicates'));
+    }
+
+    public function export(Request $request)
+    {
+        return Excel::download(new ApplicationsExport($request), 'applications.xlsx');
     }
 }

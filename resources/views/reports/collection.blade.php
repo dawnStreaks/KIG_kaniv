@@ -56,7 +56,7 @@
                         <tfoot>
                             <tr class="table-info">
                                 <th>Total:</th>
-                                <th>KWD {{ number_format($collections->sum('amount'), 2) }}</th>
+                                <th id="totalAmount">KWD {{ number_format($collections->sum('amount'), 2) }}</th>
                                 <th colspan="6"></th>
                             </tr>
                         </tfoot>
@@ -78,6 +78,8 @@
             });
             
             function filterTable() {
+                let visibleTotal = 0;
+                
                 tableRows.forEach(row => {
                     let showRow = true;
                     
@@ -92,7 +94,15 @@
                     });
                     
                     row.style.display = showRow ? '' : 'none';
+                    
+                    if (showRow) {
+                        const amountText = row.cells[1].textContent.replace('KWD ', '').replace(',', '');
+                        const amount = parseFloat(amountText) || 0;
+                        visibleTotal += amount;
+                    }
                 });
+                
+                document.getElementById('totalAmount').textContent = 'KWD ' + visibleTotal.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
             }
         });
         
@@ -100,8 +110,8 @@
             const filterInputs = document.querySelectorAll('.filter-input');
             filterInputs.forEach(input => {
                 input.value = '';
-                input.dispatchEvent(new Event('input'));
             });
+            filterTable();
         }
     </script>
 @endsection

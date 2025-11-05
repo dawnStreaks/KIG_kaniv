@@ -78,7 +78,7 @@ class User extends Authenticatable
 
     public function isAdmin()
     {
-        return $this->user_type === 'admin' || $this->user_type === 'mekhala';
+        return $this->user_type === 'admin' || $this->user_type === 'center';
     }
 
     public function isAreaUser()
