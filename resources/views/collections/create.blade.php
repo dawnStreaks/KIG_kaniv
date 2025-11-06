@@ -3,132 +3,83 @@
 @section('title', 'Add Collection')
 
 @section('content')
-    <div>
-        @if(auth()->user()->user_type == 'area')
-            <div class="card">
-                <div class="card-header">
-                    <h4>Add Collections - Area Level</h4>
+    <div class="card">
+        <div class="card-header">
+            <h4>Bulk Unit Collections</h4>
+        </div>
+        <div class="card-body">
+            @if ($errors->any())
+                <div class="alert alert-danger">
+                    @foreach ($errors->all() as $error)
+                        <div>{{ $error }}</div>
+                    @endforeach
                 </div>
-                <div class="card-body">
-                    @if ($errors->any())
-                        <div class="alert alert-danger">
-                            @foreach ($errors->all() as $error)
-                                <div>{{ $error }}</div>
+            @endif
+
+            <form method="POST" action="{{ route('collections.store') }}" id="bulkCollectionForm">
+                @csrf
+                <div class="row mb-4">
+                    <div class="col-md-3">
+                        <label for="collection_date" class="form-label">Collection Date</label>
+                        <input type="date" class="form-control" id="collection_date" name="collection_date" value="{{ old('collection_date', date('Y-m-d')) }}" required>
+                    </div>
+                    <div class="col-md-3">
+                        <label for="type" class="form-label">Type</label>
+                        <select class="form-control" id="type" name="type" required>
+                            <option value="">Select Type</option>
+                            @foreach($types as $type)
+                                <option value="{{ $type }}" {{ old('type') == $type ? 'selected' : '' }}>{{ $type }}</option>
                             @endforeach
-                        </div>
-                    @endif
-
-                    <form method="POST" action="{{ route('collections.store') }}" id="bulkCollectionForm">
-                        @csrf
-                        <div class="row mb-3">
-                            <div class="col-md-3">
-                                <label for="collection_date" class="form-label">Collection Date</label>
-                                <input type="date" class="form-control" id="collection_date" name="collection_date" value="{{ old('collection_date', date('Y-m-d')) }}" required>
-                            </div>
-                            <div class="col-md-3">
-                                <label for="year" class="form-label">Year</label>
-                                <input type="number" class="form-control" id="year" name="year" value="{{ old('year', date('Y')) }}" min="2020" max="2030" required>
-                            </div>
-                            <div class="col-md-3">
-                                <label for="term" class="form-label">Term</label>
-                                <select class="form-control" id="term" name="term" required>
-                                    <option value="">Select Term</option>
-                                    @foreach($terms as $term)
-                                        <option value="{{ $term }}" {{ old('term') == $term ? 'selected' : '' }}>{{ $term }}</option>
-                                    @endforeach
-                                </select>
-                            </div>
-                            <div class="col-md-3">
-                                <label for="type" class="form-label">Type</label>
-                                <select class="form-control" id="type" name="type" required>
-                                    <option value="">Select Type</option>
-                                    @foreach($types as $type)
-                                        <option value="{{ $type }}" {{ old('type') == $type ? 'selected' : '' }}>{{ $type }}</option>
-                                    @endforeach
-                                </select>
-                            </div>
-                        </div>
-                        
-                        <div class="table-responsive">
-                            <table class="table table-bordered">
-                                <thead>
-                                    <tr>
-                                        <th><input type="checkbox" id="selectAll"> Select All</th>
-                                        <th>Unit Name</th>
-                                        <th>Amount (KWD)</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    @foreach($units as $unit)
-                                    <tr>
-                                        <td><input type="checkbox" name="selected_units[]" value="{{ $unit->id }}" class="unit-checkbox"></td>
-                                        <td>{{ $unit->name }}</td>
-                                        <td>
-                                            <input type="number" step="0.01" name="amount[{{ $unit->id }}]" class="form-control form-control-sm" placeholder="0.00" min="0">
-                                        </td>
-                                    </tr>
-                                    @endforeach
-                                </tbody>
-                            </table>
-                        </div>
-                        
-                        <div class="d-flex justify-content-between mt-3">
-                            <a href="{{ route('collections.index') }}" class="btn btn-secondary">Cancel</a>
-                            <button type="submit" class="btn btn-primary">Save Collections</button>
-                        </div>
-                    </form>
-                </div>
-            </div>
-        @else
-            <div class="row justify-content-center">
-                <div class="col-md-8">
-                    <div class="card">
-                        <div class="card-header">
-                            <h4>Add New Collection</h4>
-                        </div>
-                        <div class="card-body">
-                            @if ($errors->any())
-                                <div class="alert alert-danger">
-                                    @foreach ($errors->all() as $error)
-                                        <div>{{ $error }}</div>
-                                    @endforeach
-                                </div>
-                            @endif
-
-                            <form method="POST" action="{{ route('collections.store') }}">
-                                @csrf
-                                <div class="mb-3">
-                                    <label for="amount" class="form-label">Amount</label>
-                                    <input type="number" step="0.01" class="form-control" id="amount" name="amount" value="{{ old('amount') }}" required>
-                                </div>
-                                <div class="mb-3">
-                                    <label for="collection_date" class="form-label">Collection Date</label>
-                                    <input type="date" class="form-control" id="collection_date" name="collection_date" value="{{ old('collection_date') }}" required>
-                                </div>
-                                <div class="mb-3">
-                                    <label for="unit_id" class="form-label">Unit</label>
-                                    <select class="form-control" id="unit_id" name="unit_id" required>
-                                        <option value="">Select Unit</option>
-                                        @foreach($units as $unit)
-                                            <option value="{{ $unit->id }}" {{ old('unit_id') == $unit->id ? 'selected' : '' }}>{{ $unit->name }}</option>
-                                        @endforeach
-                                    </select>
-                                </div>
-                                <div class="mb-3">
-                                    <label for="description" class="form-label">Description</label>
-                                    <textarea class="form-control" id="description" name="description" rows="3">{{ old('description') }}</textarea>
-                                </div>
-                                <div class="d-flex justify-content-between">
-                                    <a href="{{ route('collections.index') }}" class="btn btn-secondary">Cancel</a>
-                                    <button type="submit" class="btn btn-primary">Save Collection</button>
-                                </div>
-                            </form>
-                        </div>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label for="term" class="form-label">Term</label>
+                        <select class="form-control" id="term" name="term" required>
+                            <option value="">Select Term</option>
+                            @foreach($terms as $term)
+                                <option value="{{ $term }}" {{ old('term') == $term ? 'selected' : '' }}>{{ $term }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label for="notes" class="form-label">Notes</label>
+                        <input type="text" class="form-control" id="notes" name="notes" value="{{ old('notes') }}" placeholder="Optional notes">
                     </div>
                 </div>
-            </div>
-        @endif
+                
+                <div class="table-responsive">
+                    <table class="table table-bordered">
+                        <thead class="table-light">
+                            <tr>
+                                <th width="50"><input type="checkbox" id="selectAll"></th>
+                                <th>Unit Name</th>
+                                <th>Area</th>
+                                <th width="150">Amount (KWD)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach($units as $unit)
+                            <tr>
+                                <td><input type="checkbox" name="selected_units[]" value="{{ $unit->id }}" class="unit-checkbox"></td>
+                                <td>{{ $unit->name }}</td>
+                                <td>{{ $unit->area->name ?? 'N/A' }}</td>
+                                <td>
+                                    <input type="number" step="0.01" name="amount[{{ $unit->id }}]" class="form-control form-control-sm" placeholder="0.00" min="0">
+                                </td>
+                            </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+                
+                <div class="d-flex justify-content-between mt-3">
+                    <a href="{{ route('collections.index') }}" class="btn btn-secondary">Cancel</a>
+                    <button type="submit" class="btn btn-primary">Save Collections</button>
+                </div>
+            </form>
+        </div>
     </div>
+
 
     <script>
         document.getElementById('selectAll').addEventListener('change', function() {

@@ -5,8 +5,6 @@ namespace App\Http\Controllers;
 use App\Models\Collection;
 use App\Models\Unit;
 use App\Models\Area;
-use App\Models\CollectionTerm;
-use App\Models\CollectionType;
 use Illuminate\Http\Request;
 use App\Exports\CollectionsExport;
 use Maatwebsite\Excel\Facades\Excel;
@@ -30,11 +28,12 @@ class CollectionController extends Controller
     public function create()
     {
         $units = auth()->user()->isAreaUser() 
-            ? Unit::where('area_id', auth()->user()->area_id)->active()->get()
-            : Unit::with('area')->active()->get();
+            ? Unit::where('area_id', auth()->user()->area_id)->get()
+            : Unit::with('area')->get();
             
-        $terms = CollectionTerm::active()->pluck('name')->toArray();
-        $types = CollectionType::active()->pluck('name')->toArray();
+        // Get terms and types from session (managed by center/admin users)
+        $terms = session('collection_terms', ['Monthly', 'Quarterly', 'Yearly', 'One-time']);
+        $types = session('collection_types', ['Regular', 'Special', 'Emergency', 'Donation']);
             
         return view('collections.create', compact('units', 'terms', 'types'));
     }
@@ -45,22 +44,22 @@ class CollectionController extends Controller
         if ($request->has('selected_units')) {
             $request->validate([
                 'collection_date' => 'required|date',
-                'year' => 'nullable|integer',
+                'type' => 'required|string',
+                'term' => 'required|string',
                 'selected_units' => 'required|array',
                 'selected_units.*' => 'exists:units,id',
             ]);
 
             $created = 0;
             foreach ($request->selected_units as $unitId) {
-                if (isset($request->amount[$unitId]) && $request->amount[$unitId] > 0) {
+                if ($request->amount[$unitId] && $request->amount[$unitId] > 0) {
                     Collection::create([
                         'unit_id' => $unitId,
                         'amount' => $request->amount[$unitId],
                         'collection_date' => $request->collection_date,
-                        'term' => $request->term[$unitId] ?? null,
-                        'type' => $request->type[$unitId] ?? null,
-                        'unit_type' => $request->unit_type[$unitId] ?? null,
-                        'year' => $request->year ?? date('Y'),
+                        'type' => $request->type,
+                        'term' => $request->term,
+                        'notes' => $request->notes,
                         'entered_by' => auth()->id(),
                     ]);
                     $created++;
@@ -139,61 +138,5 @@ class CollectionController extends Controller
     public function export(Request $request)
     {
         return Excel::download(new CollectionsExport($request), 'collections.xlsx');
-    }
-
-    public function collectionReport(Request $request)
-    {
-        $year = $request->get('year', date('Y'));
-        $user = auth()->user();
-        
-        if ($user->isAreaUser()) {
-            // Area level: Units vs Amounts
-            $data = Collection::whereYear('collection_date', $year)
-                ->whereHas('unit', function($q) use ($user) {
-                    $q->where('area_id', $user->area_id);
-                })
-                ->with('unit')
-                ->selectRaw('unit_id, units.name as unit_name, SUM(amount) as total_amount')
-                ->join('units', 'collections.unit_id', '=', 'units.id')
-                ->groupBy('unit_id', 'units.name')
-                ->get();
-                
-            return view('collections.report', compact('data', 'year', 'user'));
-        } 
-        
-        if ($user->isMekhalaUser() || $user->isAdmin()) {
-            // Mekhala/Center level: Areas vs Total Collection Amount
-            $query = Collection::whereYear('collection_date', $year)
-                ->with(['unit.area'])
-                ->selectRaw('areas.id as area_id, areas.name as area_name, SUM(collections.amount) as total_amount')
-                ->join('units', 'collections.unit_id', '=', 'units.id')
-                ->join('areas', 'units.area_id', '=', 'areas.id');
-                
-            if ($user->isMekhalaUser()) {
-                $query->where('areas.mekhala_id', $user->mekhala_id);
-            }
-            
-            $data = $query->groupBy('areas.id', 'areas.name')->get();
-            
-            return view('collections.report', compact('data', 'year', 'user'));
-        }
-    }
-
-    public function collectionReportDrillDown(Request $request)
-    {
-        $year = $request->get('year', date('Y'));
-        $areaId = $request->get('area_id');
-        
-        $data = Collection::whereYear('collection_date', $year)
-            ->whereHas('unit', function($q) use ($areaId) {
-                $q->where('area_id', $areaId);
-            })
-            ->with('unit')
-            ->selectRaw('unit_id, units.name as unit_name, SUM(amount) as total_amount')
-            ->join('units', 'collections.unit_id', '=', 'units.id')
-            ->groupBy('unit_id', 'units.name')
-            ->get();
-            
-        return response()->json($data);
     }
 }
