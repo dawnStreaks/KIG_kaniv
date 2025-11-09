@@ -18,8 +18,8 @@
                     <div class="card-body">
                         <table class="table">
                             <tr>
-                                <td>Total Collections:</td>
-                                <td class="text-end">KWD {{ number_format($totalCollections ?? 0, 2) }}</td>
+                                <td>Yearly Total Collections:</td>
+                                <td class="text-end">KWD {{ number_format($yearlyCollections ?? 0, 2) }}</td>
                             </tr>
                             <tr>
                                 <td>This Month:</td>
@@ -37,12 +37,65 @@
                     <div class="card-body">
                         <table class="table">
                             <tr>
-                                <td>Total Expenses:</td>
-                                <td class="text-end">KWD {{ number_format($totalExpenses ?? 0, 2) }}</td>
+                                <td>Yearly Total Expenses:</td>
+                                <td class="text-end">KWD {{ number_format($yearlyExpenses ?? 0, 2) }}</td>
                             </tr>
                             <tr>
                                 <td>This Month:</td>
                                 <td class="text-end">KWD {{ number_format($monthlyExpenses ?? 0, 2) }}</td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row mt-4">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h5>Applications Summary</h5>
+                    </div>
+                    <div class="card-body">
+                        <table class="table">
+                            <tr>
+                                <td>Yearly Total Applications:</td>
+                                <td class="text-end">KWD {{ number_format($yearlyApplications ?? 0, 2) }}</td>
+                            </tr>
+                            <tr>
+                                <td>Monthly Total Applications:</td>
+                                <td class="text-end">KWD {{ number_format($monthlyApplications ?? 0, 2) }}</td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h5>Investment Summary</h5>
+                    </div>
+                    <div class="card-body">
+                        <table class="table">
+                            <tr>
+                                <td>Yearly Total Investments:</td>
+                                <td class="text-end">KWD {{ number_format($yearlyInvestments ?? 0, 2) }}</td>
+                            </tr>
+                            <tr>
+                                <td>Monthly Total Investments:</td>
+                                <td class="text-end">KWD {{ number_format($monthlyInvestments ?? 0, 2) }}</td>
+                            </tr>
+                            <tr>
+                                <td>Income Generated:</td>
+                                <td class="text-end">KWD {{ number_format($yearlyIncome ?? 0, 2) }}</td>
+                            </tr>
+                            <tr>
+                                <td>Capital Returned:</td>
+                                <td class="text-end">KWD {{ number_format($yearlyReturned ?? 0, 2) }}</td>
+                            </tr>
+                            <tr class="table-info">
+                                <td><strong>Investment Balance:</strong></td>
+                                <td class="text-end"><strong>KWD {{ number_format(($yearlyInvestments ?? 0) + ($yearlyIncome ?? 0) - ($yearlyReturned ?? 0), 2) }}</strong></td>
                             </tr>
                         </table>
                     </div>
@@ -57,8 +110,8 @@
                         <h5>Net Balance</h5>
                     </div>
                     <div class="card-body">
-                        <h3 class="text-center {{ (($totalCollections ?? 0) - ($totalExpenses ?? 0)) >= 0 ? 'text-success' : 'text-danger' }}">
-                            KWD {{ number_format(($totalCollections ?? 0) - ($totalExpenses ?? 0), 2) }}
+                        <h3 class="text-center {{ (($yearlyCollections ?? 0) - ($yearlyExpenses ?? 0)) >= 0 ? 'text-success' : 'text-danger' }}">
+                            KWD {{ number_format(($yearlyCollections ?? 0) - ($yearlyExpenses ?? 0), 2) }}
                         </h3>
                     </div>
                 </div>

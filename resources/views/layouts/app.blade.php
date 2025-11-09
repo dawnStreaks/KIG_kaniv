@@ -134,14 +134,15 @@
                     @endif
                 @endif
             @endauth
-        </nav>
-        
-        <div class="position-absolute bottom-0 w-100 p-3">
+            
+            <div class="px-3 py-2 mt-4">
+                <small class="text-muted">ACCOUNT</small>
+            </div>
             <form method="POST" action="{{ route('logout') }}">
                 @csrf
-                <button type="submit" class="btn btn-outline-light w-100">Logout</button>
+                <button type="submit" class="nav-link text-start w-100 border-0 bg-transparent text-white">Logout</button>
             </form>
-        </div>
+        </nav>
     </div>
 
     <!-- Main Content -->

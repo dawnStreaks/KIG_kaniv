@@ -23,7 +23,9 @@
                     @if($user->isMekhalaUser() || $user->isAdmin())
                     <div id="drillDownContainer" style="display: none; margin-top: 30px;">
                         <h4 id="drillDownTitle"></h4>
-                        <canvas id="drillDownChart" style="height: 300px;"></canvas>
+                        <div style="height: 400px; max-height: 400px; overflow: hidden;">
+                            <canvas id="drillDownChart"></canvas>
+                        </div>
                         <button class="btn btn-secondary mt-2" onclick="backToMain()">Back to Areas</button>
                     </div>
                     @endif
@@ -147,14 +149,15 @@ function drillDown(areaId, areaName) {
                 }
             });
             
-            document.getElementById('drillDownChart').scrollIntoView({ behavior: 'smooth' });
+            // Scroll to drill-down container instead of chart canvas
+            document.getElementById('drillDownContainer').scrollIntoView({ behavior: 'smooth', block: 'start' });
         });
 }
 
 // Back to main chart
 function backToMain() {
     document.getElementById('drillDownContainer').style.display = 'none';
-    document.getElementById('collectionChart').scrollIntoView({ behavior: 'smooth' });
+    document.getElementById('chartContainer').scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
 // Initialize chart on page load

@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Collection;
 use App\Models\Expense;
 use App\Models\Application;
+use App\Models\Investment;
 use Illuminate\Http\Request;
 use Maatwebsite\Excel\Facades\Excel;
 
@@ -12,15 +13,40 @@ class ReportController extends Controller
 {
     public function financialStatement(Request $request)
     {
-        $totalCollections = Collection::sum('amount');
-        $monthlyCollections = Collection::whereMonth('collection_date', date('m'))
-                                      ->whereYear('collection_date', date('Y'))
+        $currentYear = date('Y');
+        $currentMonth = date('m');
+        
+        // Collections Summary
+        $yearlyCollections = Collection::whereYear('collection_date', $currentYear)->sum('amount');
+        $monthlyCollections = Collection::whereMonth('collection_date', $currentMonth)
+                                      ->whereYear('collection_date', $currentYear)
                                       ->sum('amount');
         
-        $totalExpenses = Expense::sum('amount');
-        $monthlyExpenses = Expense::whereMonth('expense_date', date('m'))
-                                 ->whereYear('expense_date', date('Y'))
+        // Expenses Summary
+        $yearlyExpenses = Expense::whereYear('expense_date', $currentYear)->sum('amount');
+        $monthlyExpenses = Expense::whereMonth('expense_date', $currentMonth)
+                                 ->whereYear('expense_date', $currentYear)
                                  ->sum('amount');
+        
+        // Applications Summary
+        $yearlyApplications = Application::whereYear('approved_date', $currentYear)->sum('approved_amount');
+        $monthlyApplications = Application::whereMonth('approved_date', $currentMonth)
+                                         ->whereYear('approved_date', $currentYear)
+                                         ->sum('approved_amount');
+        
+        // Investment Summary
+        $yearlyInvestments = Investment::whereYear('investment_date', $currentYear)->sum('amount');
+        $monthlyInvestments = Investment::whereMonth('investment_date', $currentMonth)
+                                       ->whereYear('investment_date', $currentYear)
+                                       ->sum('amount');
+        $yearlyIncome = Investment::whereYear('investment_date', $currentYear)->sum('income_generated');
+        $monthlyIncome = Investment::whereMonth('investment_date', $currentMonth)
+                                  ->whereYear('investment_date', $currentYear)
+                                  ->sum('income_generated');
+        $yearlyReturned = Investment::whereYear('investment_date', $currentYear)->sum('returned_amount');
+        $monthlyReturned = Investment::whereMonth('investment_date', $currentMonth)
+                                   ->whereYear('investment_date', $currentYear)
+                                   ->sum('returned_amount');
         
         // Get detailed transactions
         $collections = Collection::with('unit')->orderBy('collection_date')->get();
@@ -60,7 +86,9 @@ class ReportController extends Controller
         });
         
         return view('reports.financial-statement', compact(
-            'totalCollections', 'monthlyCollections', 'totalExpenses', 'monthlyExpenses', 'transactions'
+            'yearlyCollections', 'monthlyCollections', 'yearlyExpenses', 'monthlyExpenses',
+            'yearlyApplications', 'monthlyApplications', 'yearlyInvestments', 'monthlyInvestments',
+            'yearlyIncome', 'monthlyIncome', 'yearlyReturned', 'monthlyReturned', 'transactions'
         ));
     }
 

@@ -30,6 +30,7 @@
                                 <th>Mobile</th>
                                 <th>Category</th>
                                 <th>Status</th>
+                                <th>Approved Amount</th>
                                 <th>Submitted By</th>
                                 <th>Actions</th>
                             </tr>
@@ -41,6 +42,7 @@
                                 <th><input type="text" class="form-control form-control-sm" placeholder="Filter Mobile"></th>
                                 <th><select class="form-control form-control-sm"><option value="">All Categories</option><option value="health">Health</option><option value="finance">Finance</option></select></th>
                                 <th><select class="form-control form-control-sm"><option value="">All Status</option><option value="pending">Pending</option><option value="approved">Approved</option><option value="rejected">Rejected</option></select></th>
+                                <th><input type="text" class="form-control form-control-sm" placeholder="Filter Amount"></th>
                                 <th><input type="text" class="form-control form-control-sm" placeholder="Filter Submitter"></th>
                                 <th></th>
                             </tr>
@@ -63,6 +65,13 @@
                                             {{ ucfirst($application->status) }}
                                         </span>
                                     </td>
+                                    <td>
+                                        @if($application->approved_amount)
+                                            KWD {{ number_format($application->approved_amount, 2) }}
+                                        @else
+                                            -
+                                        @endif
+                                    </td>
                                     <td>{{ $application->submitter->name }}</td>
                                     <td>
                                         <a href="{{ route('applications.show', $application) }}" class="btn btn-sm btn-outline-primary">View</a>
@@ -82,7 +91,7 @@
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="9" class="text-center">No applications found</td>
+                                    <td colspan="10" class="text-center">No applications found</td>
                                 </tr>
                             @endforelse
                         </tbody>
