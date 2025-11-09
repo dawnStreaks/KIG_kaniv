@@ -80,6 +80,7 @@
                     <div class="px-3 py-2">
                         <small class="text-muted">MEKHALA - {{ strtoupper(auth()->user()->role ?? 'N/A') }}</small>
                     </div>
+                    <a class="nav-link" href="{{ route('applications.index') }}">Applications</a>
                     @if(auth()->user()->canApproveApplications())
                         <a class="nav-link" href="{{ route('applications.review') }}">Review Applications</a>
                     @endif
