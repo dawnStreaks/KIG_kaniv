@@ -162,7 +162,7 @@ class AdminController extends Controller
 
     public function units()
     {
-        $units = Unit::with('area.mekhala')->paginate(10);
+        $units = Unit::with('area.mekhala')->orderBy('created_at', 'desc')->paginate(10);
         return view('admin.units.index', compact('units'));
     }
 
@@ -178,8 +178,10 @@ class AdminController extends Controller
             'name' => 'required|string|max:255',
             'area_id' => 'required|exists:areas,id',
             'description' => 'nullable|string',
+            'is_active' => 'boolean',
         ]);
 
+        $validated['is_active'] = $request->has('is_active');
         Unit::create($validated);
         return redirect()->route('admin.units.index')->with('success', 'Unit created successfully');
     }
@@ -188,8 +190,7 @@ class AdminController extends Controller
     {
         $unit->load('area');
         $areas = Area::active()->get();
-        $mekhalas = Mekhala::active()->get();
-        return view('admin.units.edit', compact('unit', 'areas', 'mekhalas'));
+        return view('admin.units.edit', compact('unit', 'areas'));
     }
 
     public function updateUnit(Request $request, Unit $unit)
@@ -198,8 +199,10 @@ class AdminController extends Controller
             'name' => 'required|string|max:255',
             'area_id' => 'required|exists:areas,id',
             'description' => 'nullable|string',
+            'is_active' => 'boolean',
         ]);
 
+        $validated['is_active'] = $request->has('is_active');
         $unit->update($validated);
         return redirect()->route('admin.units.index')->with('success', 'Unit updated successfully');
     }

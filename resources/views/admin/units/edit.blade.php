@@ -39,21 +39,6 @@
                 </div>
 
                 <div class="mb-3">
-                    <label for="mekhala_id" class="form-label">Mekhala</label>
-                    <select class="form-control @error('mekhala_id') is-invalid @enderror" id="mekhala_id" name="mekhala_id" required>
-                        <option value="">Select Mekhala</option>
-                        @foreach($mekhalas as $mekhala)
-                            <option value="{{ $mekhala->id }}" data-area="{{ $mekhala->id }}" {{ old('mekhala_id', $unit->area->mekhala_id ?? '') == $mekhala->id ? 'selected' : '' }}>
-                                {{ $mekhala->name }}
-                            </option>
-                        @endforeach
-                    </select>
-                    @error('mekhala_id')
-                        <div class="invalid-feedback">{{ $message }}</div>
-                    @enderror
-                </div>
-
-                <div class="mb-3">
                     <label for="description" class="form-label">Description</label>
                     <textarea class="form-control @error('description') is-invalid @enderror" 
                               id="description" name="description" rows="3">{{ old('description', $unit->description) }}</textarea>
@@ -62,33 +47,20 @@
                     @enderror
                 </div>
 
+                <div class="mb-3">
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="is_active" name="is_active" value="1" 
+                               {{ old('is_active', $unit->is_active) ? 'checked' : '' }}>
+                        <label class="form-check-label" for="is_active">
+                            Active
+                        </label>
+                    </div>
+                </div>
+
                 <button type="submit" class="btn btn-primary">Update Unit</button>
             </form>
         </div>
     </div>
 
-    <script>
-        document.getElementById('area_id').addEventListener('change', function() {
-            const areaId = this.value;
-            const mekhalaSelect = document.getElementById('mekhala_id');
-            const options = mekhalaSelect.querySelectorAll('option');
-            
-            options.forEach(option => {
-                if (option.value === '') {
-                    option.style.display = 'block';
-                } else if (option.dataset.area === areaId) {
-                    option.style.display = 'block';
-                } else {
-                    option.style.display = 'none';
-                }
-            });
-            
-            mekhalaSelect.value = '';
-        });
-        
-        // Trigger on page load to filter based on current selection
-        document.addEventListener('DOMContentLoaded', function() {
-            document.getElementById('area_id').dispatchEvent(new Event('change'));
-        });
-    </script>
+
 @endsection

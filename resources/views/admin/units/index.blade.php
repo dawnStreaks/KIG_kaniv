@@ -19,6 +19,7 @@
                         <th>Name</th>
                         <th>Area</th>
                         <th>Mekhala</th>
+                        <th>Status</th>
                         <th>Created At</th>
                         <th>Actions</th>
                     </tr>
@@ -29,12 +30,21 @@
                         <td>{{ $unit->name }}</td>
                         <td>{{ $unit->area->name ?? 'N/A' }}</td>
                         <td>{{ $unit->area->mekhala->name ?? 'N/A' }}</td>
+                        <td>
+                            <span class="badge {{ $unit->is_active ? 'bg-success' : 'bg-danger' }}">
+                                {{ $unit->is_active ? 'Active' : 'Inactive' }}
+                            </span>
+                        </td>
                         <td>{{ $unit->created_at->format('Y-m-d') }}</td>
                         <td><a href="{{ route('admin.units.edit', $unit->id) }}" class="btn btn-sm btn-warning">Edit</a></td>
                     </tr>
                     @endforeach
                 </tbody>
             </table>
+            
+            <div class="d-flex justify-content-center mt-3">
+                {{ $units->links() }}
+            </div>
         </div>
     </div>
     
