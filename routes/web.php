@@ -91,11 +91,13 @@ Route::middleware('auth')->group(function () {
     Route::get('/unit-collections', [CollectionController::class, 'unitCollections'])->name('collections.units');
     Route::get('/area-collections', [CollectionController::class, 'areaCollections'])->name('collections.area');
     
-    // Investment routes
-    Route::resource('investments', App\Http\Controllers\InvestmentController::class);
-    Route::post('/investments/{investment}/add-income', [App\Http\Controllers\InvestmentController::class, 'addIncome'])->name('investments.add-income');
-    Route::post('/investments/{investment}/approve', [App\Http\Controllers\InvestmentController::class, 'approve'])->name('investments.approve')->middleware('admin');
-    Route::post('/investments/{investment}/return-capital', [App\Http\Controllers\InvestmentController::class, 'returnCapital'])->name('investments.return-capital');
+    // Investment routes - Treasurer access
+    Route::middleware('treasurer')->group(function () {
+        Route::resource('investments', App\Http\Controllers\InvestmentController::class);
+        Route::post('/investments/{investment}/add-income', [App\Http\Controllers\InvestmentController::class, 'addIncome'])->name('investments.add-income');
+        Route::post('/investments/{investment}/return-capital', [App\Http\Controllers\InvestmentController::class, 'returnCapital'])->name('investments.return-capital');
+    });
+    Route::post('/investments/{investment}/approve', [App\Http\Controllers\InvestmentController::class, 'approve'])->name('investments.approve')->middleware('center');
     
     // Expense routes
     // Expense routes  
