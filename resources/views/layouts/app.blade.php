@@ -9,9 +9,10 @@
     <style>
         .sidebar {
             min-height: 100vh;
+            max-height: 100vh;
             background-color: #343a40;
             z-index: 1000;
-            overflow-y: auto;
+            overflow-y: scroll;
         }
         .sidebar .nav-link {
             color: #fff;
