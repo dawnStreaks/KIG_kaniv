@@ -11,6 +11,7 @@
             min-height: 100vh;
             background-color: #343a40;
             z-index: 1000;
+            overflow-y: auto;
         }
         .sidebar .nav-link {
             color: #fff;
@@ -136,7 +137,6 @@
     </div>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-    <script src="{{ asset('js/table-utils.js') }}"></script>
     <script>
         // Set active navigation link
         document.addEventListener('DOMContentLoaded', function() {
