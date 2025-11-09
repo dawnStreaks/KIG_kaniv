@@ -58,9 +58,11 @@ Route::middleware('auth')->group(function () {
         // Collection settings
         Route::get('/terms', [AdminController::class, 'terms'])->name('terms.index');
         Route::post('/terms', [AdminController::class, 'storeTerm'])->name('terms.store');
+        Route::put('/terms/{id}', [AdminController::class, 'updateTerm'])->name('terms.update');
         Route::delete('/terms/{id}', [AdminController::class, 'destroyTerm'])->name('terms.destroy');
         Route::get('/types', [AdminController::class, 'types'])->name('types.index');
         Route::post('/types', [AdminController::class, 'storeType'])->name('types.store');
+        Route::put('/types/{id}', [AdminController::class, 'updateType'])->name('types.update');
         Route::delete('/types/{id}', [AdminController::class, 'destroyType'])->name('types.destroy');
         
         // Export routes
@@ -87,6 +89,12 @@ Route::middleware('auth')->group(function () {
     Route::resource('collections', CollectionController::class);
     Route::get('/unit-collections', [CollectionController::class, 'unitCollections'])->name('collections.units')->middleware('mekhala');
     Route::get('/area-collections', [CollectionController::class, 'areaCollections'])->name('collections.area')->middleware('mekhala');
+    
+    // Investment routes
+    Route::resource('investments', App\Http\Controllers\InvestmentController::class);
+    Route::post('/investments/{investment}/add-income', [App\Http\Controllers\InvestmentController::class, 'addIncome'])->name('investments.add-income');
+    Route::post('/investments/{investment}/approve', [App\Http\Controllers\InvestmentController::class, 'approve'])->name('investments.approve')->middleware('center');
+    Route::post('/investments/{investment}/return-capital', [App\Http\Controllers\InvestmentController::class, 'returnCapital'])->name('investments.return-capital');
     
     // Expense routes
     // Expense routes  

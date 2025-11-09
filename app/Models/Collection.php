@@ -32,6 +32,11 @@ class Collection extends Model
         return $this->belongsTo(User::class, 'entered_by');
     }
 
+    public function getYearAttribute()
+    {
+        return $this->collection_date ? $this->collection_date->format('Y') : null;
+    }
+
     public function scopeByDateRange($query, $startDate, $endDate)
     {
         return $query->whereBetween('collection_date', [$startDate, $endDate]);

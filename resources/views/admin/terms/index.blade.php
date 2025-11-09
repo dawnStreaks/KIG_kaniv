@@ -77,14 +77,29 @@
         
         function saveTerm(index) {
             const newValue = document.getElementById('edit-term-' + index).value;
-            document.getElementById('term-' + index).textContent = newValue;
-            document.getElementById('term-' + index).classList.remove('d-none');
-            document.getElementById('edit-term-' + index).classList.add('d-none');
-            document.querySelector(`[onclick="editTerm(${index})"]`).classList.remove('d-none');
-            document.querySelector(`[onclick="saveTerm(${index})"]`).classList.add('d-none');
             
-            // Here you would typically send an AJAX request to update the term
-            // For now, we'll just show the updated value
+            fetch(`/admin/terms/${index}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                },
+                body: JSON.stringify({ name: newValue })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    document.getElementById('term-' + index).textContent = newValue;
+                    document.getElementById('term-' + index).classList.remove('d-none');
+                    document.getElementById('edit-term-' + index).classList.add('d-none');
+                    document.querySelector(`[onclick="editTerm(${index})"]`).classList.remove('d-none');
+                    document.querySelector(`[onclick="saveTerm(${index})"]`).classList.add('d-none');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Failed to update term');
+            });
         }
     </script>
 @endsection

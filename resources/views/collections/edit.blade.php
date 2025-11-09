@@ -48,6 +48,32 @@
                 </div>
 
                 <div class="mb-3">
+                    <label for="type" class="form-label">Type</label>
+                    <select class="form-control @error('type') is-invalid @enderror" id="type" name="type" required>
+                        <option value="">Select Type</option>
+                        @foreach($types as $type)
+                            <option value="{{ $type }}" {{ old('type', $collection->type) == $type ? 'selected' : '' }}>{{ $type }}</option>
+                        @endforeach
+                    </select>
+                    @error('type')
+                        <div class="invalid-feedback">{{ $message }}</div>
+                    @enderror
+                </div>
+
+                <div class="mb-3">
+                    <label for="term" class="form-label">Term</label>
+                    <select class="form-control @error('term') is-invalid @enderror" id="term" name="term" required>
+                        <option value="">Select Term</option>
+                        @foreach($terms as $term)
+                            <option value="{{ $term }}" {{ old('term', $collection->term) == $term ? 'selected' : '' }}>{{ $term }}</option>
+                        @endforeach
+                    </select>
+                    @error('term')
+                        <div class="invalid-feedback">{{ $message }}</div>
+                    @enderror
+                </div>
+
+                <div class="mb-3">
                     <label for="notes" class="form-label">Notes</label>
                     <textarea class="form-control @error('notes') is-invalid @enderror" 
                               id="notes" name="notes" rows="3">{{ old('notes', $collection->notes) }}</textarea>

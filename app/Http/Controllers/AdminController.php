@@ -217,6 +217,14 @@ class AdminController extends Controller
         return redirect()->route('admin.terms.index')->with('success', 'Term added successfully');
     }
 
+    public function updateTerm(Request $request, $id)
+    {
+        $request->validate(['name' => 'required|string|max:255']);
+        $term = CollectionTerm::findOrFail($id);
+        $term->update(['name' => $request->name]);
+        return response()->json(['success' => true]);
+    }
+
     public function destroyTerm($id)
     {
         CollectionTerm::findOrFail($id)->delete();
@@ -234,6 +242,14 @@ class AdminController extends Controller
         $request->validate(['name' => 'required|string|max:255']);
         CollectionType::create(['name' => $request->name]);
         return redirect()->route('admin.types.index')->with('success', 'Type added successfully');
+    }
+
+    public function updateType(Request $request, $id)
+    {
+        $request->validate(['name' => 'required|string|max:255']);
+        $type = CollectionType::findOrFail($id);
+        $type->update(['name' => $request->name]);
+        return response()->json(['success' => true]);
     }
 
     public function destroyType($id)

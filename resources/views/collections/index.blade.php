@@ -23,7 +23,6 @@
                             <th>Unit</th>
                             <th>Term</th>
                             <th>Type</th>
-                            <th>Year</th>
                             <th>Entered By</th>
                             <th>Actions</th>
                         </tr>
@@ -33,8 +32,7 @@
                             <th><input type="text" class="form-control form-control-sm filter-input" placeholder="Filter Unit" data-column="2"></th>
                             <th><input type="text" class="form-control form-control-sm filter-input" placeholder="Filter Term" data-column="3"></th>
                             <th><input type="text" class="form-control form-control-sm filter-input" placeholder="Filter Type" data-column="4"></th>
-                            <th><input type="text" class="form-control form-control-sm filter-input" placeholder="Filter Year" data-column="5"></th>
-                            <th><input type="text" class="form-control form-control-sm filter-input" placeholder="Filter User" data-column="6"></th>
+                            <th><input type="text" class="form-control form-control-sm filter-input" placeholder="Filter User" data-column="5"></th>
                             <th></th>
                         </tr>
                     </thead>
@@ -46,7 +44,6 @@
                             <td>{{ $collection->unit->name ?? 'N/A' }}</td>
                             <td>{{ $collection->term ?? 'N/A' }}</td>
                             <td>{{ $collection->type ?? 'N/A' }}</td>
-                            <td>{{ $collection->year ?? 'N/A' }}</td>
                             <td>{{ $collection->enteredBy->name ?? 'N/A' }}</td>
                             <td>
                                 <a href="{{ route('collections.edit', $collection->id) }}" class="btn btn-sm btn-warning">Edit</a>

@@ -77,11 +77,29 @@
         
         function saveType(id) {
             const newValue = document.getElementById('edit-type-' + id).value;
-            document.getElementById('type-' + id).textContent = newValue;
-            document.getElementById('type-' + id).classList.remove('d-none');
-            document.getElementById('edit-type-' + id).classList.add('d-none');
-            document.querySelector(`[onclick="editType(${id})"]`).classList.remove('d-none');
-            document.querySelector(`[onclick="saveType(${id})"]`).classList.add('d-none');
+            
+            fetch(`/admin/types/${id}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                },
+                body: JSON.stringify({ name: newValue })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    document.getElementById('type-' + id).textContent = newValue;
+                    document.getElementById('type-' + id).classList.remove('d-none');
+                    document.getElementById('edit-type-' + id).classList.add('d-none');
+                    document.querySelector(`[onclick="editType(${id})"]`).classList.remove('d-none');
+                    document.querySelector(`[onclick="saveType(${id})"]`).classList.add('d-none');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Failed to update type');
+            });
         }
     </script>
 @endsection

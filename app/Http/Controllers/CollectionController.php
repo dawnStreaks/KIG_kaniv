@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Models\Collection;
 use App\Models\Unit;
 use App\Models\Area;
+use App\Models\CollectionTerm;
+use App\Models\CollectionType;
 use Illuminate\Http\Request;
 use App\Exports\CollectionsExport;
 use Maatwebsite\Excel\Facades\Excel;
@@ -31,9 +33,8 @@ class CollectionController extends Controller
             ? Unit::where('area_id', auth()->user()->area_id)->get()
             : Unit::with('area')->get();
             
-        // Get terms and types from session (managed by center/admin users)
-        $terms = session('collection_terms', ['Monthly', 'Quarterly', 'Yearly', 'One-time']);
-        $types = session('collection_types', ['Regular', 'Special', 'Emergency', 'Donation']);
+        $terms = CollectionTerm::active()->pluck('name')->toArray();
+        $types = CollectionType::active()->pluck('name')->toArray();
             
         return view('collections.create', compact('units', 'terms', 'types'));
     }
@@ -94,7 +95,10 @@ class CollectionController extends Controller
             ? Unit::where('area_id', auth()->user()->area_id)->active()->get()
             : Unit::with('area')->active()->get();
             
-        return view('collections.edit', compact('collection', 'units'));
+        $terms = CollectionTerm::active()->pluck('name')->toArray();
+        $types = CollectionType::active()->pluck('name')->toArray();
+            
+        return view('collections.edit', compact('collection', 'units', 'terms', 'types'));
     }
 
     public function update(Request $request, Collection $collection)
@@ -103,6 +107,8 @@ class CollectionController extends Controller
             'unit_id' => 'required|exists:units,id',
             'amount' => 'required|numeric|min:0',
             'collection_date' => 'required|date',
+            'type' => 'required|string',
+            'term' => 'required|string',
             'notes' => 'nullable|string',
         ]);
 
@@ -133,6 +139,52 @@ class CollectionController extends Controller
         });
         
         return view('collections.area-collections', compact('area', 'totalAmount'));
+    }
+
+    public function collectionReport(Request $request)
+    {
+        $year = $request->get('year', date('Y'));
+        $user = auth()->user();
+        
+        $query = Collection::with(['unit.area'])
+            ->whereYear('collection_date', $year);
+        
+        if ($user->isAreaUser()) {
+            $query->whereHas('unit', function($q) use ($user) {
+                $q->where('area_id', $user->area_id);
+            });
+            
+            $data = $query->selectRaw('units.name as unit_name, SUM(amount) as total_amount')
+                ->join('units', 'collections.unit_id', '=', 'units.id')
+                ->groupBy('units.id', 'units.name')
+                ->get();
+        } else {
+            $data = $query->selectRaw('areas.id as area_id, areas.name as area_name, SUM(amount) as total_amount')
+                ->join('units', 'collections.unit_id', '=', 'units.id')
+                ->join('areas', 'units.area_id', '=', 'areas.id')
+                ->groupBy('areas.id', 'areas.name')
+                ->get();
+        }
+        
+        return view('collections.report', compact('year', 'user', 'data'));
+    }
+
+    public function collectionReportDrillDown(Request $request)
+    {
+        $areaId = $request->get('area_id');
+        $year = $request->get('year', date('Y'));
+        
+        $data = Collection::with(['unit'])
+            ->whereYear('collection_date', $year)
+            ->whereHas('unit', function($q) use ($areaId) {
+                $q->where('area_id', $areaId);
+            })
+            ->selectRaw('units.name as unit_name, SUM(amount) as total_amount')
+            ->join('units', 'collections.unit_id', '=', 'units.id')
+            ->groupBy('units.id', 'units.name')
+            ->get();
+            
+        return response()->json($data);
     }
 
     public function export(Request $request)

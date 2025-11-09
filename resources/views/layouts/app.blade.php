@@ -95,6 +95,7 @@
                         <a class="nav-link" href="{{ route('collections.index') }}">Collections</a>
                         <a class="nav-link" href="{{ route('applications.review') }}">Review Applications</a>
                         <a class="nav-link" href="{{ route('expenses.index') }}">Expenses</a>
+                        <a class="nav-link" href="{{ route('investments.index') }}">Investments</a>
                         
                         <div class="px-3 py-2">
                             <small class="text-muted">REPORTS</small>
