@@ -36,6 +36,26 @@
         body {
             overflow-x: hidden;
         }
+        .pagination {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .pagination .page-item {
+            display: inline-block;
+        }
+        .pagination .page-item .page-link {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 38px;
+            width: 38px;
+            font-size: 14px;
+            line-height: 1;
+        }
+        .pagination .page-item .page-link span {
+            font-size: 12px;
+        }
     </style>
 </head>
 <body>
@@ -64,6 +84,7 @@
                     @if(auth()->user()->canAddExpenses())
                         <a class="nav-link" href="{{ route('expenses.index') }}">Expenses</a>
                     @endif
+                    <a class="nav-link" href="{{ route('investments.index') }}">Investments</a>
                     
                     <div class="px-3 py-2">
                         <small class="text-muted">REPORTS</small>

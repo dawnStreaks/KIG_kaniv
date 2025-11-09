@@ -63,9 +63,10 @@ class InvestmentController extends Controller
     {
         $request->validate(['returned_amount' => 'required|numeric|min:0']);
         
+        $newReturnedAmount = ($investment->returned_amount ?? 0) + $request->returned_amount;
+        
         $investment->update([
-            'status' => 'capital_returned',
-            'returned_amount' => $request->returned_amount
+            'returned_amount' => $newReturnedAmount
         ]);
         
         return redirect()->route('investments.index')->with('success', 'Capital return recorded successfully');
