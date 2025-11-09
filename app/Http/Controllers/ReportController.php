@@ -51,6 +51,7 @@ class ReportController extends Controller
         // Get detailed transactions
         $collections = Collection::with('unit')->orderBy('collection_date')->get();
         $expenses = Expense::orderBy('expense_date')->get();
+        $applications = Application::where('status', 'approved')->orderBy('approved_date')->get();
         
         // Combine and sort transactions by date
         $transactions = collect();
@@ -72,6 +73,16 @@ class ReportController extends Controller
                 'description' => $expense->particulars,
                 'collection' => 0,
                 'expense' => $expense->amount,
+            ]);
+        }
+        
+        foreach ($applications as $application) {
+            $transactions->push([
+                'date' => $application->approved_date,
+                'type' => 'Application Payment',
+                'description' => 'Payment to ' . $application->name . ' (' . ucfirst($application->category) . ')',
+                'collection' => 0,
+                'expense' => $application->approved_amount,
             ]);
         }
         
