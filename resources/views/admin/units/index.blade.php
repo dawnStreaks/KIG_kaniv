@@ -60,6 +60,9 @@
         document.addEventListener('DOMContentLoaded', function() {
             const table = document.querySelector('table');
             if (!table.id) table.id = 'unitsTable';
+            
+            // Prevent auto-initialization of table utils for this page
+            table.setAttribute('data-no-auto-init', 'true');
         });
     </script>
 @endsection

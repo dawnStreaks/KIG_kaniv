@@ -91,7 +91,7 @@ class TableUtils {
 
 // Auto-initialize tables on page load
 document.addEventListener('DOMContentLoaded', function() {
-    const tables = document.querySelectorAll('table');
+    const tables = document.querySelectorAll('table:not([data-no-auto-init])');
     tables.forEach((table, index) => {
         if (!table.id) table.id = `data-table-${index}`;
         TableUtils.initializeTable(table.id);
