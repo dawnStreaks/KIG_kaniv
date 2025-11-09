@@ -54,6 +54,7 @@ Route::middleware('auth')->group(function () {
         Route::post('/units', [AdminController::class, 'storeUnit'])->name('units.store');
         Route::get('/units/{unit}/edit', [AdminController::class, 'editUnit'])->name('units.edit');
         Route::put('/units/{unit}', [AdminController::class, 'updateUnit'])->name('units.update');
+        Route::delete('/units/{unit}', [AdminController::class, 'destroyUnit'])->name('units.destroy');
         
         // Collection settings
         Route::get('/terms', [AdminController::class, 'terms'])->name('terms.index');

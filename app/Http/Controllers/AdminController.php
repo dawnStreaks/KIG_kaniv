@@ -207,6 +207,12 @@ class AdminController extends Controller
         return redirect()->route('admin.units.index')->with('success', 'Unit updated successfully');
     }
 
+    public function destroyUnit(Unit $unit)
+    {
+        $unit->delete();
+        return redirect()->route('admin.units.index')->with('success', 'Unit deleted successfully');
+    }
+
     public function terms()
     {
         $terms = CollectionTerm::all();

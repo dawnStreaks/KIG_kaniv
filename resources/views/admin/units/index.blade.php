@@ -36,24 +36,30 @@
                             </span>
                         </td>
                         <td>{{ $unit->created_at->format('Y-m-d') }}</td>
-                        <td><a href="{{ route('admin.units.edit', $unit->id) }}" class="btn btn-sm btn-warning">Edit</a></td>
+                        <td>
+                            <a href="{{ route('admin.units.edit', $unit->id) }}" class="btn btn-sm btn-warning me-1">Edit</a>
+                            <form method="POST" action="{{ route('admin.units.destroy', $unit) }}" class="d-inline" onsubmit="return confirm('Are you sure you want to delete this unit?')">
+                                @csrf
+                                @method('DELETE')
+                                <button type="submit" class="btn btn-sm btn-danger">Delete</button>
+                            </form>
+                        </td>
                     </tr>
                     @endforeach
                 </tbody>
             </table>
             
-            <div class="d-flex justify-content-center mt-3">
-                {{ $units->links() }}
-            </div>
+        </div>
+        
+        <div class="d-flex justify-content-center mt-3">
+            {{ $units->links() }}
         </div>
     </div>
     
-    <script src="{{ asset('js/filtered-export.js') }}"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             const table = document.querySelector('table');
             if (!table.id) table.id = 'unitsTable';
-            FilteredExport.initializeExportButton('unitsTable', '{{ route("admin.units.export") }}');
         });
     </script>
 @endsection
