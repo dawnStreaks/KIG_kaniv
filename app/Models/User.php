@@ -111,4 +111,9 @@ class User extends Authenticatable
     {
         return $this->isAdmin() || $this->isTreasurer();
     }
+
+    public function canAddInvestments()
+    {
+        return $this->isAdmin() || $this->isTreasurer();
+    }
 }

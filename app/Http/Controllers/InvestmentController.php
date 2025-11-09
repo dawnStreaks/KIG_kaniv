@@ -16,6 +16,10 @@ class InvestmentController extends Controller
 
     public function create()
     {
+        if (!auth()->user()->canAddInvestments()) {
+            abort(403, 'Access denied.');
+        }
+        
         $totalCollections = Collection::sum('amount');
         $totalInvestments = Investment::sum('amount');
         $availableAmount = $totalCollections - $totalInvestments;
@@ -25,6 +29,10 @@ class InvestmentController extends Controller
 
     public function store(Request $request)
     {
+        if (!auth()->user()->canAddInvestments()) {
+            abort(403, 'Access denied.');
+        }
+        
         $validated = $request->validate([
             'investment_date' => 'required|date',
             'amount' => 'required|numeric|min:0',
@@ -39,6 +47,10 @@ class InvestmentController extends Controller
 
     public function addIncome(Request $request, Investment $investment)
     {
+        if (!auth()->user()->canAddInvestments()) {
+            abort(403, 'Access denied.');
+        }
+        
         $request->validate(['income' => 'required|numeric|min:0']);
         
         $investment->update([
@@ -61,12 +73,15 @@ class InvestmentController extends Controller
 
     public function returnCapital(Request $request, Investment $investment)
     {
+        if (!auth()->user()->canAddInvestments()) {
+            abort(403, 'Access denied.');
+        }
+        
         $request->validate(['returned_amount' => 'required|numeric|min:0']);
         
-        $newReturnedAmount = ($investment->returned_amount ?? 0) + $request->returned_amount;
-        
         $investment->update([
-            'returned_amount' => $newReturnedAmount
+            'status' => 'capital_returned',
+            'returned_amount' => $request->returned_amount
         ]);
         
         return redirect()->route('investments.index')->with('success', 'Capital return recorded successfully');

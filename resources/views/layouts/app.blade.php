@@ -120,7 +120,7 @@
                         <a class="nav-link" href="{{ route('collections.index') }}">Collections</a>
                         <a class="nav-link" href="{{ route('applications.review') }}">Review Applications</a>
                         <a class="nav-link" href="{{ route('expenses.index') }}">Expenses</a>
-                        @if(auth()->user()->role === 'treasurer')
+                        @if(auth()->user()->canAddInvestments())
                             <a class="nav-link" href="{{ route('investments.index') }}">Investments</a>
                         @endif
                         
