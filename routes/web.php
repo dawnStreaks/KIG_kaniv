@@ -94,7 +94,7 @@ Route::middleware('auth')->group(function () {
     // Investment routes
     Route::resource('investments', App\Http\Controllers\InvestmentController::class);
     Route::post('/investments/{investment}/add-income', [App\Http\Controllers\InvestmentController::class, 'addIncome'])->name('investments.add-income');
-    Route::post('/investments/{investment}/approve', [App\Http\Controllers\InvestmentController::class, 'approve'])->name('investments.approve')->middleware('center');
+    Route::post('/investments/{investment}/approve', [App\Http\Controllers\InvestmentController::class, 'approve'])->name('investments.approve')->middleware('admin');
     Route::post('/investments/{investment}/return-capital', [App\Http\Controllers\InvestmentController::class, 'returnCapital'])->name('investments.return-capital');
     
     // Expense routes
