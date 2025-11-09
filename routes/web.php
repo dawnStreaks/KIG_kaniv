@@ -79,7 +79,7 @@ Route::middleware('auth')->group(function () {
     Route::resource('applications', ApplicationController::class);
     Route::get('/applications/{application}/download', [ApplicationController::class, 'download'])->name('applications.download');
     Route::post('/applications/validate-field', [ApplicationController::class, 'validateField'])->name('applications.validate-field');
-    Route::get('/applications-review', [ApplicationController::class, 'review'])->name('applications.review')->middleware('mekhala');
+    Route::get('/applications-review', [ApplicationController::class, 'review'])->name('applications.review');
     Route::post('/applications/{application}/approve', [ApplicationController::class, 'approve'])->name('applications.approve');
     Route::post('/applications/{application}/reject', [ApplicationController::class, 'reject'])->name('applications.reject');
     
@@ -88,8 +88,8 @@ Route::middleware('auth')->group(function () {
     Route::get('/collections/report', [CollectionController::class, 'collectionReport'])->name('collections.report');
     Route::get('/collections/report/drill-down', [CollectionController::class, 'collectionReportDrillDown'])->name('collections.report.drilldown');
     Route::resource('collections', CollectionController::class);
-    Route::get('/unit-collections', [CollectionController::class, 'unitCollections'])->name('collections.units')->middleware('mekhala');
-    Route::get('/area-collections', [CollectionController::class, 'areaCollections'])->name('collections.area')->middleware('mekhala');
+    Route::get('/unit-collections', [CollectionController::class, 'unitCollections'])->name('collections.units');
+    Route::get('/area-collections', [CollectionController::class, 'areaCollections'])->name('collections.area');
     
     // Investment routes
     Route::resource('investments', App\Http\Controllers\InvestmentController::class);
