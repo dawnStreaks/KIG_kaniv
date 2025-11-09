@@ -73,6 +73,7 @@
                     <div class="px-3 py-2">
                         <small class="text-muted">AREA</small>
                     </div>
+                    <a class="nav-link" href="{{ route('applications.index') }}">Applications</a>
                     <a class="nav-link" href="{{ route('collections.index') }}">Collections</a>
                     <a class="nav-link" href="{{ route('collections.report') }}">Collection Report</a>
                 @elseif(auth()->user()->user_type == 'mekhala')
