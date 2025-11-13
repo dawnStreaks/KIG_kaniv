@@ -17,11 +17,9 @@ return new class extends Migration
             $table->decimal('amount', 15, 2);
             $table->text('description');
             $table->decimal('income_generated', 15, 2)->default(0);
-            $table->enum('status', ['pending', 'approved', 'capital_returned'])->default('pending');
+            $table->enum('status', ['invested', 'capital_returned'])->default('invested');
             $table->decimal('returned_amount', 15, 2)->nullable();
             $table->foreignId('created_by')->constrained('users');
-            $table->foreignId('approved_by')->nullable()->constrained('users');
-            $table->timestamp('approved_at')->nullable();
             $table->timestamps();
         });
     }

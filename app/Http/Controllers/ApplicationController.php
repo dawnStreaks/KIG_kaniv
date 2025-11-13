@@ -109,7 +109,6 @@ class ApplicationController extends Controller
 
         $validated = $request->validate([
             'approved_amount' => 'required|numeric|min:0',
-            'expense_amount' => 'required|numeric|min:0',
             'approved_date' => 'nullable|date',
         ]);
 
@@ -120,17 +119,7 @@ class ApplicationController extends Controller
             'reviewed_by' => auth()->id(),
         ]);
 
-        // Create expense for the application
-        \App\Models\Expense::create([
-            'expense_date' => $validated['approved_date'] ?? now(),
-            'particulars' => 'Application payment for ' . $application->name,
-            'amount' => $validated['expense_amount'],
-            'type' => 'application',
-            'application_id' => $application->id,
-            'entered_by' => auth()->id(),
-        ]);
-
-        return back()->with('success', 'Application approved and expense added successfully');
+        return back()->with('success', 'Application approved successfully');
     }
 
     public function reject(Application $application)

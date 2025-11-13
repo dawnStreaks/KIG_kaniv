@@ -24,6 +24,7 @@
                             <th>Particulars</th>
                             <th>Type</th>
                             <th>Expense Date</th>
+                            <th>Bill</th>
                             <th>Entered By</th>
                             <th>Actions</th>
                         </tr>
@@ -32,7 +33,8 @@
                             <th><input type="text" class="form-control form-control-sm filter-input" placeholder="Filter Particulars" data-column="1"></th>
                             <th><select class="form-control form-control-sm filter-input" data-column="2"><option value="">All Types</option><option value="refreshment">Refreshment</option><option value="miscellaneous">Miscellaneous</option></select></th>
                             <th><input type="date" class="form-control form-control-sm filter-input" data-column="3"></th>
-                            <th><input type="text" class="form-control form-control-sm filter-input" placeholder="Filter User" data-column="4"></th>
+                            <th></th>
+                            <th><input type="text" class="form-control form-control-sm filter-input" placeholder="Filter User" data-column="5"></th>
                             <th></th>
                         </tr>
                     </thead>
@@ -43,6 +45,13 @@
                             <td>{{ $expense->particulars }}</td>
                             <td>{{ ucfirst($expense->type) }}</td>
                             <td>{{ $expense->expense_date }}</td>
+                            <td>
+                                @if($expense->bill_path)
+                                    <a href="{{ asset('storage/' . $expense->bill_path) }}" target="_blank" class="btn btn-sm btn-info">View Bill</a>
+                                @else
+                                    <span class="text-muted">No bill</span>
+                                @endif
+                            </td>
                             <td>{{ $expense->enteredBy->name ?? 'N/A' }}</td>
                             <td>
                                 <a href="{{ route('expenses.edit', $expense->id) }}" class="btn btn-sm btn-warning">Edit</a>

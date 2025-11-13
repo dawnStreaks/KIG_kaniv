@@ -49,7 +49,12 @@ class ExpenseController extends Controller
             'particulars' => 'required|string|max:255',
             'amount' => 'required|numeric|min:0',
             'type' => 'required|in:refreshment,miscellaneous',
+            'bill' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:2048',
         ]);
+
+        if ($request->hasFile('bill')) {
+            $validated['bill_path'] = $request->file('bill')->store('bills', 'public');
+        }
 
         $validated['entered_by'] = auth()->id();
         Expense::create($validated);
@@ -74,9 +79,13 @@ class ExpenseController extends Controller
             'expense_date' => 'required|date',
             'particulars' => 'required|string|max:255',
             'amount' => 'required|numeric|min:0',
-            'type' => 'required|in:application,mekhala',
-            'application_id' => 'nullable|exists:applications,id',
+            'type' => 'required|in:refreshment,miscellaneous',
+            'bill' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:2048',
         ]);
+
+        if ($request->hasFile('bill')) {
+            $validated['bill_path'] = $request->file('bill')->store('bills', 'public');
+        }
 
         $expense->update($validated);
         return redirect()->route('expenses.index')->with('success', 'Expense updated successfully');

@@ -94,7 +94,7 @@ Route::middleware('auth')->group(function () {
     // Investment routes
     Route::resource('investments', App\Http\Controllers\InvestmentController::class);
     Route::post('/investments/{investment}/add-income', [App\Http\Controllers\InvestmentController::class, 'addIncome'])->name('investments.add-income');
-    Route::post('/investments/{investment}/approve', [App\Http\Controllers\InvestmentController::class, 'approve'])->name('investments.approve')->middleware('center');
+
     Route::post('/investments/{investment}/return-capital', [App\Http\Controllers\InvestmentController::class, 'returnCapital'])->name('investments.return-capital');
     
     // Expense routes
@@ -113,6 +113,8 @@ Route::middleware('auth')->group(function () {
         Route::get('/financial-statement', [ReportController::class, 'financialStatement'])->name('financial');
         Route::get('/collection', [ReportController::class, 'collectionReport'])->name('collection');
         Route::get('/application-payment', [ReportController::class, 'applicationPaymentReport'])->name('application-payment');
+        Route::get('/mekhala', [ReportController::class, 'mekhalaReport'])->name('mekhala');
+        Route::get('/mekhala/drill-down', [ReportController::class, 'mekhalaReportDrillDown'])->name('mekhala.drilldown');
         Route::get('/export-financial', [ReportController::class, 'exportFinancialStatement'])->name('export-financial');
     });
 });

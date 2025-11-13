@@ -21,7 +21,7 @@ class Application extends Model
     ];
 
     protected $casts = [
-        'approved_amount' => 'decimal:2',
+        'approved_amount' => 'decimal:3',
         'approved_date' => 'date',
     ];
 

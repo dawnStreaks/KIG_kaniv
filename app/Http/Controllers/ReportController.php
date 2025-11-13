@@ -149,6 +149,74 @@ class ReportController extends Controller
         return view('reports.application-payment', compact('applications', 'totalAmount'));
     }
 
+    public function mekhalaReport(Request $request)
+    {
+        $year = $request->get('year', date('Y'));
+        
+        $data = \App\Models\Mekhala::with(['areas.units'])->get()->map(function($mekhala) use ($year) {
+            $collections = Collection::whereYear('collection_date', $year)
+                ->whereHas('unit.area', function($q) use ($mekhala) {
+                    $q->where('mekhala_id', $mekhala->id);
+                })->sum('amount');
+                
+            $applications = Application::whereYear('approved_date', $year)
+                ->whereHas('submitter.area', function($q) use ($mekhala) {
+                    $q->where('mekhala_id', $mekhala->id);
+                })->sum('approved_amount');
+                
+            $expenses = Expense::whereYear('expense_date', $year)
+                ->where('mekhala_id', $mekhala->id)
+                ->sum('amount');
+                
+            $balance = $collections - $applications - $expenses;
+            
+            return [
+                'mekhala_id' => $mekhala->id,
+                'name' => $mekhala->name,
+                'collections' => $collections,
+                'applications' => $applications,
+                'expenses' => $expenses,
+                'balance' => $balance
+            ];
+        });
+        
+        return view('reports.mekhala', compact('data', 'year'));
+    }
+
+    public function mekhalaReportDrillDown(Request $request)
+    {
+        $mekhalaId = $request->get('mekhala_id');
+        $year = $request->get('year', date('Y'));
+        $type = $request->get('type');
+        
+        if ($type === 'collections') {
+            $data = \App\Models\Area::where('mekhala_id', $mekhalaId)
+                ->with('units')
+                ->get()
+                ->map(function($area) use ($year) {
+                    $amount = Collection::whereYear('collection_date', $year)
+                        ->whereHas('unit', function($q) use ($area) {
+                            $q->where('area_id', $area->id);
+                        })->sum('amount');
+                    return ['name' => $area->name, 'amount' => $amount];
+                });
+        } elseif ($type === 'applications') {
+            $data = \App\Models\Area::where('mekhala_id', $mekhalaId)
+                ->get()
+                ->map(function($area) use ($year) {
+                    $amount = Application::whereYear('approved_date', $year)
+                        ->whereHas('submitter', function($q) use ($area) {
+                            $q->where('area_id', $area->id);
+                        })->sum('approved_amount');
+                    return ['name' => $area->name, 'amount' => $amount];
+                });
+        } else {
+            $data = collect([]);
+        }
+        
+        return response()->json($data);
+    }
+
     public function exportFinancialStatement(Request $request)
     {
         $year = $request->get('year', date('Y'));

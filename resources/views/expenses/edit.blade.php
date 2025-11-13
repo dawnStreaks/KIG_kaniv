@@ -19,7 +19,7 @@
                             </div>
                         @endif
 
-                        <form method="POST" action="{{ route('expenses.update', $expense) }}">
+                        <form method="POST" action="{{ route('expenses.update', $expense) }}" enctype="multipart/form-data">
                             @csrf
                             @method('PUT')
                             <div class="mb-3">
@@ -41,6 +41,17 @@
                             <div class="mb-3">
                                 <label for="expense_date" class="form-label">Expense Date</label>
                                 <input type="date" class="form-control" id="expense_date" name="expense_date" value="{{ old('expense_date', $expense->expense_date ? $expense->expense_date->format('Y-m-d') : '') }}" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="bill" class="form-label">Upload Bill (Optional)</label>
+                                @if($expense->bill_path)
+                                    <div class="mb-2">
+                                        <small class="text-muted">Current bill: </small>
+                                        <a href="{{ asset('storage/' . $expense->bill_path) }}" target="_blank" class="btn btn-sm btn-info">View Current Bill</a>
+                                    </div>
+                                @endif
+                                <input type="file" class="form-control" id="bill" name="bill" accept=".pdf,.jpg,.jpeg,.png">
+                                <small class="form-text text-muted">Accepted formats: PDF, JPG, JPEG, PNG. Max size: 2MB. Leave empty to keep current bill.</small>
                             </div>
                             <div class="d-flex justify-content-between">
                                 <a href="{{ route('expenses.index') }}" class="btn btn-secondary">Cancel</a>

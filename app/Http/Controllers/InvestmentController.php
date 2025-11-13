@@ -10,7 +10,7 @@ class InvestmentController extends Controller
 {
     public function index()
     {
-        $investments = Investment::with(['creator', 'approver'])->latest()->paginate(10);
+        $investments = Investment::with(['creator'])->latest()->paginate(10);
         return view('investments.index', compact('investments'));
     }
 
@@ -40,6 +40,7 @@ class InvestmentController extends Controller
         ]);
 
         $validated['created_by'] = auth()->id();
+        $validated['status'] = 'invested';
         Investment::create($validated);
         
         return redirect()->route('investments.index')->with('success', 'Investment created successfully');
@@ -60,16 +61,7 @@ class InvestmentController extends Controller
         return redirect()->route('investments.index')->with('success', 'Income added successfully');
     }
 
-    public function approve(Investment $investment)
-    {
-        $investment->update([
-            'status' => 'approved',
-            'approved_by' => auth()->id(),
-            'approved_at' => now()
-        ]);
-        
-        return redirect()->route('investments.index')->with('success', 'Investment approved successfully');
-    }
+
 
     public function returnCapital(Request $request, Investment $investment)
     {

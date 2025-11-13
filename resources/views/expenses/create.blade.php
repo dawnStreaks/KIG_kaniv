@@ -19,7 +19,7 @@
                             </div>
                         @endif
 
-                        <form method="POST" action="{{ route('expenses.store') }}">
+                        <form method="POST" action="{{ route('expenses.store') }}" enctype="multipart/form-data">
                             @csrf
                             <div class="mb-3">
                                 <label for="amount" class="form-label">Amount</label>
@@ -40,6 +40,11 @@
                             <div class="mb-3">
                                 <label for="expense_date" class="form-label">Expense Date</label>
                                 <input type="date" class="form-control" id="expense_date" name="expense_date" value="{{ old('expense_date') }}" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="bill" class="form-label">Upload Bill (Optional)</label>
+                                <input type="file" class="form-control" id="bill" name="bill" accept=".pdf,.jpg,.jpeg,.png">
+                                <small class="form-text text-muted">Accepted formats: PDF, JPG, JPEG, PNG. Max size: 2MB</small>
                             </div>
                             <div class="d-flex justify-content-between">
                                 <a href="{{ route('expenses.index') }}" class="btn btn-secondary">Cancel</a>

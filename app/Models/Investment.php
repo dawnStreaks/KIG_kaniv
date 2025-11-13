@@ -13,17 +13,14 @@ class Investment extends Model
         'income_generated',
         'status',
         'returned_amount',
-        'created_by',
-        'approved_by',
-        'approved_at'
+        'created_by'
     ];
 
     protected $casts = [
         'investment_date' => 'date',
-        'amount' => 'decimal:2',
-        'income_generated' => 'decimal:2',
-        'returned_amount' => 'decimal:2',
-        'approved_at' => 'datetime'
+        'amount' => 'decimal:3',
+        'income_generated' => 'decimal:3',
+        'returned_amount' => 'decimal:3'
     ];
 
     public function creator()
@@ -31,10 +28,7 @@ class Investment extends Model
         return $this->belongsTo(User::class, 'created_by');
     }
 
-    public function approver()
-    {
-        return $this->belongsTo(User::class, 'approved_by');
-    }
+
 
     public function getBalanceAttribute()
     {

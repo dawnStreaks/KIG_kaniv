@@ -36,7 +36,7 @@
                             <td>{{ $investment->description }}</td>
                             <td>KWD {{ number_format($investment->income_generated, 2) }}</td>
                             <td>
-                                <span class="badge bg-{{ $investment->status === 'approved' ? 'success' : ($investment->status === 'capital_returned' ? 'info' : 'warning') }}">
+                                <span class="badge bg-{{ $investment->status === 'invested' ? 'success' : 'info' }}">
                                     {{ ucfirst(str_replace('_', ' ', $investment->status)) }}
                                 </span>
                             </td>
@@ -45,15 +45,9 @@
                             <td>
                                 @if(auth()->user()->canAddInvestments())
                                     <button class="btn btn-sm btn-success" onclick="addIncome({{ $investment->id }})">Add Income</button>
-                                    @if($investment->status === 'approved')
+                                    @if($investment->status === 'invested')
                                         <button class="btn btn-sm btn-info" onclick="returnCapital({{ $investment->id }})">Return Capital</button>
                                     @endif
-                                @endif
-                                @if(auth()->user()->user_type === 'center' && $investment->status === 'pending')
-                                    <form method="POST" action="{{ route('investments.approve', $investment) }}" class="d-inline">
-                                        @csrf
-                                        <button type="submit" class="btn btn-sm btn-primary">Approve</button>
-                                    </form>
                                 @endif
                             </td>
                         </tr>

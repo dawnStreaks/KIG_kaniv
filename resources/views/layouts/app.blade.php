@@ -130,6 +130,7 @@
                         <a class="nav-link" href="{{ route('reports.financial') }}">Financial Statement</a>
                         <a class="nav-link" href="{{ route('reports.collection') }}">Collection Report</a>
                         <a class="nav-link" href="{{ route('collections.report') }}">Collection Chart Report</a>
+                        <a class="nav-link" href="{{ route('reports.mekhala') }}">Mekhala Report</a>
                         <a class="nav-link" href="{{ route('reports.application-payment') }}">Application Payment</a>
                     @endif
                 @endif

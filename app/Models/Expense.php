@@ -10,13 +10,14 @@ class Expense extends Model
         'expense_date',
         'particulars',
         'amount',
+        'bill_path',
         'type',
         'application_id',
         'entered_by',
     ];
 
     protected $casts = [
-        'amount' => 'decimal:2',
+        'amount' => 'decimal:3',
         'expense_date' => 'date',
     ];
 

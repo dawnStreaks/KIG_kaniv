@@ -88,17 +88,13 @@
                                 <input type="number" step="0.01" class="form-control" id="approved_amount{{ $application->id }}" name="approved_amount" required>
                             </div>
                             <div class="mb-3">
-                                <label for="expense_amount{{ $application->id }}" class="form-label">Expense Amount (KWD)</label>
-                                <input type="number" step="0.01" class="form-control" id="expense_amount{{ $application->id }}" name="expense_amount" required>
-                            </div>
-                            <div class="mb-3">
                                 <label for="approved_date{{ $application->id }}" class="form-label">Approved Date</label>
                                 <input type="date" class="form-control" id="approved_date{{ $application->id }}" name="approved_date" value="{{ date('Y-m-d') }}">
                             </div>
                         </div>
                         <div class="modal-footer">
                             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                            <button type="submit" class="btn btn-success">Approve & Add Expense</button>
+                            <button type="submit" class="btn btn-success">Approve</button>
                         </div>
                     </form>
                 </div>
