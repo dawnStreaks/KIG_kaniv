@@ -9,6 +9,18 @@
             <button type="button" class="btn btn-secondary" onclick="clearFilters()">Clear Filters</button>
         </div>
 
+        @if(!empty($mekhalaData))
+        <div class="card mb-4">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5>Mekhala-wise Collection Overview</h5>
+                <div id="chartBreadcrumb" class="small text-muted"></div>
+            </div>
+            <div class="card-body">
+                <canvas id="collectionChart" width="400" height="200"></canvas>
+            </div>
+        </div>
+        @endif
+
         <div class="card">
             <div class="card-body">
                 <div class="table-responsive">
@@ -66,6 +78,7 @@
         </div>
     </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             const filterInputs = document.querySelectorAll('.filter-input');
@@ -104,6 +117,112 @@
                 
                 document.getElementById('totalAmount').textContent = 'KWD ' + visibleTotal.toLocaleString('en-US', {minimumFractionDigits: 3, maximumFractionDigits: 3});
             }
+            
+            @if(!empty($mekhalaData))
+            // Initialize chart
+            const ctx = document.getElementById('collectionChart').getContext('2d');
+            let currentChart;
+            let currentLevel = 'mekhala';
+            let breadcrumb = [];
+            
+            function createChart(data, level, title) {
+                if (currentChart) {
+                    currentChart.destroy();
+                }
+                
+                currentChart = new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: data.map(item => item.name),
+                        datasets: [{
+                            label: 'Collection Amount (KWD)',
+                            data: data.map(item => item.total),
+                            backgroundColor: 'rgba(54, 162, 235, 0.6)',
+                            borderColor: 'rgba(54, 162, 235, 1)',
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: {
+                            title: {
+                                display: true,
+                                text: title
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true
+                            }
+                        },
+                        onClick: function(event, elements) {
+                            if (elements.length > 0) {
+                                const index = elements[0].index;
+                                const item = data[index];
+                                
+                                if (level === 'mekhala') {
+                                    drillDownToArea(item.id, item.name);
+                                } else if (level === 'area') {
+                                    drillDownToUnit(item.id, item.name);
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+            
+            function drillDownToArea(mekhalaId, mekhalaName) {
+                fetch(`{{ route('reports.collection.mekhala-drilldown') }}?mekhala_id=${mekhalaId}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        breadcrumb = [{name: mekhalaName, level: 'mekhala', id: mekhalaId}];
+                        currentLevel = 'area';
+                        createChart(data, 'area', `Areas in ${mekhalaName}`);
+                        updateBreadcrumb();
+                    });
+            }
+            
+            function drillDownToUnit(areaId, areaName) {
+                fetch(`{{ route('reports.collection.area-drilldown') }}?area_id=${areaId}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        breadcrumb.push({name: areaName, level: 'area', id: areaId});
+                        currentLevel = 'unit';
+                        createChart(data, 'unit', `Units in ${areaName}`);
+                        updateBreadcrumb();
+                    });
+            }
+            
+            function updateBreadcrumb() {
+                const breadcrumbHtml = breadcrumb.map((item, index) => 
+                    `<button class="btn btn-link p-0" onclick="goToBreadcrumb(${index})">${item.name}</button>`
+                ).join(' > ');
+                
+                document.getElementById('chartBreadcrumb').innerHTML = 
+                    `<button class="btn btn-link p-0" onclick="goToMekhala()">All Mekhalas</button>` + 
+                    (breadcrumbHtml ? ' > ' + breadcrumbHtml : '');
+            }
+            
+            function goToMekhala() {
+                breadcrumb = [];
+                currentLevel = 'mekhala';
+                createChart({!! json_encode($mekhalaData) !!}, 'mekhala', 'Mekhala-wise Collections');
+                updateBreadcrumb();
+            }
+            
+            function goToBreadcrumb(index) {
+                const item = breadcrumb[index];
+                breadcrumb = breadcrumb.slice(0, index);
+                
+                if (item.level === 'mekhala') {
+                    drillDownToArea(item.id, item.name);
+                }
+            }
+            
+            // Initialize with mekhala data
+            createChart({!! json_encode($mekhalaData) !!}, 'mekhala', 'Mekhala-wise Collections');
+            updateBreadcrumb();
+            @endif
         });
         
         function clearFilters() {

@@ -182,6 +182,8 @@ class ReportController extends Controller
 
     public function collectionReport(Request $request)
     {
+        $user = auth()->user();
+        
         $query = Collection::with(['unit.area.mekhala', 'enteredBy']);
         
         if ($request->filled('area_id')) {
@@ -201,7 +203,26 @@ class ReportController extends Controller
         $collections = $query->latest('collection_date')->get();
         $totalAmount = $collections->sum('amount');
         
-        return view('reports.collection', compact('collections', 'totalAmount'));
+        // Get mekhala-wise data for center users
+        $mekhalaData = [];
+        if ($user->isCenterUser()) {
+            $mekhalaData = \App\Models\Mekhala::with('areas.units.collections')
+                ->get()
+                ->map(function($mekhala) {
+                    $total = $mekhala->areas->sum(function($area) {
+                        return $area->units->sum(function($unit) {
+                            return $unit->collections->sum('amount');
+                        });
+                    });
+                    return [
+                        'id' => $mekhala->id,
+                        'name' => $mekhala->name,
+                        'total' => $total
+                    ];
+                })->toArray();
+        }
+        
+        return view('reports.collection', compact('collections', 'totalAmount', 'mekhalaData'));
     }
 
     public function applicationPaymentReport(Request $request)
@@ -242,8 +263,9 @@ class ReportController extends Controller
                 })->sum('approved_amount');
                 
             $expenses = Expense::whereYear('expense_date', $year)
-                ->where('mekhala_id', $mekhala->id)
-                ->sum('amount');
+                ->whereHas('enteredBy', function($q) use ($mekhala) {
+                    $q->where('mekhala_id', $mekhala->id);
+                })->sum('amount');
                 
             $balance = $collections - $applications - $expenses;
             
@@ -475,6 +497,45 @@ class ReportController extends Controller
             'yearlyApplications', 'monthlyApplications', 'yearlyInvestments', 'monthlyInvestments',
             'yearlyIncome', 'monthlyIncome', 'yearlyReturned', 'monthlyReturned', 'transactions', 'reportType', 'mekhalaName'
         ));
+    }
+
+    public function collectionMekhalaDrillDown(Request $request)
+    {
+        $mekhalaId = $request->get('mekhala_id');
+        
+        $data = \App\Models\Area::where('mekhala_id', $mekhalaId)
+            ->with('units.collections')
+            ->get()
+            ->map(function($area) {
+                $total = $area->units->sum(function($unit) {
+                    return $unit->collections->sum('amount');
+                });
+                return [
+                    'id' => $area->id,
+                    'name' => $area->name,
+                    'total' => $total
+                ];
+            });
+        
+        return response()->json($data);
+    }
+    
+    public function collectionAreaDrillDown(Request $request)
+    {
+        $areaId = $request->get('area_id');
+        
+        $data = \App\Models\Unit::where('area_id', $areaId)
+            ->with('collections')
+            ->get()
+            ->map(function($unit) {
+                return [
+                    'id' => $unit->id,
+                    'name' => $unit->name,
+                    'total' => $unit->collections->sum('amount')
+                ];
+            });
+        
+        return response()->json($data);
     }
 
     public function exportFinancialStatement(Request $request)

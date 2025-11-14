@@ -127,6 +127,8 @@ Route::middleware('auth')->group(function () {
         Route::get('/application-payment', [ReportController::class, 'applicationPaymentReport'])->name('application-payment');
         Route::get('/mekhala', [ReportController::class, 'mekhalaReport'])->name('mekhala');
         Route::get('/mekhala/drill-down', [ReportController::class, 'mekhalaReportDrillDown'])->name('mekhala.drilldown');
+        Route::get('/collection/mekhala-drill-down', [ReportController::class, 'collectionMekhalaDrillDown'])->name('collection.mekhala-drilldown');
+        Route::get('/collection/area-drill-down', [ReportController::class, 'collectionAreaDrillDown'])->name('collection.area-drilldown');
         Route::get('/export-financial', [ReportController::class, 'exportFinancialStatement'])->name('export-financial');
     });
 });
