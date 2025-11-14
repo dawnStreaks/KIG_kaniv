@@ -339,4 +339,31 @@ class AdminController extends Controller
     {
         return Excel::download(new UnitsExport($request), 'units.xlsx');
     }
+
+    public function applicationTypes()
+    {
+        $applicationTypes = \App\Models\ApplicationType::all();
+        return view('admin.application-types.index', compact('applicationTypes'));
+    }
+
+    public function storeApplicationType(Request $request)
+    {
+        $request->validate(['name' => 'required|string|max:255']);
+        \App\Models\ApplicationType::create(['name' => $request->name]);
+        return redirect()->route('admin.application-types.index')->with('success', 'Application type added successfully');
+    }
+
+    public function updateApplicationType(Request $request, $id)
+    {
+        $request->validate(['name' => 'required|string|max:255']);
+        $applicationType = \App\Models\ApplicationType::findOrFail($id);
+        $applicationType->update(['name' => $request->name]);
+        return response()->json(['success' => true]);
+    }
+
+    public function destroyApplicationType($id)
+    {
+        \App\Models\ApplicationType::findOrFail($id)->delete();
+        return redirect()->route('admin.application-types.index')->with('success', 'Application type deleted successfully');
+    }
 }

@@ -109,10 +109,11 @@
                         <a class="nav-link" href="{{ route('admin.units.index') }}">Units</a>
                         
                         <div class="px-3 py-2">
-                            <small class="text-muted">COLLECTION SETTINGS</small>
+                            <small class="text-muted">SETTINGS</small>
                         </div>
                         <a class="nav-link" href="{{ route('admin.terms.index') }}">Manage Terms</a>
                         <a class="nav-link" href="{{ route('admin.types.index') }}">Manage Types</a>
+                        <a class="nav-link" href="{{ route('admin.application-types.index') }}">Application Types</a>
                         
                         <div class="px-3 py-2">
                             <small class="text-muted">MAIN</small>

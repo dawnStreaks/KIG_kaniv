@@ -12,7 +12,7 @@ class ApplicationController extends Controller
 {
     public function index()
     {
-        $query = Application::with(['submitter', 'reviewer']);
+        $query = Application::with(['submitter.area', 'submitter.unit', 'reviewer', 'applicationType']);
         
         if (auth()->user()->isAreaUser()) {
             $query->where('submitted_by', auth()->id());
@@ -28,7 +28,8 @@ class ApplicationController extends Controller
 
     public function create()
     {
-        return view('applications.create');
+        $applicationTypes = \App\Models\ApplicationType::active()->get();
+        return view('applications.create', compact('applicationTypes'));
     }
 
     public function store(Request $request)
@@ -40,6 +41,7 @@ class ApplicationController extends Controller
             'civil_id' => 'required|string|max:50',
             'mobile_number' => 'required|string|max:20',
             'category' => 'required|in:medical_support,financial_support,iqama_visa_residency,ticket',
+            'application_type_id' => 'nullable|exists:application_types,id',
             'description' => 'nullable|string',
         ]);
 
@@ -60,7 +62,8 @@ class ApplicationController extends Controller
         if ($application->submitted_by !== auth()->id() && !auth()->user()->isMekhalaUser()) {
             abort(403);
         }
-        return view('applications.edit', compact('application'));
+        $applicationTypes = \App\Models\ApplicationType::active()->get();
+        return view('applications.edit', compact('application', 'applicationTypes'));
     }
 
     public function update(Request $request, Application $application)
@@ -76,6 +79,7 @@ class ApplicationController extends Controller
             'civil_id' => 'required|string|max:50',
             'mobile_number' => 'required|string|max:20',
             'category' => 'required|in:medical_support,financial_support,iqama_visa_residency,ticket',
+            'application_type_id' => 'nullable|exists:application_types,id',
             'description' => 'nullable|string',
         ]);
 

@@ -29,6 +29,9 @@
                                 <th>Civil ID</th>
                                 <th>Mobile</th>
                                 <th>Category</th>
+                                <th>Application Type</th>
+                                <th>Area</th>
+                                <th>Unit</th>
                                 <th>Status</th>
                                 <th>Approved Amount</th>
                                 <th>Submitted By</th>
@@ -41,6 +44,9 @@
                                 <th><input type="text" class="form-control form-control-sm" placeholder="Filter Civil ID"></th>
                                 <th><input type="text" class="form-control form-control-sm" placeholder="Filter Mobile"></th>
                                 <th><select class="form-control form-control-sm"><option value="">All Categories</option><option value="health">Health</option><option value="finance">Finance</option></select></th>
+                                <th><input type="text" class="form-control form-control-sm" placeholder="Filter Type"></th>
+                                <th><input type="text" class="form-control form-control-sm" placeholder="Filter Area"></th>
+                                <th><input type="text" class="form-control form-control-sm" placeholder="Filter Unit"></th>
                                 <th><select class="form-control form-control-sm"><option value="">All Status</option><option value="pending">Pending</option><option value="approved">Approved</option><option value="rejected">Rejected</option></select></th>
                                 <th><input type="text" class="form-control form-control-sm" placeholder="Filter Amount"></th>
                                 <th><input type="text" class="form-control form-control-sm" placeholder="Filter Submitter"></th>
@@ -60,6 +66,9 @@
                                             {{ ucfirst($application->category) }}
                                         </span>
                                     </td>
+                                    <td>{{ $application->applicationType->name ?? 'N/A' }}</td>
+                                    <td>{{ $application->submitter->area->name ?? 'N/A' }}</td>
+                                    <td>{{ $application->submitter->unit->name ?? 'N/A' }}</td>
                                     <td>
                                         <span class="badge bg-{{ $application->status == 'approved' ? 'success' : ($application->status == 'rejected' ? 'danger' : 'warning') }}">
                                             {{ ucfirst($application->status) }}
@@ -91,7 +100,7 @@
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="10" class="text-center">No applications found</td>
+                                    <td colspan="13" class="text-center">No applications found</td>
                                 </tr>
                             @endforelse
                         </tbody>

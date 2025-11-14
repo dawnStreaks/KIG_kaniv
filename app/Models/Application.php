@@ -13,6 +13,7 @@ class Application extends Model
         'civil_id',
         'mobile_number',
         'category',
+        'application_type_id',
         'status',
         'approved_amount',
         'approved_date',
@@ -33,6 +34,11 @@ class Application extends Model
     public function reviewer()
     {
         return $this->belongsTo(User::class, 'reviewed_by');
+    }
+
+    public function applicationType()
+    {
+        return $this->belongsTo(ApplicationType::class);
     }
 
     public function expenses()

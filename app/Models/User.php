@@ -57,6 +57,11 @@ class User extends Authenticatable
         return $this->belongsTo(Area::class);
     }
 
+    public function unit()
+    {
+        return $this->belongsTo(Unit::class);
+    }
+
     public function mekhala()
     {
         return $this->belongsTo(Mekhala::class);

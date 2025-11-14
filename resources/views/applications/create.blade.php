@@ -59,6 +59,16 @@
                             </div>
                             
                             <div class="mb-3">
+                                <label for="application_type_id" class="form-label">Application Type</label>
+                                <select class="form-control" id="application_type_id" name="application_type_id">
+                                    <option value="">Select Application Type</option>
+                                    @foreach($applicationTypes as $type)
+                                        <option value="{{ $type->id }}" {{ old('application_type_id') == $type->id ? 'selected' : '' }}>{{ $type->name }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                            
+                            <div class="mb-3">
                                 <label for="description" class="form-label">Description</label>
                                 <textarea class="form-control" id="description" name="description" rows="3">{{ old('description') }}</textarea>
                             </div>

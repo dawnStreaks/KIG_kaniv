@@ -66,6 +66,12 @@ Route::middleware('auth')->group(function () {
         Route::put('/types/{id}', [AdminController::class, 'updateType'])->name('types.update');
         Route::delete('/types/{id}', [AdminController::class, 'destroyType'])->name('types.destroy');
         
+        // Application types
+        Route::get('/application-types', [AdminController::class, 'applicationTypes'])->name('application-types.index');
+        Route::post('/application-types', [AdminController::class, 'storeApplicationType'])->name('application-types.store');
+        Route::put('/application-types/{id}', [AdminController::class, 'updateApplicationType'])->name('application-types.update');
+        Route::delete('/application-types/{id}', [AdminController::class, 'destroyApplicationType'])->name('application-types.destroy');
+        
         // Export routes
         Route::get('/users/export', [AdminController::class, 'exportUsers'])->name('users.export');
         Route::get('/areas/export', [AdminController::class, 'exportAreas'])->name('areas.export');
