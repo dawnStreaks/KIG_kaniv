@@ -16,13 +16,15 @@
                     </form>
                 </div>
                 <div class="card-body">
-                    <div id="chartContainer" style="height: 500px;">
+                    <div id="chartContainer" style="height: 500px; position: relative;">
                         <canvas id="mekhalaChart"></canvas>
                     </div>
                     
-                    <div id="drillDownContainer" style="display: none; margin-top: 30px;">
+                    <div id="drillDownContainer" style="display: none; margin-top: 30px; position: relative;">
                         <h4 id="drillDownTitle"></h4>
-                        <canvas id="drillDownChart" style="height: 300px;"></canvas>
+                        <div style="height: 350px; position: relative;">
+                            <canvas id="drillDownChart"></canvas>
+                        </div>
                         <button class="btn btn-secondary mt-2" onclick="backToMain()">Back to Mekhalas</button>
                     </div>
                 </div>
@@ -48,25 +50,25 @@ function initMainChart() {
         data: {
             labels: labels,
             datasets: [{
-                label: 'Collections (₹)',
+                label: 'Collections (KWD)',
                 data: chartData.map(item => parseFloat(item.collections)),
                 backgroundColor: 'rgba(54, 162, 235, 0.8)',
                 borderColor: 'rgba(54, 162, 235, 1)',
                 borderWidth: 1
             }, {
-                label: 'Applications (₹)',
+                label: 'Applications (KWD)',
                 data: chartData.map(item => parseFloat(item.applications)),
                 backgroundColor: 'rgba(255, 99, 132, 0.8)',
                 borderColor: 'rgba(255, 99, 132, 1)',
                 borderWidth: 1
             }, {
-                label: 'Expenses (₹)',
+                label: 'Expenses (KWD)',
                 data: chartData.map(item => parseFloat(item.expenses)),
                 backgroundColor: 'rgba(255, 206, 86, 0.8)',
                 borderColor: 'rgba(255, 206, 86, 1)',
                 borderWidth: 1
             }, {
-                label: 'Balance (₹)',
+                label: 'Balance (KWD)',
                 data: chartData.map(item => parseFloat(item.balance)),
                 backgroundColor: 'rgba(75, 192, 192, 0.8)',
                 borderColor: 'rgba(75, 192, 192, 1)',
@@ -90,7 +92,7 @@ function initMainChart() {
                 tooltip: {
                     callbacks: {
                         label: function(context) {
-                            return context.dataset.label + ': ₹' + context.parsed.y.toLocaleString();
+                            return context.dataset.label + ': KWD ' + context.parsed.y.toFixed(3);
                         }
                     }
                 }
@@ -133,7 +135,7 @@ function drillDown(mekhalaId, mekhalaName, type) {
                 data: {
                     labels: data.map(item => item.name),
                     datasets: [{
-                        label: `${type.charAt(0).toUpperCase() + type.slice(1)} Amount (₹)`,
+                        label: `${type.charAt(0).toUpperCase() + type.slice(1)} Amount (KWD)`,
                         data: data.map(item => parseFloat(item.amount)),
                         backgroundColor: type === 'collections' ? 'rgba(54, 162, 235, 0.8)' : 'rgba(255, 99, 132, 0.8)',
                         borderColor: type === 'collections' ? 'rgba(54, 162, 235, 1)' : 'rgba(255, 99, 132, 1)',
@@ -148,7 +150,7 @@ function drillDown(mekhalaId, mekhalaName, type) {
                             beginAtZero: true,
                             ticks: {
                                 callback: function(value) {
-                                    return '₹' + value.toLocaleString();
+                                    return 'KWD ' + value.toFixed(3);
                                 }
                             }
                         }
@@ -157,7 +159,7 @@ function drillDown(mekhalaId, mekhalaName, type) {
                         tooltip: {
                             callbacks: {
                                 label: function(context) {
-                                    return 'Amount: ₹' + context.parsed.y.toLocaleString();
+                                    return 'Amount: KWD ' + context.parsed.y.toFixed(3);
                                 }
                             }
                         }
