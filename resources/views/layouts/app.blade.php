@@ -84,6 +84,7 @@
                     @if(auth()->user()->canApproveApplications())
                         <a class="nav-link" href="{{ route('applications.review') }}">Review Applications</a>
                     @endif
+                    <a class="nav-link" href="{{ route('collections.receive') }}">Receive Collections</a>
                     @if(auth()->user()->canAddExpenses())
                         <a class="nav-link" href="{{ route('expenses.index') }}">Expenses</a>
                     @endif

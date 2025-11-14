@@ -9,6 +9,7 @@ class Collection extends Model
     protected $fillable = [
         'unit_id',
         'amount',
+        'collection_status',
         'collection_date',
         'term',
         'type',
@@ -40,5 +41,15 @@ class Collection extends Model
     public function scopeByDateRange($query, $startDate, $endDate)
     {
         return $query->whereBetween('collection_date', [$startDate, $endDate]);
+    }
+
+    public function scopePayable($query)
+    {
+        return $query->where('collection_status', 'payable');
+    }
+
+    public function scopeReceived($query)
+    {
+        return $query->where('collection_status', 'received');
     }
 }

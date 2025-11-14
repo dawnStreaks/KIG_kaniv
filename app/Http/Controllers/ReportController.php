@@ -17,8 +17,14 @@ class ReportController extends Controller
         $currentMonth = date('m');
         $user = auth()->user();
         
-        // Collections Summary
-        $collectionsQuery = Collection::whereYear('collection_date', $currentYear);
+        // Get mekhala name for title
+        $mekhalaName = null;
+        if ($user->isMekhalaUser() && $user->mekhala) {
+            $mekhalaName = $user->mekhala->name;
+        }
+        
+        // Collections Summary (only received collections)
+        $collectionsQuery = Collection::received()->whereYear('collection_date', $currentYear);
         if ($user->isMekhalaUser()) {
             $collectionsQuery->whereHas('unit.area', function($q) use ($user) {
                 $q->where('mekhala_id', $user->mekhala_id);
@@ -26,7 +32,7 @@ class ReportController extends Controller
         }
         $yearlyCollections = $collectionsQuery->sum('amount');
         
-        $monthlyCollectionsQuery = Collection::whereMonth('collection_date', $currentMonth)
+        $monthlyCollectionsQuery = Collection::received()->whereMonth('collection_date', $currentMonth)
                                       ->whereYear('collection_date', $currentYear);
         if ($user->isMekhalaUser()) {
             $monthlyCollectionsQuery->whereHas('unit.area', function($q) use ($user) {
@@ -38,14 +44,18 @@ class ReportController extends Controller
         // Expenses Summary
         $expensesQuery = Expense::whereYear('expense_date', $currentYear);
         if ($user->isMekhalaUser()) {
-            $expensesQuery->where('entered_by', $user->id);
+            $expensesQuery->whereHas('enteredBy', function($q) use ($user) {
+                $q->where('mekhala_id', $user->mekhala_id);
+            });
         }
         $yearlyExpenses = $expensesQuery->sum('amount');
         
         $monthlyExpensesQuery = Expense::whereMonth('expense_date', $currentMonth)
                                  ->whereYear('expense_date', $currentYear);
         if ($user->isMekhalaUser()) {
-            $monthlyExpensesQuery->where('entered_by', $user->id);
+            $monthlyExpensesQuery->whereHas('enteredBy', function($q) use ($user) {
+                $q->where('mekhala_id', $user->mekhala_id);
+            });
         }
         $monthlyExpenses = $monthlyExpensesQuery->sum('amount');
         
@@ -67,22 +77,36 @@ class ReportController extends Controller
         }
         $monthlyApplications = $monthlyApplicationsQuery->sum('approved_amount');
         
-        // Investment Summary
-        $yearlyInvestments = Investment::whereYear('investment_date', $currentYear)->sum('amount');
-        $monthlyInvestments = Investment::whereMonth('investment_date', $currentMonth)
-                                       ->whereYear('investment_date', $currentYear)
-                                       ->sum('amount');
-        $yearlyIncome = Investment::whereYear('investment_date', $currentYear)->sum('income_generated');
-        $monthlyIncome = Investment::whereMonth('investment_date', $currentMonth)
-                                  ->whereYear('investment_date', $currentYear)
-                                  ->sum('income_generated');
-        $yearlyReturned = Investment::whereYear('investment_date', $currentYear)->sum('returned_amount');
-        $monthlyReturned = Investment::whereMonth('investment_date', $currentMonth)
-                                   ->whereYear('investment_date', $currentYear)
-                                   ->sum('returned_amount');
+        // Investment Summary - restrict for mekhala users
+        $investmentsQuery = Investment::whereYear('investment_date', $currentYear);
+        $monthlyInvestmentsQuery = Investment::whereMonth('investment_date', $currentMonth)
+                                            ->whereYear('investment_date', $currentYear);
+        $incomeQuery = Investment::whereYear('investment_date', $currentYear);
+        $monthlyIncomeQuery = Investment::whereMonth('investment_date', $currentMonth)
+                                       ->whereYear('investment_date', $currentYear);
+        $returnedQuery = Investment::whereYear('investment_date', $currentYear);
+        $monthlyReturnedQuery = Investment::whereMonth('investment_date', $currentMonth)
+                                         ->whereYear('investment_date', $currentYear);
         
-        // Get detailed transactions
-        $collectionsDetailQuery = Collection::with('unit')->orderBy('collection_date');
+        // For mekhala users, only show investments if they are center-level users
+        if ($user->isMekhalaUser()) {
+            $yearlyInvestments = 0;
+            $monthlyInvestments = 0;
+            $yearlyIncome = 0;
+            $monthlyIncome = 0;
+            $yearlyReturned = 0;
+            $monthlyReturned = 0;
+        } else {
+            $yearlyInvestments = $investmentsQuery->sum('amount');
+            $monthlyInvestments = $monthlyInvestmentsQuery->sum('amount');
+            $yearlyIncome = $incomeQuery->sum('income_generated');
+            $monthlyIncome = $monthlyIncomeQuery->sum('income_generated');
+            $yearlyReturned = $returnedQuery->sum('returned_amount');
+            $monthlyReturned = $monthlyReturnedQuery->sum('returned_amount');
+        }
+        
+        // Get detailed transactions (only received collections)
+        $collectionsDetailQuery = Collection::received()->with('unit')->orderBy('collection_date');
         if ($user->isMekhalaUser()) {
             $collectionsDetailQuery->whereHas('unit.area', function($q) use ($user) {
                 $q->where('mekhala_id', $user->mekhala_id);
@@ -92,7 +116,9 @@ class ReportController extends Controller
         
         $expensesDetailQuery = Expense::orderBy('expense_date');
         if ($user->isMekhalaUser()) {
-            $expensesDetailQuery->where('entered_by', $user->id);
+            $expensesDetailQuery->whereHas('enteredBy', function($q) use ($user) {
+                $q->where('mekhala_id', $user->mekhala_id);
+            });
         }
         $expenses = $expensesDetailQuery->get();
         
@@ -150,7 +176,7 @@ class ReportController extends Controller
         return view('reports.financial-statement', compact(
             'yearlyCollections', 'monthlyCollections', 'yearlyExpenses', 'monthlyExpenses',
             'yearlyApplications', 'monthlyApplications', 'yearlyInvestments', 'monthlyInvestments',
-            'yearlyIncome', 'monthlyIncome', 'yearlyReturned', 'monthlyReturned', 'transactions'
+            'yearlyIncome', 'monthlyIncome', 'yearlyReturned', 'monthlyReturned', 'transactions', 'mekhalaName'
         ));
     }
 

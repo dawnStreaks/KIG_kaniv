@@ -5,7 +5,7 @@
 @section('content')
     <div>
         <div class="d-flex justify-content-between align-items-center mb-3">
-            <h2>Financial Statement</h2>
+            <h2>Financial Statement{{ $mekhalaName ? ' - ' . $mekhalaName : '' }}</h2>
             <a href="{{ route('reports.export-financial') }}" class="btn btn-success">Export</a>
         </div>
 
@@ -70,6 +70,7 @@
                     </div>
                 </div>
             </div>
+            @if(!$mekhalaName)
             <div class="col-md-6">
                 <div class="card">
                     <div class="card-header">
@@ -101,6 +102,7 @@
                     </div>
                 </div>
             </div>
+            @endif
         </div>
 
         <div class="row mt-4">

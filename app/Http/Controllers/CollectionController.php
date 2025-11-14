@@ -187,14 +187,20 @@ class CollectionController extends Controller
             $query->whereHas('unit', function($q) use ($user) {
                 $q->where('area_id', $user->area_id);
             });
+            
+            $data = $query->selectRaw('units.name as unit_name, SUM(amount) as total_amount')
+                ->join('units', 'collections.unit_id', '=', 'units.id')
+                ->groupBy('units.id', 'units.name')
+                ->get();
         } elseif ($user->isMekhalaUser()) {
             $query->whereHas('unit.area', function($q) use ($user) {
                 $q->where('mekhala_id', $user->mekhala_id);
             });
             
-            $data = $query->selectRaw('units.name as unit_name, SUM(amount) as total_amount')
+            $data = $query->selectRaw('areas.id as area_id, areas.name as area_name, SUM(amount) as total_amount')
                 ->join('units', 'collections.unit_id', '=', 'units.id')
-                ->groupBy('units.id', 'units.name')
+                ->join('areas', 'units.area_id', '=', 'areas.id')
+                ->groupBy('areas.id', 'areas.name')
                 ->get();
         } else {
             $data = $query->selectRaw('areas.id as area_id, areas.name as area_name, SUM(amount) as total_amount')
@@ -211,13 +217,22 @@ class CollectionController extends Controller
     {
         $areaId = $request->get('area_id');
         $year = $request->get('year', date('Y'));
+        $user = auth()->user();
         
-        $data = Collection::with(['unit'])
+        $query = Collection::with(['unit'])
             ->whereYear('collection_date', $year)
             ->whereHas('unit', function($q) use ($areaId) {
                 $q->where('area_id', $areaId);
-            })
-            ->selectRaw('units.name as unit_name, SUM(amount) as total_amount')
+            });
+            
+        // Restrict mekhala users to their own mekhala areas only
+        if ($user->isMekhalaUser()) {
+            $query->whereHas('unit.area', function($q) use ($user) {
+                $q->where('mekhala_id', $user->mekhala_id);
+            });
+        }
+        
+        $data = $query->selectRaw('units.name as unit_name, SUM(amount) as total_amount')
             ->join('units', 'collections.unit_id', '=', 'units.id')
             ->groupBy('units.id', 'units.name')
             ->get();
@@ -228,5 +243,34 @@ class CollectionController extends Controller
     public function export(Request $request)
     {
         return Excel::download(new CollectionsExport($request), 'collections.xlsx');
+    }
+
+    public function receiveCollections()
+    {
+        if (!auth()->user()->isMekhalaUser()) {
+            abort(403, 'Only mekhala users can access this page');
+        }
+
+        $query = Collection::with(['unit.area', 'enteredBy'])
+            ->whereHas('unit.area', function($q) {
+                $q->where('mekhala_id', auth()->user()->mekhala_id);
+            });
+
+        $collections = $query->latest()->paginate(10);
+        return view('collections.receive', compact('collections'));
+    }
+
+    public function markAsReceived(Collection $collection)
+    {
+        if (!auth()->user()->isMekhalaUser()) {
+            abort(403, 'Only mekhala users can receive collections');
+        }
+
+        if ($collection->unit->area->mekhala_id !== auth()->user()->mekhala_id) {
+            abort(403, 'You can only receive collections from your mekhala');
+        }
+
+        $collection->update(['collection_status' => 'received']);
+        return back()->with('success', 'Collection marked as received');
     }
 }
