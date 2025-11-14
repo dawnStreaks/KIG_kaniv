@@ -54,7 +54,7 @@
                     <tbody>
                         @foreach($collections as $collection)
                         <tr>
-                            <td>KWD {{ number_format($collection->amount, 2) }}</td>
+                            <td>KWD {{ number_format($collection->amount, 3) }}</td>
                             <td>{{ $collection->collection_date }}</td>
                             <td>{{ $collection->unit->name ?? 'N/A' }}</td>
                             <td>{{ $collection->term ?? 'N/A' }}</td>

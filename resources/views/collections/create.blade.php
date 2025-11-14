@@ -64,7 +64,7 @@
                                 <td>{{ $unit->name }}</td>
                                 <td>{{ $unit->area->name ?? 'N/A' }}</td>
                                 <td>
-                                    <input type="number" step="0.01" name="amount[{{ $unit->id }}]" class="form-control form-control-sm" placeholder="0.00" min="0">
+                                    <input type="number" step="0.001" name="amount[{{ $unit->id }}]" class="form-control form-control-sm" placeholder="0.000" min="0">
                                 </td>
                             </tr>
                             @endforeach
