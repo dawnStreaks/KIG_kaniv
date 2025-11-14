@@ -25,6 +25,10 @@ class CollectionsExport implements FromQuery, WithHeadings, WithMapping
             $query->whereHas('unit', function($q) {
                 $q->where('area_id', auth()->user()->area_id);
             });
+        } elseif (auth()->user()->isMekhalaUser()) {
+            $query->whereHas('unit.area', function($q) {
+                $q->where('mekhala_id', auth()->user()->mekhala_id);
+            });
         }
         
         // Handle filtered IDs if provided

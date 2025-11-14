@@ -7,6 +7,7 @@ use App\Models\Application;
 use Illuminate\Http\Request;
 use App\Exports\ExpensesExport;
 use Maatwebsite\Excel\Facades\Excel;
+use Illuminate\Support\Facades\Storage;
 
 class ExpenseController extends Controller
 {
@@ -105,5 +106,13 @@ class ExpenseController extends Controller
     public function export(Request $request)
     {
         return Excel::download(new ExpensesExport($request), 'expenses.xlsx');
+    }
+
+    public function viewBill(Expense $expense)
+    {
+        if (!$expense->bill_path || !Storage::disk('public')->exists($expense->bill_path)) {
+            abort(404, 'Bill not found');
+        }
+        return Storage::disk('public')->response($expense->bill_path);
     }
 }

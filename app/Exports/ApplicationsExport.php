@@ -23,6 +23,10 @@ class ApplicationsExport implements FromQuery, WithHeadings, WithMapping
         
         if (auth()->user()->isAreaUser()) {
             $query->where('submitted_by', auth()->id());
+        } elseif (auth()->user()->isMekhalaUser()) {
+            $query->whereHas('submitter', function($q) {
+                $q->where('mekhala_id', auth()->user()->mekhala_id);
+            });
         }
         
         // Handle filtered IDs if provided

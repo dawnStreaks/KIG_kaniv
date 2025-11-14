@@ -21,6 +21,11 @@ class ExpensesExport implements FromQuery, WithHeadings, WithMapping
     {
         $query = Expense::with(['enteredBy', 'application']);
         
+        // Filter by mekhala for mekhala users
+        if (auth()->user()->isMekhalaUser()) {
+            $query->where('entered_by', auth()->id());
+        }
+        
         // Handle filtered IDs if provided
         if ($this->request->has('ids')) {
             $ids = explode(',', $this->request->get('ids'));

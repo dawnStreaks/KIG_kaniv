@@ -178,6 +178,28 @@
                     link.classList.add('active');
                 }
             });
+            
+            // Handle logout forms
+            const logoutForms = document.querySelectorAll('form[action*="logout"]');
+            logoutForms.forEach(form => {
+                form.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    
+                    // Create a fresh form with current CSRF token
+                    const newForm = document.createElement('form');
+                    newForm.method = 'POST';
+                    newForm.action = '{{ route("logout") }}';
+                    
+                    const csrfInput = document.createElement('input');
+                    csrfInput.type = 'hidden';
+                    csrfInput.name = '_token';
+                    csrfInput.value = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+                    
+                    newForm.appendChild(csrfInput);
+                    document.body.appendChild(newForm);
+                    newForm.submit();
+                });
+            });
         });
     </script>
 </body>

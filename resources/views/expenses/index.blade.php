@@ -47,7 +47,7 @@
                             <td>{{ $expense->expense_date }}</td>
                             <td>
                                 @if($expense->bill_path)
-                                    <a href="{{ asset('storage/' . $expense->bill_path) }}" target="_blank" class="btn btn-sm btn-info">View Bill</a>
+                                    <a href="{{ route('expenses.view-bill', $expense) }}" target="_blank" class="btn btn-sm btn-info">View Bill</a>
                                 @else
                                     <span class="text-muted">No bill</span>
                                 @endif
