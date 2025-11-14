@@ -468,10 +468,12 @@ class ReportController extends Controller
             $reportType = 'Combined';
         }
         
+        $mekhalaName = $type !== 'combined' ? ucfirst($type) . ' Mekhala' : null;
+        
         return view('reports.financial-statement', compact(
             'yearlyCollections', 'monthlyCollections', 'yearlyExpenses', 'monthlyExpenses',
             'yearlyApplications', 'monthlyApplications', 'yearlyInvestments', 'monthlyInvestments',
-            'yearlyIncome', 'monthlyIncome', 'yearlyReturned', 'monthlyReturned', 'transactions', 'reportType'
+            'yearlyIncome', 'monthlyIncome', 'yearlyReturned', 'monthlyReturned', 'transactions', 'reportType', 'mekhalaName'
         ));
     }
 
