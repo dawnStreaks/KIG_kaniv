@@ -12,7 +12,7 @@ class ApplicationController extends Controller
 {
     public function index()
     {
-        $query = Application::with(['submitter.area', 'submitter.unit', 'reviewer', 'applicationType']);
+        $query = Application::with(['submitter', 'reviewer', 'applicationType', 'unit', 'area']);
         
         if (auth()->user()->isAreaUser()) {
             $query->where('submitted_by', auth()->id());
@@ -29,7 +29,9 @@ class ApplicationController extends Controller
     public function create()
     {
         $applicationTypes = \App\Models\ApplicationType::active()->get();
-        return view('applications.create', compact('applicationTypes'));
+        $units = \App\Models\Unit::with('area')->get();
+        $areas = \App\Models\Area::all();
+        return view('applications.create', compact('applicationTypes', 'units', 'areas'));
     }
 
     public function store(Request $request)
@@ -42,6 +44,8 @@ class ApplicationController extends Controller
             'mobile_number' => 'required|string|max:20',
             'category' => 'required|in:medical_support,financial_support,iqama_visa_residency,ticket',
             'application_type_id' => 'nullable|exists:application_types,id',
+            'unit_id' => 'required|exists:units,id',
+            'area_id' => 'required|exists:areas,id',
             'description' => 'nullable|string',
         ]);
 
@@ -63,7 +67,9 @@ class ApplicationController extends Controller
             abort(403);
         }
         $applicationTypes = \App\Models\ApplicationType::active()->get();
-        return view('applications.edit', compact('application', 'applicationTypes'));
+        $units = \App\Models\Unit::with('area')->get();
+        $areas = \App\Models\Area::all();
+        return view('applications.edit', compact('application', 'applicationTypes', 'units', 'areas'));
     }
 
     public function update(Request $request, Application $application)
@@ -80,6 +86,8 @@ class ApplicationController extends Controller
             'mobile_number' => 'required|string|max:20',
             'category' => 'required|in:medical_support,financial_support,iqama_visa_residency,ticket',
             'application_type_id' => 'nullable|exists:application_types,id',
+            'unit_id' => 'required|exists:units,id',
+            'area_id' => 'required|exists:areas,id',
             'description' => 'nullable|string',
         ]);
 

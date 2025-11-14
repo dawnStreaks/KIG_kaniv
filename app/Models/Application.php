@@ -14,6 +14,8 @@ class Application extends Model
         'mobile_number',
         'category',
         'application_type_id',
+        'unit_id',
+        'area_id',
         'status',
         'approved_amount',
         'approved_date',
@@ -44,6 +46,16 @@ class Application extends Model
     public function expenses()
     {
         return $this->hasMany(Expense::class);
+    }
+
+    public function unit()
+    {
+        return $this->belongsTo(Unit::class);
+    }
+
+    public function area()
+    {
+        return $this->belongsTo(Area::class);
     }
 
     public function scopePending($query)

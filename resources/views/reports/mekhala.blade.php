@@ -165,7 +165,7 @@ function drillDown(mekhalaId, mekhalaName, type) {
                 }
             });
             
-            document.getElementById('drillDownChart').scrollIntoView({ behavior: 'smooth' });
+
         });
 }
 

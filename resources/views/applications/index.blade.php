@@ -67,8 +67,8 @@
                                         </span>
                                     </td>
                                     <td>{{ $application->applicationType->name ?? 'N/A' }}</td>
-                                    <td>{{ $application->submitter->area->name ?? 'N/A' }}</td>
-                                    <td>{{ $application->submitter->unit->name ?? 'N/A' }}</td>
+                                    <td>{{ $application->area->name ?? 'N/A' }}</td>
+                                    <td>{{ $application->unit->name ?? 'N/A' }}</td>
                                     <td>
                                         <span class="badge bg-{{ $application->status == 'approved' ? 'success' : ($application->status == 'rejected' ? 'danger' : 'warning') }}">
                                             {{ ucfirst($application->status) }}
