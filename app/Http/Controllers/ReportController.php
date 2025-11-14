@@ -15,24 +15,57 @@ class ReportController extends Controller
     {
         $currentYear = date('Y');
         $currentMonth = date('m');
+        $user = auth()->user();
         
         // Collections Summary
-        $yearlyCollections = Collection::whereYear('collection_date', $currentYear)->sum('amount');
-        $monthlyCollections = Collection::whereMonth('collection_date', $currentMonth)
-                                      ->whereYear('collection_date', $currentYear)
-                                      ->sum('amount');
+        $collectionsQuery = Collection::whereYear('collection_date', $currentYear);
+        if ($user->isMekhalaUser()) {
+            $collectionsQuery->whereHas('unit.area', function($q) use ($user) {
+                $q->where('mekhala_id', $user->mekhala_id);
+            });
+        }
+        $yearlyCollections = $collectionsQuery->sum('amount');
+        
+        $monthlyCollectionsQuery = Collection::whereMonth('collection_date', $currentMonth)
+                                      ->whereYear('collection_date', $currentYear);
+        if ($user->isMekhalaUser()) {
+            $monthlyCollectionsQuery->whereHas('unit.area', function($q) use ($user) {
+                $q->where('mekhala_id', $user->mekhala_id);
+            });
+        }
+        $monthlyCollections = $monthlyCollectionsQuery->sum('amount');
         
         // Expenses Summary
-        $yearlyExpenses = Expense::whereYear('expense_date', $currentYear)->sum('amount');
-        $monthlyExpenses = Expense::whereMonth('expense_date', $currentMonth)
-                                 ->whereYear('expense_date', $currentYear)
-                                 ->sum('amount');
+        $expensesQuery = Expense::whereYear('expense_date', $currentYear);
+        if ($user->isMekhalaUser()) {
+            $expensesQuery->where('entered_by', $user->id);
+        }
+        $yearlyExpenses = $expensesQuery->sum('amount');
+        
+        $monthlyExpensesQuery = Expense::whereMonth('expense_date', $currentMonth)
+                                 ->whereYear('expense_date', $currentYear);
+        if ($user->isMekhalaUser()) {
+            $monthlyExpensesQuery->where('entered_by', $user->id);
+        }
+        $monthlyExpenses = $monthlyExpensesQuery->sum('amount');
         
         // Applications Summary
-        $yearlyApplications = Application::whereYear('approved_date', $currentYear)->sum('approved_amount');
-        $monthlyApplications = Application::whereMonth('approved_date', $currentMonth)
-                                         ->whereYear('approved_date', $currentYear)
-                                         ->sum('approved_amount');
+        $applicationsQuery = Application::whereYear('approved_date', $currentYear);
+        if ($user->isMekhalaUser()) {
+            $applicationsQuery->whereHas('submitter', function($q) use ($user) {
+                $q->where('mekhala_id', $user->mekhala_id);
+            });
+        }
+        $yearlyApplications = $applicationsQuery->sum('approved_amount');
+        
+        $monthlyApplicationsQuery = Application::whereMonth('approved_date', $currentMonth)
+                                         ->whereYear('approved_date', $currentYear);
+        if ($user->isMekhalaUser()) {
+            $monthlyApplicationsQuery->whereHas('submitter', function($q) use ($user) {
+                $q->where('mekhala_id', $user->mekhala_id);
+            });
+        }
+        $monthlyApplications = $monthlyApplicationsQuery->sum('approved_amount');
         
         // Investment Summary
         $yearlyInvestments = Investment::whereYear('investment_date', $currentYear)->sum('amount');
@@ -49,9 +82,27 @@ class ReportController extends Controller
                                    ->sum('returned_amount');
         
         // Get detailed transactions
-        $collections = Collection::with('unit')->orderBy('collection_date')->get();
-        $expenses = Expense::orderBy('expense_date')->get();
-        $applications = Application::where('status', 'approved')->orderBy('approved_date')->get();
+        $collectionsDetailQuery = Collection::with('unit')->orderBy('collection_date');
+        if ($user->isMekhalaUser()) {
+            $collectionsDetailQuery->whereHas('unit.area', function($q) use ($user) {
+                $q->where('mekhala_id', $user->mekhala_id);
+            });
+        }
+        $collections = $collectionsDetailQuery->get();
+        
+        $expensesDetailQuery = Expense::orderBy('expense_date');
+        if ($user->isMekhalaUser()) {
+            $expensesDetailQuery->where('entered_by', $user->id);
+        }
+        $expenses = $expensesDetailQuery->get();
+        
+        $applicationsDetailQuery = Application::where('status', 'approved')->orderBy('approved_date');
+        if ($user->isMekhalaUser()) {
+            $applicationsDetailQuery->whereHas('submitter', function($q) use ($user) {
+                $q->where('mekhala_id', $user->mekhala_id);
+            });
+        }
+        $applications = $applicationsDetailQuery->get();
         
         // Combine and sort transactions by date
         $transactions = collect();

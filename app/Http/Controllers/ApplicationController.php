@@ -16,6 +16,10 @@ class ApplicationController extends Controller
         
         if (auth()->user()->isAreaUser()) {
             $query->where('submitted_by', auth()->id());
+        } elseif (auth()->user()->isMekhalaUser()) {
+            $query->whereHas('submitter', function($q) {
+                $q->where('mekhala_id', auth()->user()->mekhala_id);
+            });
         }
         
         $applications = $query->latest()->paginate(10);
@@ -97,7 +101,15 @@ class ApplicationController extends Controller
 
     public function review()
     {
-        $applications = Application::with('submitter')->latest()->paginate(10);
+        $query = Application::with('submitter');
+        
+        if (auth()->user()->isMekhalaUser()) {
+            $query->whereHas('submitter', function($q) {
+                $q->where('mekhala_id', auth()->user()->mekhala_id);
+            });
+        }
+        
+        $applications = $query->latest()->paginate(10);
         return view('applications.review', compact('applications'));
     }
 

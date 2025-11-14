@@ -138,6 +138,7 @@
                 roleSelect.value = 'admin';
             } else if (userType === 'mekhala') {
                 roleField.style.display = 'block';
+                mekhalaField.style.display = 'block';
                 roleSelect.innerHTML = '<option value="">Select Role</option><option value="chairman">Chairman</option><option value="treasurer">Treasurer</option>';
             } else if (userType === 'area') {
                 areaField.style.display = 'block';

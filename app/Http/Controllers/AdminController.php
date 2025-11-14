@@ -56,7 +56,7 @@ class AdminController extends Controller
 
     public function storeUser(Request $request)
     {
-        $validated = $request->validate([
+        $rules = [
             'name' => 'required|string|max:255',
             'email' => 'required|email|unique:users',
             'password' => 'required|min:8',
@@ -64,8 +64,14 @@ class AdminController extends Controller
             'role' => 'nullable|in:admin,chairman,treasurer',
             'area_id' => 'nullable|exists:areas,id',
             'mekhala_id' => 'nullable|exists:mekhalas,id',
-        ]);
+        ];
 
+        if ($request->user_type === 'mekhala') {
+            $rules['mekhala_id'] = 'required|exists:mekhalas,id';
+            $rules['role'] = 'required|in:chairman,treasurer';
+        }
+
+        $validated = $request->validate($rules);
         $validated['password'] = Hash::make($validated['password']);
         User::create($validated);
 
@@ -81,14 +87,21 @@ class AdminController extends Controller
 
     public function updateUser(Request $request, User $user)
     {
-        $validated = $request->validate([
+        $rules = [
             'name' => 'required|string|max:255',
             'email' => 'required|email|unique:users,email,' . $user->id,
             'user_type' => 'required|in:area,mekhala,center',
             'role' => 'nullable|in:admin,chairman,treasurer',
             'area_id' => 'nullable|exists:areas,id',
             'mekhala_id' => 'nullable|exists:mekhalas,id',
-        ]);
+        ];
+
+        if ($request->user_type === 'mekhala') {
+            $rules['mekhala_id'] = 'required|exists:mekhalas,id';
+            $rules['role'] = 'required|in:chairman,treasurer';
+        }
+
+        $validated = $request->validate($rules);
 
         if ($request->filled('password')) {
             $validated['password'] = Hash::make($request->password);

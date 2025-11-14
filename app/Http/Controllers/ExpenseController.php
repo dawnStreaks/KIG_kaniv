@@ -14,6 +14,11 @@ class ExpenseController extends Controller
     {
         $query = Expense::with(['application', 'enteredBy']);
         
+        // Filter by mekhala for mekhala users
+        if (auth()->user()->isMekhalaUser()) {
+            $query->where('entered_by', auth()->id());
+        }
+        
         if ($request->filled('type')) {
             $query->where('type', $request->type);
         }

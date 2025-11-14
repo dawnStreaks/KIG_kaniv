@@ -21,6 +21,10 @@ class CollectionController extends Controller
             $query->whereHas('unit', function($q) {
                 $q->where('area_id', auth()->user()->area_id);
             });
+        } elseif (auth()->user()->isMekhalaUser()) {
+            $query->whereHas('unit.area', function($q) {
+                $q->where('mekhala_id', auth()->user()->mekhala_id);
+            });
         }
         
         if ($request->filled('amount')) {
@@ -51,9 +55,13 @@ class CollectionController extends Controller
 
     public function create()
     {
-        $units = auth()->user()->isAreaUser() 
-            ? Unit::where('area_id', auth()->user()->area_id)->get()
-            : Unit::with('area')->get();
+        if (auth()->user()->isAreaUser()) {
+            $units = Unit::where('area_id', auth()->user()->area_id)->get();
+        } elseif (auth()->user()->isMekhalaUser()) {
+            $units = auth()->user()->getMekhalaUnitsQuery()->with('area')->get();
+        } else {
+            $units = Unit::with('area')->get();
+        }
             
         $terms = CollectionTerm::active()->pluck('name')->toArray();
         $types = CollectionType::active()->pluck('name')->toArray();
@@ -113,9 +121,13 @@ class CollectionController extends Controller
 
     public function edit(Collection $collection)
     {
-        $units = auth()->user()->isAreaUser() 
-            ? Unit::where('area_id', auth()->user()->area_id)->active()->get()
-            : Unit::with('area')->active()->get();
+        if (auth()->user()->isAreaUser()) {
+            $units = Unit::where('area_id', auth()->user()->area_id)->active()->get();
+        } elseif (auth()->user()->isMekhalaUser()) {
+            $units = auth()->user()->getMekhalaUnitsQuery()->active()->with('area')->get();
+        } else {
+            $units = Unit::with('area')->active()->get();
+        }
             
         $terms = CollectionTerm::active()->pluck('name')->toArray();
         $types = CollectionType::active()->pluck('name')->toArray();
@@ -174,6 +186,10 @@ class CollectionController extends Controller
         if ($user->isAreaUser()) {
             $query->whereHas('unit', function($q) use ($user) {
                 $q->where('area_id', $user->area_id);
+            });
+        } elseif ($user->isMekhalaUser()) {
+            $query->whereHas('unit.area', function($q) use ($user) {
+                $q->where('mekhala_id', $user->mekhala_id);
             });
             
             $data = $query->selectRaw('units.name as unit_name, SUM(amount) as total_amount')

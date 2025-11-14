@@ -116,4 +116,22 @@ class User extends Authenticatable
     {
         return $this->isAdmin() || $this->isTreasurer();
     }
+
+    public function getMekhalaAreasQuery()
+    {
+        if ($this->isMekhalaUser() && $this->mekhala_id) {
+            return Area::where('mekhala_id', $this->mekhala_id);
+        }
+        return Area::query();
+    }
+
+    public function getMekhalaUnitsQuery()
+    {
+        if ($this->isMekhalaUser() && $this->mekhala_id) {
+            return Unit::whereHas('area', function($q) {
+                $q->where('mekhala_id', $this->mekhala_id);
+            });
+        }
+        return Unit::query();
+    }
 }
