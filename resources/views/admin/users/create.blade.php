@@ -75,6 +75,34 @@
                         @enderror
                     </div>
 
+                    <div class="mb-3" id="areaField" style="display: none;">
+                        <label for="area_id" class="form-label">Area</label>
+                        <select class="form-select @error('area_id') is-invalid @enderror" 
+                                id="area_id" name="area_id" onchange="loadMekhala()">
+                            <option value="">Select Area</option>
+                            @foreach($areas as $area)
+                                <option value="{{ $area->id }}" data-mekhala="{{ $area->mekhala_id }}" {{ old('area_id') == $area->id ? 'selected' : '' }}>{{ $area->name }}</option>
+                            @endforeach
+                        </select>
+                        @error('area_id')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
+                    </div>
+
+                    <div class="mb-3" id="mekhalaField" style="display: none;">
+                        <label for="mekhala_id" class="form-label">Mekhala</label>
+                        <select class="form-select @error('mekhala_id') is-invalid @enderror" 
+                                id="mekhala_id" name="mekhala_id">
+                            <option value="">Select Mekhala</option>
+                            @foreach($mekhalas as $mekhala)
+                                <option value="{{ $mekhala->id }}" {{ old('mekhala_id') == $mekhala->id ? 'selected' : '' }}>{{ $mekhala->name }}</option>
+                            @endforeach
+                        </select>
+                        @error('mekhala_id')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
+                    </div>
+
                     <div class="mb-3">
                         <div class="form-check">
                             <input class="form-check-input" type="checkbox" id="is_active" 
@@ -96,6 +124,13 @@
             const userType = document.getElementById('user_type').value;
             const roleField = document.getElementById('roleField');
             const roleSelect = document.getElementById('role');
+            const areaField = document.getElementById('areaField');
+            const mekhalaField = document.getElementById('mekhalaField');
+            
+            // Hide all fields first
+            roleField.style.display = 'none';
+            areaField.style.display = 'none';
+            mekhalaField.style.display = 'none';
             
             if (userType === 'center') {
                 roleField.style.display = 'block';
@@ -104,9 +139,21 @@
             } else if (userType === 'mekhala') {
                 roleField.style.display = 'block';
                 roleSelect.innerHTML = '<option value="">Select Role</option><option value="chairman">Chairman</option><option value="treasurer">Treasurer</option>';
+            } else if (userType === 'area') {
+                areaField.style.display = 'block';
+                mekhalaField.style.display = 'block';
+            }
+        }
+        
+        function loadMekhala() {
+            const areaSelect = document.getElementById('area_id');
+            const mekhalaSelect = document.getElementById('mekhala_id');
+            const selectedOption = areaSelect.options[areaSelect.selectedIndex];
+            
+            if (selectedOption && selectedOption.dataset.mekhala) {
+                mekhalaSelect.value = selectedOption.dataset.mekhala;
             } else {
-                roleField.style.display = 'none';
-                roleSelect.value = '';
+                mekhalaSelect.value = '';
             }
         }
         
