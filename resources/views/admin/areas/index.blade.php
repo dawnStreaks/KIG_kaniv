@@ -36,6 +36,8 @@
                 </tbody>
             </table>
         </div>
+        
+        {{ $areas->links() }}
     </div>
     
     <script src="{{ asset('js/filtered-export.js') }}"></script>

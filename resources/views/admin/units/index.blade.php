@@ -13,6 +13,31 @@
 
     <div class="card">
         <div class="card-body">
+            <form method="GET" class="mb-3">
+                <div class="row">
+                    <div class="col-md-3">
+                        <input type="text" name="name" class="form-control" placeholder="Filter by name" value="{{ request('name') }}">
+                    </div>
+                    <div class="col-md-3">
+                        <input type="text" name="area" class="form-control" placeholder="Filter by area" value="{{ request('area') }}">
+                    </div>
+                    <div class="col-md-2">
+                        <input type="text" name="mekhala" class="form-control" placeholder="Filter by mekhala" value="{{ request('mekhala') }}">
+                    </div>
+                    <div class="col-md-2">
+                        <select name="status" class="form-control">
+                            <option value="">All Status</option>
+                            <option value="active" {{ request('status') === 'active' ? 'selected' : '' }}>Active</option>
+                            <option value="inactive" {{ request('status') === 'inactive' ? 'selected' : '' }}>Inactive</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <button type="submit" class="btn btn-primary">Filter</button>
+                        <a href="{{ route('admin.units.index') }}" class="btn btn-secondary">Clear</a>
+                    </div>
+                </div>
+            </form>
+            
             <table class="table">
                 <thead>
                     <tr>
@@ -51,8 +76,8 @@
             
         </div>
         
-        <div class="d-flex justify-content-center mt-3">
-            {{ $units->links() }}
+        <div class="d-flex justify-content-center">
+            {{ $units->links('pagination::bootstrap-4') }}
         </div>
     </div>
     

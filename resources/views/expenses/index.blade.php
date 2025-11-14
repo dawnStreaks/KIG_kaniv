@@ -61,6 +61,8 @@
                     </tbody>
                 </table>
             </div>
+            
+            {{ $expenses->links() }}
         </div>
     </div>
 

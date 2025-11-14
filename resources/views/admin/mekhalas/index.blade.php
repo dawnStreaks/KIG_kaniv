@@ -34,6 +34,8 @@
                 </tbody>
             </table>
         </div>
+        
+        {{ $mekhalas->links() }}
     </div>
     
     <script src="{{ asset('js/filtered-export.js') }}"></script>

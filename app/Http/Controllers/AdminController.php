@@ -23,9 +23,27 @@ class AdminController extends Controller
         return view('admin.dashboard');
     }
 
-    public function users()
+    public function users(Request $request)
     {
-        $users = User::with(['area', 'mekhala'])->paginate(10);
+        $query = User::with(['area', 'mekhala']);
+        
+        if ($request->filled('name')) {
+            $query->where('name', 'like', '%' . $request->name . '%');
+        }
+        
+        if ($request->filled('email')) {
+            $query->where('email', 'like', '%' . $request->email . '%');
+        }
+        
+        if ($request->filled('user_type')) {
+            $query->where('user_type', $request->user_type);
+        }
+        
+        if ($request->filled('role')) {
+            $query->where('role', $request->role);
+        }
+        
+        $users = $query->paginate(10)->appends($request->query());
         return view('admin.users.index', compact('users'));
     }
 
@@ -160,9 +178,31 @@ class AdminController extends Controller
         return redirect()->route('admin.mekhalas.index')->with('success', 'Mekhala updated successfully');
     }
 
-    public function units()
+    public function units(Request $request)
     {
-        $units = Unit::with('area.mekhala')->orderBy('created_at', 'desc')->paginate(10);
+        $query = Unit::with('area.mekhala');
+        
+        if ($request->filled('name')) {
+            $query->where('name', 'like', '%' . $request->name . '%');
+        }
+        
+        if ($request->filled('area')) {
+            $query->whereHas('area', function($q) use ($request) {
+                $q->where('name', 'like', '%' . $request->area . '%');
+            });
+        }
+        
+        if ($request->filled('mekhala')) {
+            $query->whereHas('area.mekhala', function($q) use ($request) {
+                $q->where('name', 'like', '%' . $request->mekhala . '%');
+            });
+        }
+        
+        if ($request->filled('status')) {
+            $query->where('is_active', $request->status === 'active');
+        }
+        
+        $units = $query->orderBy('created_at', 'desc')->paginate(10)->appends($request->query());
         return view('admin.units.index', compact('units'));
     }
 

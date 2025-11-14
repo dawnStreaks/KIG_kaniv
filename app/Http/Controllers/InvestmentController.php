@@ -55,7 +55,8 @@ class InvestmentController extends Controller
         $request->validate(['income' => 'required|numeric|min:0']);
         
         $investment->update([
-            'income_generated' => $investment->income_generated + $request->income
+            'income_generated' => $investment->income_generated + $request->income,
+            'status' => 'income_generated'
         ]);
         
         return redirect()->route('investments.index')->with('success', 'Income added successfully');

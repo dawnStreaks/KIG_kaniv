@@ -13,7 +13,7 @@ use Maatwebsite\Excel\Facades\Excel;
 
 class CollectionController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
         $query = Collection::with(['unit.area', 'enteredBy']);
         
@@ -23,7 +23,29 @@ class CollectionController extends Controller
             });
         }
         
-        $collections = $query->latest()->paginate(10);
+        if ($request->filled('amount')) {
+            $query->where('amount', 'like', '%' . $request->amount . '%');
+        }
+        
+        if ($request->filled('collection_date')) {
+            $query->whereDate('collection_date', $request->collection_date);
+        }
+        
+        if ($request->filled('unit')) {
+            $query->whereHas('unit', function($q) use ($request) {
+                $q->where('name', 'like', '%' . $request->unit . '%');
+            });
+        }
+        
+        if ($request->filled('term')) {
+            $query->where('term', 'like', '%' . $request->term . '%');
+        }
+        
+        if ($request->filled('type')) {
+            $query->where('type', 'like', '%' . $request->type . '%');
+        }
+        
+        $collections = $query->latest()->paginate(10)->appends($request->query());
         return view('collections.index', compact('collections'));
     }
 
@@ -60,7 +82,7 @@ class CollectionController extends Controller
                         'collection_date' => $request->collection_date,
                         'type' => $request->type,
                         'term' => $request->term,
-                        'notes' => $request->notes,
+
                         'entered_by' => auth()->id(),
                     ]);
                     $created++;
