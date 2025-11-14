@@ -108,6 +108,7 @@
             const roleSelect = document.getElementById('role');
             const areaField = document.getElementById('areaField');
             const mekhalaField = document.getElementById('mekhalaField');
+            const currentRole = '{{ old('role', $user->role) }}';
             
             // Hide all fields first
             roleField.style.display = 'none';
@@ -121,6 +122,7 @@
             } else if (userType === 'mekhala') {
                 roleField.style.display = 'block';
                 roleSelect.innerHTML = '<option value="">Select Role</option><option value="chairman">Chairman</option><option value="treasurer">Treasurer</option>';
+                roleSelect.value = currentRole;
             } else if (userType === 'area') {
                 areaField.style.display = 'block';
                 mekhalaField.style.display = 'block';
