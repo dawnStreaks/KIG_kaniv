@@ -129,7 +129,9 @@
                         <div class="px-3 py-2">
                             <small class="text-muted">REPORTS</small>
                         </div>
-                        <a class="nav-link" href="{{ route('reports.financial') }}">Financial Statement</a>
+                        <a class="nav-link" href="{{ route('reports.east-financial') }}">East Mekhala Financial</a>
+                        <a class="nav-link" href="{{ route('reports.west-financial') }}">West Mekhala Financial</a>
+                        <a class="nav-link" href="{{ route('reports.combined-financial') }}">Combined Financial</a>
                         <a class="nav-link" href="{{ route('reports.collection') }}">Collection Report</a>
                         <a class="nav-link" href="{{ route('collections.report') }}">Collection Chart Report</a>
                         <a class="nav-link" href="{{ route('reports.mekhala') }}">Mekhala Report</a>

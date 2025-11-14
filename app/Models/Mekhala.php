@@ -15,6 +15,11 @@ class Mekhala extends Model
         return $this->hasMany(User::class);
     }
 
+    public function areas()
+    {
+        return $this->hasMany(Area::class);
+    }
+
     public function scopeActive($query)
     {
         return $query->where('is_active', true);

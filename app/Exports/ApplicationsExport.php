@@ -65,7 +65,7 @@ class ApplicationsExport implements FromQuery, WithHeadings, WithMapping
             $application->passport_no,
             $application->civil_id,
             $application->mobile_number,
-            ucfirst($application->category),
+            ucfirst(str_replace('_', ' ', $application->category)),
             ucfirst($application->status),
             $application->approved_amount,
             $application->approved_date,

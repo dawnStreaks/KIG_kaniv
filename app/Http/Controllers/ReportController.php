@@ -294,6 +294,187 @@ class ReportController extends Controller
         return response()->json($data);
     }
 
+    public function eastMekhalaFinancial(Request $request)
+    {
+        return $this->getMekhalaFinancialStatement($request, 'east');
+    }
+
+    public function westMekhalaFinancial(Request $request)
+    {
+        return $this->getMekhalaFinancialStatement($request, 'west');
+    }
+
+    public function combinedFinancial(Request $request)
+    {
+        return $this->getMekhalaFinancialStatement($request, 'combined');
+    }
+
+    private function getMekhalaFinancialStatement(Request $request, $type)
+    {
+        $currentYear = date('Y');
+        $currentMonth = date('m');
+        
+        // Get mekhala IDs
+        $eastMekhala = \App\Models\Mekhala::where('name', 'LIKE', '%east%')->first();
+        $westMekhala = \App\Models\Mekhala::where('name', 'LIKE', '%west%')->first();
+        
+        $mekhalaIds = [];
+        if ($type === 'east' && $eastMekhala) {
+            $mekhalaIds = [$eastMekhala->id];
+        } elseif ($type === 'west' && $westMekhala) {
+            $mekhalaIds = [$westMekhala->id];
+        } elseif ($type === 'combined') {
+            $mekhalaIds = array_filter([$eastMekhala?->id, $westMekhala?->id]);
+        }
+        
+        // Collections Summary
+        $collectionsQuery = Collection::received()->whereYear('collection_date', $currentYear);
+        if (!empty($mekhalaIds)) {
+            $collectionsQuery->whereHas('unit.area', function($q) use ($mekhalaIds) {
+                $q->whereIn('mekhala_id', $mekhalaIds);
+            });
+        }
+        $yearlyCollections = $collectionsQuery->sum('amount');
+        
+        $monthlyCollectionsQuery = Collection::received()->whereMonth('collection_date', $currentMonth)
+                                      ->whereYear('collection_date', $currentYear);
+        if (!empty($mekhalaIds)) {
+            $monthlyCollectionsQuery->whereHas('unit.area', function($q) use ($mekhalaIds) {
+                $q->whereIn('mekhala_id', $mekhalaIds);
+            });
+        }
+        $monthlyCollections = $monthlyCollectionsQuery->sum('amount');
+        
+        // Expenses Summary
+        $expensesQuery = Expense::whereYear('expense_date', $currentYear);
+        if (!empty($mekhalaIds)) {
+            $expensesQuery->whereHas('enteredBy', function($q) use ($mekhalaIds) {
+                $q->whereIn('mekhala_id', $mekhalaIds);
+            });
+        }
+        $yearlyExpenses = $expensesQuery->sum('amount');
+        
+        $monthlyExpensesQuery = Expense::whereMonth('expense_date', $currentMonth)
+                                 ->whereYear('expense_date', $currentYear);
+        if (!empty($mekhalaIds)) {
+            $monthlyExpensesQuery->whereHas('enteredBy', function($q) use ($mekhalaIds) {
+                $q->whereIn('mekhala_id', $mekhalaIds);
+            });
+        }
+        $monthlyExpenses = $monthlyExpensesQuery->sum('amount');
+        
+        // Applications Summary
+        $applicationsQuery = Application::whereYear('approved_date', $currentYear);
+        if (!empty($mekhalaIds)) {
+            $applicationsQuery->whereHas('submitter', function($q) use ($mekhalaIds) {
+                $q->whereIn('mekhala_id', $mekhalaIds);
+            });
+        }
+        $yearlyApplications = $applicationsQuery->sum('approved_amount');
+        
+        $monthlyApplicationsQuery = Application::whereMonth('approved_date', $currentMonth)
+                                         ->whereYear('approved_date', $currentYear);
+        if (!empty($mekhalaIds)) {
+            $monthlyApplicationsQuery->whereHas('submitter', function($q) use ($mekhalaIds) {
+                $q->whereIn('mekhala_id', $mekhalaIds);
+            });
+        }
+        $monthlyApplications = $monthlyApplicationsQuery->sum('approved_amount');
+        
+        // Investment Summary (same as before)
+        $yearlyInvestments = Investment::whereYear('investment_date', $currentYear)->sum('amount');
+        $monthlyInvestments = Investment::whereMonth('investment_date', $currentMonth)
+                                       ->whereYear('investment_date', $currentYear)
+                                       ->sum('amount');
+        $yearlyIncome = Investment::whereYear('investment_date', $currentYear)->sum('income_generated');
+        $monthlyIncome = Investment::whereMonth('investment_date', $currentMonth)
+                                  ->whereYear('investment_date', $currentYear)
+                                  ->sum('income_generated');
+        $yearlyReturned = Investment::whereYear('investment_date', $currentYear)->sum('returned_amount');
+        $monthlyReturned = Investment::whereMonth('investment_date', $currentMonth)
+                                   ->whereYear('investment_date', $currentYear)
+                                   ->sum('returned_amount');
+        
+        // Get detailed transactions
+        $collectionsDetailQuery = Collection::received()->with('unit')->orderBy('collection_date');
+        if (!empty($mekhalaIds)) {
+            $collectionsDetailQuery->whereHas('unit.area', function($q) use ($mekhalaIds) {
+                $q->whereIn('mekhala_id', $mekhalaIds);
+            });
+        }
+        $collections = $collectionsDetailQuery->get();
+        
+        $expensesDetailQuery = Expense::orderBy('expense_date');
+        if (!empty($mekhalaIds)) {
+            $expensesDetailQuery->whereHas('enteredBy', function($q) use ($mekhalaIds) {
+                $q->whereIn('mekhala_id', $mekhalaIds);
+            });
+        }
+        $expenses = $expensesDetailQuery->get();
+        
+        $applicationsDetailQuery = Application::where('status', 'approved')->orderBy('approved_date');
+        if (!empty($mekhalaIds)) {
+            $applicationsDetailQuery->whereHas('submitter', function($q) use ($mekhalaIds) {
+                $q->whereIn('mekhala_id', $mekhalaIds);
+            });
+        }
+        $applications = $applicationsDetailQuery->get();
+        
+        // Combine and sort transactions by date
+        $transactions = collect();
+        
+        foreach ($collections as $collection) {
+            $transactions->push([
+                'date' => $collection->collection_date,
+                'type' => 'Collection',
+                'description' => 'Collection from ' . ($collection->unit->name ?? 'N/A'),
+                'collection' => $collection->amount,
+                'expense' => 0,
+            ]);
+        }
+        
+        foreach ($expenses as $expense) {
+            $transactions->push([
+                'date' => $expense->expense_date,
+                'type' => 'Expense',
+                'description' => $expense->particulars,
+                'collection' => 0,
+                'expense' => $expense->amount,
+            ]);
+        }
+        
+        foreach ($applications as $application) {
+            $transactions->push([
+                'date' => $application->approved_date,
+                'type' => 'Application Payment',
+                'description' => 'Payment to ' . $application->name . ' (' . ucfirst($application->category) . ')',
+                'collection' => 0,
+                'expense' => $application->approved_amount,
+            ]);
+        }
+        
+        $transactions = $transactions->sortBy('date');
+        
+        // Calculate cumulative balance
+        $balance = 0;
+        $transactions = $transactions->map(function ($transaction) use (&$balance) {
+            $balance += $transaction['collection'] - $transaction['expense'];
+            $transaction['balance'] = $balance;
+            return $transaction;
+        });
+        
+        $reportType = ucfirst($type) . ' Mekhala';
+        if ($type === 'combined') {
+            $reportType = 'Combined';
+        }
+        
+        return view('reports.financial-statement', compact(
+            'yearlyCollections', 'monthlyCollections', 'yearlyExpenses', 'monthlyExpenses',
+            'yearlyApplications', 'monthlyApplications', 'yearlyInvestments', 'monthlyInvestments',
+            'yearlyIncome', 'monthlyIncome', 'yearlyReturned', 'monthlyReturned', 'transactions', 'reportType'
+        ));
+    }
+
     public function exportFinancialStatement(Request $request)
     {
         $year = $request->get('year', date('Y'));

@@ -34,8 +34,8 @@
                             <tr>
                                 <td><strong>Category:</strong></td>
                                 <td>
-                                    <span class="badge bg-{{ $application->category == 'health' ? 'success' : 'info' }}">
-                                        {{ ucfirst($application->category) }}
+                                    <span class="badge bg-{{ $application->category == 'medical_support' ? 'success' : ($application->category == 'financial_support' ? 'info' : ($application->category == 'iqama_visa_residency' ? 'warning' : 'secondary')) }}">
+                                        {{ ucfirst(str_replace('_', ' ', $application->category)) }}
                                     </span>
                                 </td>
                             </tr>

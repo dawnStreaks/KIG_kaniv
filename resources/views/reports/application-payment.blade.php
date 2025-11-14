@@ -26,7 +26,7 @@
                             <tr>
                                 <th><input type="text" class="form-control form-control-sm filter-input" placeholder="Filter ID" data-column="0"></th>
                                 <th><input type="text" class="form-control form-control-sm filter-input" placeholder="Filter Name" data-column="1"></th>
-                                <th><select class="form-control form-control-sm filter-input" data-column="2"><option value="">All Categories</option><option value="health">Health</option><option value="finance">Finance</option></select></th>
+                                <th><select class="form-control form-control-sm filter-input" data-column="2"><option value="">All Categories</option><option value="medical_support">Medical Support</option><option value="financial_support">Financial Support</option><option value="iqama_visa_residency">Iqama/Visa/Residency</option><option value="ticket">Ticket</option></select></th>
                                 <th><input type="text" class="form-control form-control-sm filter-input" placeholder="Filter Amount" data-column="3"></th>
                                 <th><input type="text" class="form-control form-control-sm filter-input" placeholder="Filter Expense" data-column="4"></th>
                                 <th><input type="date" class="form-control form-control-sm filter-input" data-column="5"></th>
@@ -38,7 +38,7 @@
                                 <tr>
                                     <td>{{ $application->id }}</td>
                                     <td>{{ $application->name }}</td>
-                                    <td>{{ ucfirst($application->category) }}</td>
+                                    <td>{{ ucfirst(str_replace('_', ' ', $application->category)) }}</td>
                                     <td>KWD {{ number_format($application->approved_amount, 3) }}</td>
                                     <td>KWD {{ number_format($application->expense_amount, 3) }}</td>
                                     <td>{{ $application->approved_date ? $application->approved_date->format('Y-m-d') : 'N/A' }}</td>

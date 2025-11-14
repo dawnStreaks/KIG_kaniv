@@ -5,7 +5,7 @@
 @section('content')
     <div>
         <div class="d-flex justify-content-between align-items-center mb-3">
-            <h2>Financial Statement{{ $mekhalaName ? ' - ' . $mekhalaName : '' }}</h2>
+            <h2>{{ $reportType ?? 'Financial' }} Statement</h2>
             <a href="{{ route('reports.export-financial') }}" class="btn btn-success">Export</a>
         </div>
 

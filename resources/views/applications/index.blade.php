@@ -43,7 +43,7 @@
                                 <th><input type="text" class="form-control form-control-sm" placeholder="Filter Passport"></th>
                                 <th><input type="text" class="form-control form-control-sm" placeholder="Filter Civil ID"></th>
                                 <th><input type="text" class="form-control form-control-sm" placeholder="Filter Mobile"></th>
-                                <th><select class="form-control form-control-sm"><option value="">All Categories</option><option value="health">Health</option><option value="finance">Finance</option></select></th>
+                                <th><select class="form-control form-control-sm"><option value="">All Categories</option><option value="medical_support">Medical Support</option><option value="financial_support">Financial Support</option><option value="iqama_visa_residency">Iqama/Visa/Residency</option><option value="ticket">Ticket</option></select></th>
                                 <th><input type="text" class="form-control form-control-sm" placeholder="Filter Type"></th>
                                 <th><input type="text" class="form-control form-control-sm" placeholder="Filter Area"></th>
                                 <th><input type="text" class="form-control form-control-sm" placeholder="Filter Unit"></th>
@@ -62,8 +62,8 @@
                                     <td>{{ $application->civil_id }}</td>
                                     <td>{{ $application->mobile_number }}</td>
                                     <td>
-                                        <span class="badge bg-{{ $application->category == 'health' ? 'success' : 'info' }}">
-                                            {{ ucfirst($application->category) }}
+                                        <span class="badge bg-{{ $application->category == 'medical_support' ? 'success' : ($application->category == 'financial_support' ? 'info' : ($application->category == 'iqama_visa_residency' ? 'warning' : 'secondary')) }}">
+                                            {{ ucfirst(str_replace('_', ' ', $application->category)) }}
                                         </span>
                                     </td>
                                     <td>{{ $application->applicationType->name ?? 'N/A' }}</td>
