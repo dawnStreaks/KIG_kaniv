@@ -2,6 +2,15 @@
 
 @section('title', 'Manage Units')
 
+@push('styles')
+<style>
+.pagination .page-link {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.875rem;
+}
+</style>
+@endpush
+
 @section('content')
     <div class="d-flex justify-content-between align-items-center mb-3">
         <h2>Units</h2>
@@ -77,7 +86,7 @@
         </div>
         
         <div class="d-flex justify-content-center">
-            {{ $units->links() }}
+            {{ $units->links('pagination::bootstrap-4') }}
         </div>
     </div>
     
