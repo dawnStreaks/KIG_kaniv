@@ -86,7 +86,7 @@
         </div>
         
         <div class="d-flex justify-content-center">
-            {{ $units->links('pagination::bootstrap-4') }}
+            {{ $units->links('pagination.custom') }}
         </div>
     </div>
     

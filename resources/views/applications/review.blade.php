@@ -34,7 +34,7 @@
                         @foreach($applications as $application)
                         <tr>
                             <td>{{ $application->name }}</td>
-                            <td>KWD {{ number_format($application->approved_amount, 2) }}</td>
+                            <td>KWD {{ number_format($application->approved_amount, 3) }}</td>
                             <td>{{ $application->category }}</td>
                             <td>
                                 <span class="badge bg-{{ $application->status == 'pending' ? 'warning' : ($application->status == 'approved' ? 'success' : 'danger') }}">

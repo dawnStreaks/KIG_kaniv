@@ -37,7 +37,7 @@
             </table>
         </div>
         
-        {{ $areas->links() }}
+        {{ $areas->links('pagination.custom') }}
     </div>
     
     <script src="{{ asset('js/filtered-export.js') }}"></script>

@@ -71,7 +71,7 @@
                 </table>
             </div>
             
-            {{ $users->links() }}
+            {{ $users->links('pagination.custom') }}
         </div>
     </div>
 

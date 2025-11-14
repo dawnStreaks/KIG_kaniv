@@ -142,6 +142,13 @@
         }
         
         // Initialize on page load
-        document.addEventListener('DOMContentLoaded', toggleRoleField);
+        document.addEventListener('DOMContentLoaded', function() {
+            toggleRoleField();
+            // Pre-fetch mekhala if area is selected
+            const areaSelect = document.getElementById('area_id');
+            if (areaSelect.value) {
+                loadMekhala();
+            }
+        });
     </script>
 @endsection

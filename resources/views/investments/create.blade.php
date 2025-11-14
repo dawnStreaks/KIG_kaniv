@@ -53,7 +53,7 @@
                     <h5>Available Funds</h5>
                 </div>
                 <div class="card-body">
-                    <p class="h4 text-success">KWD {{ number_format($availableAmount, 2) }}</p>
+                    <p class="h4 text-success">KWD {{ number_format($availableAmount, 3) }}</p>
                     <small class="text-muted">Available from pending collections</small>
                 </div>
             </div>

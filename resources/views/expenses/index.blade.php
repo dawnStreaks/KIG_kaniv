@@ -41,7 +41,7 @@
                     <tbody>
                         @foreach($expenses as $expense)
                         <tr>
-                            <td>KWD {{ number_format($expense->amount, 2) }}</td>
+                            <td>KWD {{ number_format($expense->amount, 3) }}</td>
                             <td>{{ $expense->particulars }}</td>
                             <td>{{ ucfirst($expense->type) }}</td>
                             <td>{{ $expense->expense_date }}</td>
@@ -62,7 +62,7 @@
                 </table>
             </div>
             
-            {{ $expenses->links() }}
+            {{ $expenses->links('pagination.custom') }}
         </div>
     </div>
 

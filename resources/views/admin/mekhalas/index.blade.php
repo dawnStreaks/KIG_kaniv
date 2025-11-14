@@ -35,7 +35,7 @@
             </table>
         </div>
         
-        {{ $mekhalas->links() }}
+        {{ $mekhalas->links('pagination.custom') }}
     </div>
     
     <script src="{{ asset('js/filtered-export.js') }}"></script>

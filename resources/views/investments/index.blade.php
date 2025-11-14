@@ -32,15 +32,15 @@
                         @foreach($investments as $investment)
                         <tr>
                             <td>{{ $investment->investment_date }}</td>
-                            <td>KWD {{ number_format($investment->amount, 2) }}</td>
+                            <td>KWD {{ number_format($investment->amount, 3) }}</td>
                             <td>{{ $investment->description }}</td>
-                            <td>KWD {{ number_format($investment->income_generated, 2) }}</td>
+                            <td>KWD {{ number_format($investment->income_generated, 3) }}</td>
                             <td>
                                 <span class="badge bg-{{ $investment->status === 'invested' ? 'warning' : ($investment->status === 'income_generated' ? 'success' : 'info') }}">
                                     {{ ucfirst(str_replace('_', ' ', $investment->status)) }}
                                 </span>
                             </td>
-                            <td>KWD {{ number_format($investment->balance, 2) }}</td>
+                            <td>KWD {{ number_format($investment->balance, 3) }}</td>
                             <td>{{ $investment->creator->name ?? 'N/A' }}</td>
                             <td>
                                 @if(auth()->user()->canAddInvestments())

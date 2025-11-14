@@ -39,7 +39,7 @@
                             @forelse($collections as $collection)
                                 <tr>
                                     <td>{{ $collection->collection_date }}</td>
-                                    <td>KWD {{ number_format($collection->amount, 2) }}</td>
+                                    <td>KWD {{ number_format($collection->amount, 3) }}</td>
                                     <td>{{ $collection->unit->name ?? 'N/A' }}</td>
                                     <td>{{ $collection->unit->area->mekhala->name ?? 'N/A' }}</td>
                                     <td>{{ $collection->unit->area->name ?? 'N/A' }}</td>
@@ -56,7 +56,7 @@
                         <tfoot>
                             <tr class="table-info">
                                 <th>Total:</th>
-                                <th id="totalAmount">KWD {{ number_format($collections->sum('amount'), 2) }}</th>
+                                <th id="totalAmount">KWD {{ number_format($collections->sum('amount'), 3) }}</th>
                                 <th colspan="6"></th>
                             </tr>
                         </tfoot>
@@ -102,7 +102,7 @@
                     }
                 });
                 
-                document.getElementById('totalAmount').textContent = 'KWD ' + visibleTotal.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+                document.getElementById('totalAmount').textContent = 'KWD ' + visibleTotal.toLocaleString('en-US', {minimumFractionDigits: 3, maximumFractionDigits: 3});
             }
         });
         

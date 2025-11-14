@@ -19,11 +19,11 @@
                         <table class="table">
                             <tr>
                                 <td>Yearly Total Collections:</td>
-                                <td class="text-end">KWD {{ number_format($yearlyCollections ?? 0, 2) }}</td>
+                                <td class="text-end">KWD {{ number_format($yearlyCollections ?? 0, 3) }}</td>
                             </tr>
                             <tr>
                                 <td>This Month:</td>
-                                <td class="text-end">KWD {{ number_format($monthlyCollections ?? 0, 2) }}</td>
+                                <td class="text-end">KWD {{ number_format($monthlyCollections ?? 0, 3) }}</td>
                             </tr>
                         </table>
                     </div>
@@ -38,11 +38,11 @@
                         <table class="table">
                             <tr>
                                 <td>Yearly Total Expenses:</td>
-                                <td class="text-end">KWD {{ number_format($yearlyExpenses ?? 0, 2) }}</td>
+                                <td class="text-end">KWD {{ number_format($yearlyExpenses ?? 0, 3) }}</td>
                             </tr>
                             <tr>
                                 <td>This Month:</td>
-                                <td class="text-end">KWD {{ number_format($monthlyExpenses ?? 0, 2) }}</td>
+                                <td class="text-end">KWD {{ number_format($monthlyExpenses ?? 0, 3) }}</td>
                             </tr>
                         </table>
                     </div>
@@ -60,11 +60,11 @@
                         <table class="table">
                             <tr>
                                 <td>Yearly Total Applications:</td>
-                                <td class="text-end">KWD {{ number_format($yearlyApplications ?? 0, 2) }}</td>
+                                <td class="text-end">KWD {{ number_format($yearlyApplications ?? 0, 3) }}</td>
                             </tr>
                             <tr>
                                 <td>Monthly Total Applications:</td>
-                                <td class="text-end">KWD {{ number_format($monthlyApplications ?? 0, 2) }}</td>
+                                <td class="text-end">KWD {{ number_format($monthlyApplications ?? 0, 3) }}</td>
                             </tr>
                         </table>
                     </div>
@@ -79,23 +79,23 @@
                         <table class="table">
                             <tr>
                                 <td>Yearly Total Investments:</td>
-                                <td class="text-end">KWD {{ number_format($yearlyInvestments ?? 0, 2) }}</td>
+                                <td class="text-end">KWD {{ number_format($yearlyInvestments ?? 0, 3) }}</td>
                             </tr>
                             <tr>
                                 <td>Monthly Total Investments:</td>
-                                <td class="text-end">KWD {{ number_format($monthlyInvestments ?? 0, 2) }}</td>
+                                <td class="text-end">KWD {{ number_format($monthlyInvestments ?? 0, 3) }}</td>
                             </tr>
                             <tr>
                                 <td>Income Generated:</td>
-                                <td class="text-end">KWD {{ number_format($yearlyIncome ?? 0, 2) }}</td>
+                                <td class="text-end">KWD {{ number_format($yearlyIncome ?? 0, 3) }}</td>
                             </tr>
                             <tr>
                                 <td>Capital Returned:</td>
-                                <td class="text-end">KWD {{ number_format($yearlyReturned ?? 0, 2) }}</td>
+                                <td class="text-end">KWD {{ number_format($yearlyReturned ?? 0, 3) }}</td>
                             </tr>
                             <tr class="table-info">
                                 <td><strong>Investment Balance:</strong></td>
-                                <td class="text-end"><strong>KWD {{ number_format(($yearlyInvestments ?? 0) + ($yearlyIncome ?? 0) - ($yearlyReturned ?? 0), 2) }}</strong></td>
+                                <td class="text-end"><strong>KWD {{ number_format(($yearlyInvestments ?? 0) + ($yearlyIncome ?? 0) - ($yearlyReturned ?? 0), 3) }}</strong></td>
                             </tr>
                         </table>
                     </div>
@@ -111,7 +111,7 @@
                     </div>
                     <div class="card-body">
                         <h3 class="text-center {{ (($yearlyCollections ?? 0) - ($yearlyExpenses ?? 0)) >= 0 ? 'text-success' : 'text-danger' }}">
-                            KWD {{ number_format(($yearlyCollections ?? 0) - ($yearlyExpenses ?? 0), 2) }}
+                            KWD {{ number_format(($yearlyCollections ?? 0) - ($yearlyExpenses ?? 0), 3) }}
                         </h3>
                     </div>
                 </div>
@@ -148,13 +148,13 @@
                                         </td>
                                         <td>{{ $transaction['description'] }}</td>
                                         <td class="text-end">
-                                            {{ $transaction['collection'] > 0 ? 'KWD ' . number_format($transaction['collection'], 2) : '-' }}
+                                            {{ $transaction['collection'] > 0 ? 'KWD ' . number_format($transaction['collection'], 3) : '-' }}
                                         </td>
                                         <td class="text-end">
-                                            {{ $transaction['expense'] > 0 ? 'KWD ' . number_format($transaction['expense'], 2) : '-' }}
+                                            {{ $transaction['expense'] > 0 ? 'KWD ' . number_format($transaction['expense'], 3) : '-' }}
                                         </td>
                                         <td class="text-end {{ $transaction['balance'] >= 0 ? 'text-success' : 'text-danger' }}">
-                                            KWD {{ number_format($transaction['balance'], 2) }}
+                                            KWD {{ number_format($transaction['balance'], 3) }}
                                         </td>
                                     </tr>
                                     @endforeach

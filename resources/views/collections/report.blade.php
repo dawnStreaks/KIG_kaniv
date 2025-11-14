@@ -57,7 +57,7 @@ function initMainChart() {
         data: {
             labels: labels,
             datasets: [{
-                label: 'Collection Amount (₹)',
+                label: 'Collection Amount (KWD)',
                 data: amounts,
                 backgroundColor: 'rgba(54, 162, 235, 0.8)',
                 borderColor: 'rgba(54, 162, 235, 1)',
@@ -72,7 +72,7 @@ function initMainChart() {
                     beginAtZero: true,
                     ticks: {
                         callback: function(value) {
-                            return '₹' + value.toLocaleString();
+                            return 'KWD ' + value.toLocaleString('en-US', {minimumFractionDigits: 3, maximumFractionDigits: 3});
                         }
                     }
                 }
@@ -81,7 +81,7 @@ function initMainChart() {
                 tooltip: {
                     callbacks: {
                         label: function(context) {
-                            return 'Amount: ₹' + context.parsed.y.toLocaleString();
+                            return 'Amount: KWD ' + context.parsed.y.toLocaleString('en-US', {minimumFractionDigits: 3, maximumFractionDigits: 3});
                         }
                     }
                 }
@@ -117,7 +117,7 @@ function drillDown(areaId, areaName) {
                 data: {
                     labels: data.map(item => item.unit_name),
                     datasets: [{
-                        label: 'Collection Amount (₹)',
+                        label: 'Collection Amount (KWD)',
                         data: data.map(item => parseFloat(item.total_amount)),
                         backgroundColor: 'rgba(255, 99, 132, 0.8)',
                         borderColor: 'rgba(255, 99, 132, 1)',
@@ -132,7 +132,7 @@ function drillDown(areaId, areaName) {
                             beginAtZero: true,
                             ticks: {
                                 callback: function(value) {
-                                    return '₹' + value.toLocaleString();
+                                    return 'KWD ' + value.toLocaleString('en-US', {minimumFractionDigits: 3, maximumFractionDigits: 3});
                                 }
                             }
                         }
@@ -141,7 +141,7 @@ function drillDown(areaId, areaName) {
                         tooltip: {
                             callbacks: {
                                 label: function(context) {
-                                    return 'Amount: ₹' + context.parsed.y.toLocaleString();
+                                    return 'Amount: KWD ' + context.parsed.y.toLocaleString('en-US', {minimumFractionDigits: 3, maximumFractionDigits: 3});
                                 }
                             }
                         }

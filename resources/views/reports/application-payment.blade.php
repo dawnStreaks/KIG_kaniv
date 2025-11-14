@@ -39,8 +39,8 @@
                                     <td>{{ $application->id }}</td>
                                     <td>{{ $application->name }}</td>
                                     <td>{{ ucfirst($application->category) }}</td>
-                                    <td>KWD {{ number_format($application->approved_amount, 2) }}</td>
-                                    <td>KWD {{ number_format($application->expense_amount, 2) }}</td>
+                                    <td>KWD {{ number_format($application->approved_amount, 3) }}</td>
+                                    <td>KWD {{ number_format($application->expense_amount, 3) }}</td>
                                     <td>{{ $application->approved_date ? $application->approved_date->format('Y-m-d') : 'N/A' }}</td>
                                     <td>
                                         <span class="badge bg-{{ $application->status == 'approved' ? 'success' : ($application->status == 'rejected' ? 'danger' : 'warning') }}">

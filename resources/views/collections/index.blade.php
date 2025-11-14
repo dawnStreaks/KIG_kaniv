@@ -69,7 +69,7 @@
                 </table>
             </div>
             
-            {{ $collections->links() }}
+            {{ $collections->links('pagination.custom') }}
         </div>
     </div>
 

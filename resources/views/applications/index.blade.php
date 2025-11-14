@@ -67,7 +67,7 @@
                                     </td>
                                     <td>
                                         @if($application->approved_amount)
-                                            KWD {{ number_format($application->approved_amount, 2) }}
+                                            KWD {{ number_format($application->approved_amount, 3) }}
                                         @else
                                             -
                                         @endif
@@ -98,7 +98,7 @@
                     </table>
                 </div>
                 
-                {{ $applications->links() }}
+                {{ $applications->links('pagination.custom') }}
             </div>
         </div>
     </div>
