@@ -38,9 +38,10 @@
                                 <input type="text" class="form-control edit-input d-none" value="{{ $type->name }}" data-id="{{ $type->id }}">
                             </td>
                             <td>
-                                <span class="badge bg-{{ $type->is_active ? 'success' : 'secondary' }}">
-                                    {{ $type->is_active ? 'Active' : 'Inactive' }}
-                                </span>
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input status-toggle" type="checkbox" data-id="{{ $type->id }}" {{ $type->is_active ? 'checked' : '' }}>
+                                    <label class="form-check-label">{{ $type->is_active ? 'Active' : 'Inactive' }}</label>
+                                </div>
                             </td>
                             <td>
                                 <button class="btn btn-sm btn-warning edit-btn" data-id="{{ $type->id }}">Edit</button>
@@ -103,6 +104,31 @@
                         if (data.success) {
                             row.querySelector('.type-name').textContent = newName;
                             row.querySelector('.cancel-btn').click();
+                        }
+                    });
+                });
+            });
+            
+            document.querySelectorAll('.status-toggle').forEach(toggle => {
+                toggle.addEventListener('change', function() {
+                    const id = this.dataset.id;
+                    const isActive = this.checked;
+                    const label = this.nextElementSibling;
+                    
+                    fetch(`/admin/application-types/${id}/toggle-status`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                        },
+                        body: JSON.stringify({ is_active: isActive })
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            label.textContent = isActive ? 'Active' : 'Inactive';
+                        } else {
+                            this.checked = !isActive;
                         }
                     });
                 });

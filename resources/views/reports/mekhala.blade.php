@@ -171,7 +171,6 @@ function drillDown(mekhalaId, mekhalaName, type) {
 
 function backToMain() {
     document.getElementById('drillDownContainer').style.display = 'none';
-    document.getElementById('mekhalaChart').scrollIntoView({ behavior: 'smooth' });
 }
 
 document.addEventListener('DOMContentLoaded', function() {

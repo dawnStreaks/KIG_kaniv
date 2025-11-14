@@ -366,4 +366,12 @@ class AdminController extends Controller
         \App\Models\ApplicationType::findOrFail($id)->delete();
         return redirect()->route('admin.application-types.index')->with('success', 'Application type deleted successfully');
     }
+    
+    public function toggleApplicationTypeStatus(Request $request, $id)
+    {
+        $request->validate(['is_active' => 'required|boolean']);
+        $applicationType = \App\Models\ApplicationType::findOrFail($id);
+        $applicationType->update(['is_active' => $request->is_active]);
+        return response()->json(['success' => true]);
+    }
 }

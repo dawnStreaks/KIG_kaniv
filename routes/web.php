@@ -71,6 +71,7 @@ Route::middleware('auth')->group(function () {
         Route::post('/application-types', [AdminController::class, 'storeApplicationType'])->name('application-types.store');
         Route::put('/application-types/{id}', [AdminController::class, 'updateApplicationType'])->name('application-types.update');
         Route::delete('/application-types/{id}', [AdminController::class, 'destroyApplicationType'])->name('application-types.destroy');
+        Route::post('/application-types/{id}/toggle-status', [AdminController::class, 'toggleApplicationTypeStatus'])->name('application-types.toggle-status');
         
         // Export routes
         Route::get('/users/export', [AdminController::class, 'exportUsers'])->name('users.export');
