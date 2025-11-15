@@ -112,8 +112,11 @@
                         <h5>Net Balance</h5>
                     </div>
                     <div class="card-body">
-                        <h3 class="text-center {{ (($yearlyCollections ?? 0) - ($yearlyExpenses ?? 0)) >= 0 ? 'text-success' : 'text-danger' }}">
-                            KWD {{ number_format(($yearlyCollections ?? 0) - ($yearlyExpenses ?? 0), 3) }}
+                        @php
+                            $netBalance = ($yearlyCollections ?? 0) - ($yearlyExpenses ?? 0) - ($yearlyApplications ?? 0);
+                        @endphp
+                        <h3 class="text-center {{ $netBalance >= 0 ? 'text-success' : 'text-danger' }}">
+                            KWD {{ number_format($netBalance, 3) }}
                         </h3>
                     </div>
                 </div>
