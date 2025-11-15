@@ -234,7 +234,16 @@ class ReportController extends Controller
 
     public function applicationPaymentReport(Request $request)
     {
+        $user = auth()->user();
+        
         $query = Application::with(['submitter', 'reviewer'])->approved();
+        
+        // Filter by user's mekhala if they are a mekhala user
+        if ($user->isMekhalaUser()) {
+            $query->whereHas('submitter', function($q) use ($user) {
+                $q->where('mekhala_id', $user->mekhala_id);
+            });
+        }
         
         if ($request->filled('category')) {
             $query->where('category', $request->category);

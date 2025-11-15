@@ -32,7 +32,7 @@
                                 <th>Unit</th>
                                 <th>Mekhala</th>
                                 <th>Area</th>
-                                <th>Notes</th>
+                                <th>Status</th>
                                 <th>Entered By</th>
                                 <th>Created At</th>
                             </tr>
@@ -42,7 +42,7 @@
                                 <th><input type="text" class="form-control form-control-sm filter-input" placeholder="Filter Unit" data-column="2"></th>
                                 <th><input type="text" class="form-control form-control-sm filter-input" placeholder="Filter Mekhala" data-column="3"></th>
                                 <th><input type="text" class="form-control form-control-sm filter-input" placeholder="Filter Area" data-column="4"></th>
-                                <th><input type="text" class="form-control form-control-sm filter-input" placeholder="Filter Notes" data-column="5"></th>
+                                <th><select class="form-control form-control-sm filter-input" data-column="5"><option value="">All Status</option><option value="payable">Payable</option><option value="received">Received</option></select></th>
                                 <th><input type="text" class="form-control form-control-sm filter-input" placeholder="Filter User" data-column="6"></th>
                                 <th><input type="date" class="form-control form-control-sm filter-input" data-column="7"></th>
                             </tr>
@@ -55,7 +55,13 @@
                                     <td>{{ $collection->unit->name ?? 'N/A' }}</td>
                                     <td>{{ $collection->unit->area->mekhala->name ?? 'N/A' }}</td>
                                     <td>{{ $collection->unit->area->name ?? 'N/A' }}</td>
-                                    <td>{{ $collection->notes ?? 'N/A' }}</td>
+                                    <td>
+                                        @if($collection->collection_status === 'received')
+                                            <span class="badge bg-success">Received</span>
+                                        @else
+                                            <span class="badge bg-warning">Payable</span>
+                                        @endif
+                                    </td>
                                     <td>{{ $collection->enteredBy->name ?? 'N/A' }}</td>
                                     <td>{{ $collection->created_at->format('Y-m-d H:i:s') }}</td>
                                 </tr>
