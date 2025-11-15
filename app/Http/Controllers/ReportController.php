@@ -186,6 +186,13 @@ class ReportController extends Controller
         
         $query = Collection::with(['unit.area.mekhala', 'enteredBy']);
         
+        // Filter by user's mekhala if they are a mekhala user
+        if ($user->isMekhalaUser()) {
+            $query->whereHas('unit.area', function($q) use ($user) {
+                $q->where('mekhala_id', $user->mekhala_id);
+            });
+        }
+        
         if ($request->filled('area_id')) {
             $query->whereHas('unit', function($q) use ($request) {
                 $q->where('area_id', $request->area_id);
