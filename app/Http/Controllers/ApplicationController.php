@@ -29,9 +29,8 @@ class ApplicationController extends Controller
     public function create()
     {
         $applicationTypes = \App\Models\ApplicationType::active()->get();
-        $units = \App\Models\Unit::with('area')->get();
         $areas = \App\Models\Area::all();
-        return view('applications.create', compact('applicationTypes', 'units', 'areas'));
+        return view('applications.create', compact('applicationTypes', 'areas'));
     }
 
     public function store(Request $request)

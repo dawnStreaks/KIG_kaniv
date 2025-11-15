@@ -41,10 +41,7 @@
                             @endforeach
                         </select>
                     </div>
-                    <div class="col-md-3">
-                        <label for="notes" class="form-label">Notes</label>
-                        <input type="text" class="form-control" id="notes" name="notes" value="{{ old('notes') }}" placeholder="Optional notes">
-                    </div>
+
                 </div>
                 
                 <div class="table-responsive">

@@ -132,6 +132,12 @@ Route::middleware('auth')->group(function () {
         Route::get('/collection/area-drill-down', [ReportController::class, 'collectionAreaDrillDown'])->name('collection.area-drilldown');
         Route::get('/export-financial', [ReportController::class, 'exportFinancialStatement'])->name('export-financial');
     });
+    
+    // API routes for dynamic dropdowns
+    Route::get('/api/areas/{area}/units', function($areaId) {
+        return \App\Models\Unit::where('area_id', $areaId)->get(['id', 'name']);
+    });
+    });
 });
 
 

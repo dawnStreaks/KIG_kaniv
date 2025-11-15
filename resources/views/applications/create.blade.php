@@ -69,22 +69,19 @@
                             </div>
                             
                             <div class="mb-3">
-                                <label for="unit_id" class="form-label">Unit</label>
-                                <select class="form-control" id="unit_id" name="unit_id" required>
-                                    <option value="">Select Unit</option>
-                                    @foreach($units as $unit)
-                                        <option value="{{ $unit->id }}" data-area-id="{{ $unit->area_id }}" {{ old('unit_id') == $unit->id ? 'selected' : '' }}>{{ $unit->name }}</option>
+                                <label for="area_id" class="form-label">Area</label>
+                                <select class="form-control" id="area_id" name="area_id" required {{ auth()->user()->area_id ? 'readonly' : '' }}>
+                                    <option value="">Select Area</option>
+                                    @foreach($areas as $area)
+                                        <option value="{{ $area->id }}" {{ old('area_id', auth()->user()->area_id) == $area->id ? 'selected' : '' }}>{{ $area->name }}</option>
                                     @endforeach
                                 </select>
                             </div>
                             
                             <div class="mb-3">
-                                <label for="area_id" class="form-label">Area</label>
-                                <select class="form-control" id="area_id" name="area_id" readonly>
-                                    <option value="">Select Area</option>
-                                    @foreach($areas as $area)
-                                        <option value="{{ $area->id }}" {{ old('area_id') == $area->id ? 'selected' : '' }}>{{ $area->name }}</option>
-                                    @endforeach
+                                <label for="unit_id" class="form-label">Unit</label>
+                                <select class="form-control" id="unit_id" name="unit_id" required>
+                                    <option value="">Select Unit</option>
                                 </select>
                             </div>
                             
@@ -177,16 +174,28 @@
                 validateField('passport_no', this.value, this);
             });
             
-            unitSelect.addEventListener('change', function() {
-                const selectedOption = this.options[this.selectedIndex];
-                const areaId = selectedOption.getAttribute('data-area-id');
+            areaSelect.addEventListener('change', function() {
+                const areaId = this.value;
+                unitSelect.innerHTML = '<option value="">Select Unit</option>';
                 
                 if (areaId) {
-                    areaSelect.value = areaId;
-                } else {
-                    areaSelect.value = '';
+                    fetch(`/api/areas/${areaId}/units`)
+                        .then(response => response.json())
+                        .then(units => {
+                            units.forEach(unit => {
+                                const option = document.createElement('option');
+                                option.value = unit.id;
+                                option.textContent = unit.name;
+                                unitSelect.appendChild(option);
+                            });
+                        });
                 }
             });
+            
+            // Load units for prefetched area
+            if (areaSelect.value) {
+                areaSelect.dispatchEvent(new Event('change'));
+            }
         });
     </script>
 @endsection
