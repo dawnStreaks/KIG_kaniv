@@ -97,6 +97,11 @@ class User extends Authenticatable
         return $this->user_type === 'mekhala';
     }
 
+    public function isCenterUser()
+    {
+        return $this->user_type === 'center';
+    }
+
     public function isChairman()
     {
         return $this->user_type === 'mekhala' && $this->role === 'chairman';
