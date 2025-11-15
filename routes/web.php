@@ -137,7 +137,5 @@ Route::middleware('auth')->group(function () {
     Route::get('/api/areas/{area}/units', function($areaId) {
         return \App\Models\Unit::where('area_id', $areaId)->get(['id', 'name']);
     });
-    });
 });
-
 
