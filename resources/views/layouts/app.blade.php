@@ -63,7 +63,10 @@
     <!-- Sidebar -->
     <div class="sidebar position-fixed d-none d-md-block" style="width: 250px;">
         <div class="p-3">
-            <h5 class="text-white">Management System</h5>
+            <h5 class="text-white">Kaniv System</h5>
+            @auth
+                <small class="text-muted">{{ auth()->user()->name }}</small>
+            @endauth
         </div>
         <nav class="nav flex-column">
             <a class="nav-link" href="{{ route('dashboard') }}">Dashboard</a>
@@ -155,7 +158,7 @@
         <!-- Top Navigation for Mobile -->
         <nav class="navbar navbar-expand-lg navbar-dark bg-dark d-md-none">
             <div class="container-fluid">
-                <a class="navbar-brand" href="{{ route('dashboard') }}">Management System</a>
+                <a class="navbar-brand" href="{{ route('dashboard') }}">Kaniv System</a>
                 <form method="POST" action="{{ route('logout') }}" class="d-inline">
                     @csrf
                     <button type="submit" class="btn btn-outline-light">Logout</button>
