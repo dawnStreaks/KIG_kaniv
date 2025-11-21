@@ -30,6 +30,7 @@
 
         <div class="card">
             <div class="card-body">
+                <form method="GET" id="filterForm">
                 <table class="table">
                     <thead>
                         <tr>
@@ -44,12 +45,12 @@
                     </thead>
                     <thead>
                         <tr>
-                            <th><input type="text" class="form-control form-control-sm filter-input" placeholder="Filter Amount" data-column="0"></th>
-                            <th><div class="d-flex gap-1"><input type="date" class="form-control form-control-sm date-from" placeholder="From" data-column="1"><input type="date" class="form-control form-control-sm date-to" placeholder="To" data-column="1"></div></th>
-                            <th><select class="form-control form-control-sm filter-input" data-column="2"><option value="">All Units</option>@foreach($allUnits as $unit)<option value="{{ $unit }}">{{ $unit }}</option>@endforeach</select></th>
-                            <th><select class="form-control form-control-sm filter-input" data-column="3"><option value="">All Terms</option>@foreach($allTerms as $term)<option value="{{ $term }}">{{ $term }}</option>@endforeach</select></th>
-                            <th><select class="form-control form-control-sm filter-input" data-column="4"><option value="">All Types</option>@foreach($allTypes as $type)<option value="{{ $type }}">{{ $type }}</option>@endforeach</select></th>
-                            <th><input type="text" class="form-control form-control-sm filter-input" placeholder="Filter User" data-column="5"></th>
+                            <th><input type="text" class="form-control form-control-sm" name="amount" placeholder="Filter Amount" value="{{ request('amount') }}"></th>
+                            <th><div class="d-flex gap-1"><input type="date" class="form-control form-control-sm" name="date_from" value="{{ request('date_from') }}"><input type="date" class="form-control form-control-sm" name="date_to" value="{{ request('date_to') }}"></div></th>
+                            <th><select class="form-control form-control-sm" name="unit"><option value="">All Units</option>@foreach($allUnits as $unit)<option value="{{ $unit }}" {{ request('unit') == $unit ? 'selected' : '' }}>{{ $unit }}</option>@endforeach</select></th>
+                            <th><select class="form-control form-control-sm" name="term"><option value="">All Terms</option>@foreach($allTerms as $term)<option value="{{ $term }}" {{ request('term') == $term ? 'selected' : '' }}>{{ $term }}</option>@endforeach</select></th>
+                            <th><select class="form-control form-control-sm" name="type"><option value="">All Types</option>@foreach($allTypes as $type)<option value="{{ $type }}" {{ request('type') == $type ? 'selected' : '' }}>{{ $type }}</option>@endforeach</select></th>
+                            <th><input type="text" class="form-control form-control-sm" name="user" placeholder="Filter User" value="{{ request('user') }}"></th>
                             <th></th>
                         </tr>
                     </thead>
@@ -69,6 +70,7 @@
                         @endforeach
                     </tbody>
                 </table>
+                </form>
             </div>
             
             {{ $collections->links('pagination.custom') }}
@@ -77,80 +79,18 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            const filterInputs = document.querySelectorAll('.filter-input');
-            const dateFromInput = document.querySelector('.date-from');
-            const dateToInput = document.querySelector('.date-to');
-            const tableRows = document.querySelectorAll('tbody tr');
+            const form = document.getElementById('filterForm');
+            const inputs = form.querySelectorAll('input, select');
             
-            filterInputs.forEach(input => {
-                input.addEventListener('input', function() {
-                    filterTable();
-                });
+            inputs.forEach(input => {
                 input.addEventListener('change', function() {
-                    filterTable();
+                    form.submit();
                 });
             });
-            
-            if (dateFromInput && dateToInput) {
-                dateFromInput.addEventListener('change', filterTable);
-                dateToInput.addEventListener('change', filterTable);
-            }
-            
-            function filterTable() {
-                tableRows.forEach(row => {
-                    let showRow = true;
-                    
-                    // Date range filter
-                    if (dateFromInput && dateToInput) {
-                        const fromDate = dateFromInput.value;
-                        const toDate = dateToInput.value;
-                        const cellDate = row.cells[1].textContent.trim();
-                        
-                        if (fromDate && cellDate < fromDate) {
-                            showRow = false;
-                        }
-                        if (toDate && cellDate > toDate) {
-                            showRow = false;
-                        }
-                    }
-                    
-                    filterInputs.forEach(input => {
-                        const column = parseInt(input.dataset.column);
-                        const filterValue = input.value.toLowerCase().trim();
-                        
-                        if (filterValue && row.cells[column] && column !== 1) { // Skip column 1 (date) as it's handled above
-                            const cellValue = row.cells[column].textContent.toLowerCase().trim();
-                            
-                            if (input.tagName === 'SELECT') {
-                                if (cellValue !== filterValue) {
-                                    showRow = false;
-                                }
-                            } else if (!cellValue.includes(filterValue)) {
-                                showRow = false;
-                            }
-                        }
-                    });
-                    
-                    row.style.display = showRow ? '' : 'none';
-                });
-            }
         });
         
         function clearFilters() {
-            const filterInputs = document.querySelectorAll('.filter-input');
-            const dateFromInput = document.querySelector('.date-from');
-            const dateToInput = document.querySelector('.date-to');
-            
-            filterInputs.forEach(input => {
-                input.value = '';
-            });
-            
-            if (dateFromInput) dateFromInput.value = '';
-            if (dateToInput) dateToInput.value = '';
-            
-            document.querySelectorAll('tbody tr').forEach(row => {
-                row.style.display = '';
-            });
+            window.location.href = '{{ route('collections.index') }}';
         }
     </script>
 @endsection

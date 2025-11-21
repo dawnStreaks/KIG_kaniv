@@ -49,6 +49,20 @@ class CollectionController extends Controller
             $query->where('type', 'like', '%' . $request->type . '%');
         }
         
+        if ($request->filled('date_from')) {
+            $query->whereDate('collection_date', '>=', $request->date_from);
+        }
+        
+        if ($request->filled('date_to')) {
+            $query->whereDate('collection_date', '<=', $request->date_to);
+        }
+        
+        if ($request->filled('user')) {
+            $query->whereHas('enteredBy', function($q) use ($request) {
+                $q->where('name', 'like', '%' . $request->user . '%');
+            });
+        }
+        
         $collections = $query->latest()->paginate(10)->appends($request->query());
         $totalAmount = $query->sum('amount');
         
