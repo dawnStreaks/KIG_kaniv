@@ -121,8 +121,8 @@
                         if (filterValue && row.cells[column] && column !== 1) { // Skip column 1 (date) as it's handled above
                             const cellValue = row.cells[column].textContent.toLowerCase().trim();
                             
-                            if (input.tagName === 'SELECT' && filterValue) {
-                                if (cellValue !== filterValue) {
+                            if (input.tagName === 'SELECT') {
+                                if (cellValue !== filterValue.toLowerCase()) {
                                     showRow = false;
                                 }
                             } else if (!cellValue.includes(filterValue)) {
