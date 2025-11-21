@@ -50,7 +50,8 @@ class CollectionController extends Controller
         }
         
         $collections = $query->latest()->paginate(10)->appends($request->query());
-        return view('collections.index', compact('collections'));
+        $totalAmount = $query->sum('amount');
+        return view('collections.index', compact('collections', 'totalAmount'));
     }
 
     public function create()

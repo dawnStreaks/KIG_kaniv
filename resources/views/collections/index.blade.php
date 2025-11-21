@@ -13,29 +13,20 @@
             </div>
         </div>
 
-        <form method="GET" class="mb-3">
-            <div class="row">
-                <div class="col-md-2">
-                    <input type="text" name="amount" class="form-control" placeholder="Filter Amount" value="{{ request('amount') }}">
-                </div>
-                <div class="col-md-2">
-                    <input type="date" name="collection_date" class="form-control" value="{{ request('collection_date') }}">
-                </div>
-                <div class="col-md-2">
-                    <input type="text" name="unit" class="form-control" placeholder="Filter Unit" value="{{ request('unit') }}">
-                </div>
-                <div class="col-md-2">
-                    <input type="text" name="term" class="form-control" placeholder="Filter Term" value="{{ request('term') }}">
-                </div>
-                <div class="col-md-2">
-                    <input type="text" name="type" class="form-control" placeholder="Filter Type" value="{{ request('type') }}">
-                </div>
-                <div class="col-md-2">
-                    <button type="submit" class="btn btn-primary">Filter</button>
-                    <a href="{{ route('collections.index') }}" class="btn btn-secondary">Clear</a>
+        <div class="card mb-3">
+            <div class="card-body">
+                <div class="row text-center">
+                    <div class="col-md-6">
+                        <h5>Total Collections</h5>
+                        <h3 class="text-primary">KWD {{ number_format($totalAmount, 3) }}</h3>
+                    </div>
+                    <div class="col-md-6">
+                        <h5>Total Records</h5>
+                        <h3 class="text-info">{{ $collections->total() }}</h3>
+                    </div>
                 </div>
             </div>
-        </form>
+        </div>
 
         <div class="card">
             <div class="card-body">
@@ -49,6 +40,17 @@
                             <th>Type</th>
                             <th>Entered By</th>
                             <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <thead>
+                        <tr>
+                            <th><input type="text" class="form-control form-control-sm filter-input" placeholder="Filter Amount" data-column="0"></th>
+                            <th><input type="date" class="form-control form-control-sm filter-input" data-column="1"></th>
+                            <th><input type="text" class="form-control form-control-sm filter-input" placeholder="Filter Unit" data-column="2"></th>
+                            <th><input type="text" class="form-control form-control-sm filter-input" placeholder="Filter Term" data-column="3"></th>
+                            <th><input type="text" class="form-control form-control-sm filter-input" placeholder="Filter Type" data-column="4"></th>
+                            <th><input type="text" class="form-control form-control-sm filter-input" placeholder="Filter User" data-column="5"></th>
+                            <th></th>
                         </tr>
                     </thead>
                     <tbody>
@@ -73,5 +75,50 @@
         </div>
     </div>
 
-
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const filterInputs = document.querySelectorAll('.filter-input');
+            const tableRows = document.querySelectorAll('tbody tr');
+            
+            filterInputs.forEach(input => {
+                input.addEventListener('input', function() {
+                    filterTable();
+                });
+            });
+            
+            function filterTable() {
+                tableRows.forEach(row => {
+                    let showRow = true;
+                    
+                    filterInputs.forEach(input => {
+                        const column = parseInt(input.dataset.column);
+                        const filterValue = input.value.toLowerCase().trim();
+                        
+                        if (filterValue && row.cells[column]) {
+                            const cellValue = row.cells[column].textContent.toLowerCase().trim();
+                            
+                            if (input.type === 'date' && filterValue) {
+                                const cellDate = row.cells[column].textContent.trim();
+                                if (cellDate !== filterValue) {
+                                    showRow = false;
+                                }
+                            } else if (!cellValue.includes(filterValue)) {
+                                showRow = false;
+                            }
+                        }
+                    });
+                    
+                    row.style.display = showRow ? '' : 'none';
+                });
+            }
+        });
+        
+        function clearFilters() {
+            const filterInputs = document.querySelectorAll('.filter-input');
+            filterInputs.forEach(input => {
+                input.value = '';
+            });
+            filterTable();
+        }
+    </script>
 @endsection
