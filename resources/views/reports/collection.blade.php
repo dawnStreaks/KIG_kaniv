@@ -14,11 +14,11 @@
                 <div class="row text-center">
                     <div class="col-md-4">
                         <h5>Total Collections ({{ date('Y') }})</h5>
-                        <h3 class="text-primary" id="yearlyTotal">KWD {{ number_format($collections->sum('amount'), 3) }}</h3>
+                        <h3 class="text-primary" id="yearlyTotal">KWD {{ number_format($totalAmount ?? $collections->sum('amount'), 3) }}</h3>
                     </div>
                     <div class="col-md-4">
                         <h5>Filtered Total</h5>
-                        <h3 class="text-success" id="filteredTotal">KWD {{ number_format($collections->sum('amount'), 3) }}</h3>
+                        <h3 class="text-success" id="filteredTotal">KWD {{ number_format($totalAmount ?? $collections->sum('amount'), 3) }}</h3>
                     </div>
                     <div class="col-md-4">
                         <h5>Total Records</h5>
@@ -55,6 +55,8 @@
                                 <th>Entered By</th>
                                 <th>Created At</th>
                             </tr>
+                        </thead>
+                        <thead>
                             <tr>
                                 <th><input type="date" class="form-control form-control-sm filter-input" data-column="0"></th>
                                 <th><input type="text" class="form-control form-control-sm filter-input" placeholder="Filter Amount" data-column="1"></th>
@@ -93,7 +95,7 @@
                         <tfoot>
                             <tr class="table-info">
                                 <th>Total:</th>
-                                <th id="totalAmount">KWD {{ number_format($collections->sum('amount'), 3) }}</th>
+                                <th id="totalAmount">KWD {{ number_format($totalAmount ?? $collections->sum('amount'), 3) }}</th>
                                 <th colspan="6"></th>
                             </tr>
                         </tfoot>
