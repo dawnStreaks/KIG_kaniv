@@ -46,9 +46,9 @@
                         <tr>
                             <th><input type="text" class="form-control form-control-sm filter-input" placeholder="Filter Amount" data-column="0"></th>
                             <th><input type="date" class="form-control form-control-sm filter-input" data-column="1"></th>
-                            <th><input type="text" class="form-control form-control-sm filter-input" placeholder="Filter Unit" data-column="2"></th>
-                            <th><input type="text" class="form-control form-control-sm filter-input" placeholder="Filter Term" data-column="3"></th>
-                            <th><input type="text" class="form-control form-control-sm filter-input" placeholder="Filter Type" data-column="4"></th>
+                            <th><select class="form-control form-control-sm filter-input" data-column="2"><option value="">All Units</option>@foreach($collections->pluck('unit.name')->unique()->filter() as $unit)<option value="{{ $unit }}">{{ $unit }}</option>@endforeach</select></th>
+                            <th><select class="form-control form-control-sm filter-input" data-column="3"><option value="">All Terms</option>@foreach($collections->pluck('term')->unique()->filter() as $term)<option value="{{ $term }}">{{ $term }}</option>@endforeach</select></th>
+                            <th><select class="form-control form-control-sm filter-input" data-column="4"><option value="">All Types</option>@foreach($collections->pluck('type')->unique()->filter() as $type)<option value="{{ $type }}">{{ $type }}</option>@endforeach</select></th>
                             <th><input type="text" class="form-control form-control-sm filter-input" placeholder="Filter User" data-column="5"></th>
                             <th></th>
                         </tr>
@@ -84,6 +84,9 @@
                 input.addEventListener('input', function() {
                     filterTable();
                 });
+                input.addEventListener('change', function() {
+                    filterTable();
+                });
             });
             
             function filterTable() {
@@ -102,6 +105,10 @@
                                 if (cellDate !== filterValue) {
                                     showRow = false;
                                 }
+                            } else if (input.tagName === 'SELECT' && filterValue) {
+                                if (cellValue !== filterValue) {
+                                    showRow = false;
+                                }
                             } else if (!cellValue.includes(filterValue)) {
                                 showRow = false;
                             }
@@ -118,7 +125,9 @@
             filterInputs.forEach(input => {
                 input.value = '';
             });
-            filterTable();
+            document.querySelectorAll('tbody tr').forEach(row => {
+                row.style.display = '';
+            });
         }
     </script>
 @endsection
