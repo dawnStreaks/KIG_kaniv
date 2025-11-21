@@ -122,7 +122,7 @@
                             const cellValue = row.cells[column].textContent.toLowerCase().trim();
                             
                             if (input.tagName === 'SELECT') {
-                                if (cellValue !== filterValue.toLowerCase()) {
+                                if (cellValue !== filterValue) {
                                     showRow = false;
                                 }
                             } else if (!cellValue.includes(filterValue)) {
