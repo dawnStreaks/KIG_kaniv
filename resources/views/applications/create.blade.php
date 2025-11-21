@@ -39,7 +39,7 @@
                             
                             <div class="mb-3">
                                 <label for="civil_id" class="form-label">Civil ID</label>
-                                <input type="text" class="form-control" id="civil_id" name="civil_id" value="{{ old('civil_id') }}" required>
+                                <input type="text" class="form-control" id="civil_id" name="civil_id" value="{{ old('civil_id') }}" pattern="[0-9]{12}" maxlength="12" title="Civil ID must be exactly 12 digits" required>
                             </div>
                             
                             <div class="mb-3">

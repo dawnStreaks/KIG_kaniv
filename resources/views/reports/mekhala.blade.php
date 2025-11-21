@@ -34,6 +34,7 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
 <script>
 const chartData = @json($data);
 const year = {{ $year }};
@@ -94,6 +95,16 @@ function initMainChart() {
                         label: function(context) {
                             return context.dataset.label + ': KWD ' + context.parsed.y.toFixed(3);
                         }
+                    }
+                },
+                datalabels: {
+                    anchor: 'end',
+                    align: 'top',
+                    formatter: function(value) {
+                        return value.toFixed(3);
+                    },
+                    font: {
+                        size: 10
                     }
                 }
             },
@@ -161,6 +172,16 @@ function drillDown(mekhalaId, mekhalaName, type) {
                                 label: function(context) {
                                     return 'Amount: KWD ' + context.parsed.y.toFixed(3);
                                 }
+                            }
+                        },
+                        datalabels: {
+                            anchor: 'end',
+                            align: 'top',
+                            formatter: function(value) {
+                                return value.toFixed(3);
+                            },
+                            font: {
+                                size: 10
                             }
                         }
                     }

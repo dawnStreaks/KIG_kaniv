@@ -5,8 +5,27 @@
 @section('content')
     <div>
         <div class="d-flex justify-content-between align-items-center mb-4">
-            <h2>Collection Report</h2>
+            <h2>Collection Report - {{ date('Y') }}</h2>
             <button type="button" class="btn btn-secondary" onclick="clearFilters()">Clear Filters</button>
+        </div>
+        
+        <div class="card mb-4">
+            <div class="card-body">
+                <div class="row text-center">
+                    <div class="col-md-4">
+                        <h5>Total Collections ({{ date('Y') }})</h5>
+                        <h3 class="text-primary" id="yearlyTotal">KWD {{ number_format($collections->sum('amount'), 3) }}</h3>
+                    </div>
+                    <div class="col-md-4">
+                        <h5>Filtered Total</h5>
+                        <h3 class="text-success" id="filteredTotal">KWD {{ number_format($collections->sum('amount'), 3) }}</h3>
+                    </div>
+                    <div class="col-md-4">
+                        <h5>Total Records</h5>
+                        <h3 class="text-info" id="recordCount">{{ $collections->count() }}</h3>
+                    </div>
+                </div>
+            </div>
         </div>
 
         @if(!empty($mekhalaData))
@@ -85,6 +104,7 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             const filterInputs = document.querySelectorAll('.filter-input');
@@ -94,34 +114,60 @@
                 input.addEventListener('input', function() {
                     filterTable();
                 });
+                input.addEventListener('change', function() {
+                    filterTable();
+                });
             });
             
             function filterTable() {
                 let visibleTotal = 0;
+                let visibleCount = 0;
                 
                 tableRows.forEach(row => {
+                    if (row.cells.length < 8) return; // Skip empty rows
+                    
                     let showRow = true;
                     
                     filterInputs.forEach(input => {
-                        const column = input.dataset.column;
-                        const filterValue = input.value.toLowerCase();
-                        const cellValue = row.cells[column].textContent.toLowerCase();
+                        const column = parseInt(input.dataset.column);
+                        const filterValue = input.value.toLowerCase().trim();
                         
-                        if (filterValue && !cellValue.includes(filterValue)) {
-                            showRow = false;
+                        if (filterValue) {
+                            const cellValue = row.cells[column].textContent.toLowerCase().trim();
+                            
+                            // For date columns, handle date filtering
+                            if (input.type === 'date' && filterValue) {
+                                const cellDate = row.cells[column].textContent.trim();
+                                if (cellDate !== filterValue) {
+                                    showRow = false;
+                                }
+                            }
+                            // For select dropdowns, exact match
+                            else if (input.tagName === 'SELECT' && filterValue) {
+                                if (!cellValue.includes(filterValue)) {
+                                    showRow = false;
+                                }
+                            }
+                            // For text inputs, partial match
+                            else if (!cellValue.includes(filterValue)) {
+                                showRow = false;
+                            }
                         }
                     });
                     
                     row.style.display = showRow ? '' : 'none';
                     
                     if (showRow) {
-                        const amountText = row.cells[1].textContent.replace('KWD ', '').replace(',', '');
+                        const amountText = row.cells[1].textContent.replace('KWD ', '').replace(/,/g, '');
                         const amount = parseFloat(amountText) || 0;
                         visibleTotal += amount;
+                        visibleCount++;
                     }
                 });
                 
                 document.getElementById('totalAmount').textContent = 'KWD ' + visibleTotal.toLocaleString('en-US', {minimumFractionDigits: 3, maximumFractionDigits: 3});
+                document.getElementById('filteredTotal').textContent = 'KWD ' + visibleTotal.toLocaleString('en-US', {minimumFractionDigits: 3, maximumFractionDigits: 3});
+                document.getElementById('recordCount').textContent = visibleCount;
             }
             
             @if(!empty($mekhalaData))
@@ -154,6 +200,16 @@
                             title: {
                                 display: true,
                                 text: title
+                            },
+                            datalabels: {
+                                anchor: 'end',
+                                align: 'top',
+                                formatter: function(value) {
+                                    return value.toFixed(3);
+                                },
+                                font: {
+                                    size: 10
+                                }
                             }
                         },
                         scales: {

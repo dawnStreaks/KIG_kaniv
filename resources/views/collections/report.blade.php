@@ -36,6 +36,7 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
 <script>
 const chartData = @json($data);
 const userType = '{{ $user->user_type }}';
@@ -83,6 +84,16 @@ function initMainChart() {
                         label: function(context) {
                             return 'Amount: KWD ' + context.parsed.y.toLocaleString('en-US', {minimumFractionDigits: 3, maximumFractionDigits: 3});
                         }
+                    }
+                },
+                datalabels: {
+                    anchor: 'end',
+                    align: 'top',
+                    formatter: function(value) {
+                        return value.toFixed(3);
+                    },
+                    font: {
+                        size: 10
                     }
                 }
             },
@@ -143,6 +154,16 @@ function drillDown(areaId, areaName) {
                                 label: function(context) {
                                     return 'Amount: KWD ' + context.parsed.y.toLocaleString('en-US', {minimumFractionDigits: 3, maximumFractionDigits: 3});
                                 }
+                            }
+                        },
+                        datalabels: {
+                            anchor: 'end',
+                            align: 'top',
+                            formatter: function(value) {
+                                return value.toFixed(3);
+                            },
+                            font: {
+                                size: 10
                             }
                         }
                     }
