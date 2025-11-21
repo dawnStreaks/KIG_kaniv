@@ -51,7 +51,46 @@ class CollectionController extends Controller
         
         $collections = $query->latest()->paginate(10)->appends($request->query());
         $totalAmount = $query->sum('amount');
-        return view('collections.index', compact('collections', 'totalAmount'));
+        
+        // Get all unique values for dropdowns (across all pages)
+        $allUnits = Collection::with('unit')
+            ->when(auth()->user()->isAreaUser(), function($q) {
+                $q->whereHas('unit', function($subQ) {
+                    $subQ->where('area_id', auth()->user()->area_id);
+                });
+            })
+            ->when(auth()->user()->isMekhalaUser(), function($q) {
+                $q->whereHas('unit.area', function($subQ) {
+                    $subQ->where('mekhala_id', auth()->user()->mekhala_id);
+                });
+            })
+            ->get()->pluck('unit.name')->unique()->filter()->sort()->values();
+            
+        $allTerms = Collection::when(auth()->user()->isAreaUser(), function($q) {
+                $q->whereHas('unit', function($subQ) {
+                    $subQ->where('area_id', auth()->user()->area_id);
+                });
+            })
+            ->when(auth()->user()->isMekhalaUser(), function($q) {
+                $q->whereHas('unit.area', function($subQ) {
+                    $subQ->where('mekhala_id', auth()->user()->mekhala_id);
+                });
+            })
+            ->pluck('term')->unique()->filter()->sort()->values();
+            
+        $allTypes = Collection::when(auth()->user()->isAreaUser(), function($q) {
+                $q->whereHas('unit', function($subQ) {
+                    $subQ->where('area_id', auth()->user()->area_id);
+                });
+            })
+            ->when(auth()->user()->isMekhalaUser(), function($q) {
+                $q->whereHas('unit.area', function($subQ) {
+                    $subQ->where('mekhala_id', auth()->user()->mekhala_id);
+                });
+            })
+            ->pluck('type')->unique()->filter()->sort()->values();
+        
+        return view('collections.index', compact('collections', 'totalAmount', 'allUnits', 'allTerms', 'allTypes'));
     }
 
     public function create()

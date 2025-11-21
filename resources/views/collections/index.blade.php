@@ -46,9 +46,9 @@
                         <tr>
                             <th><input type="text" class="form-control form-control-sm filter-input" placeholder="Filter Amount" data-column="0"></th>
                             <th><div class="d-flex gap-1"><input type="date" class="form-control form-control-sm date-from" placeholder="From" data-column="1"><input type="date" class="form-control form-control-sm date-to" placeholder="To" data-column="1"></div></th>
-                            <th><select class="form-control form-control-sm filter-input" data-column="2"><option value="">All Units</option>@foreach($collections->pluck('unit.name')->unique()->filter() as $unit)<option value="{{ $unit }}">{{ $unit }}</option>@endforeach</select></th>
-                            <th><select class="form-control form-control-sm filter-input" data-column="3"><option value="">All Terms</option>@foreach($collections->pluck('term')->unique()->filter() as $term)<option value="{{ $term }}">{{ $term }}</option>@endforeach</select></th>
-                            <th><select class="form-control form-control-sm filter-input" data-column="4"><option value="">All Types</option>@foreach($collections->pluck('type')->unique()->filter() as $type)<option value="{{ $type }}">{{ $type }}</option>@endforeach</select></th>
+                            <th><select class="form-control form-control-sm filter-input" data-column="2"><option value="">All Units</option>@foreach($allUnits as $unit)<option value="{{ $unit }}">{{ $unit }}</option>@endforeach</select></th>
+                            <th><select class="form-control form-control-sm filter-input" data-column="3"><option value="">All Terms</option>@foreach($allTerms as $term)<option value="{{ $term }}">{{ $term }}</option>@endforeach</select></th>
+                            <th><select class="form-control form-control-sm filter-input" data-column="4"><option value="">All Types</option>@foreach($allTypes as $type)<option value="{{ $type }}">{{ $type }}</option>@endforeach</select></th>
                             <th><input type="text" class="form-control form-control-sm filter-input" placeholder="Filter User" data-column="5"></th>
                             <th></th>
                         </tr>
