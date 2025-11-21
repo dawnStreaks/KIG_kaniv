@@ -45,7 +45,7 @@
                     <thead>
                         <tr>
                             <th><input type="text" class="form-control form-control-sm filter-input" placeholder="Filter Amount" data-column="0"></th>
-                            <th><input type="date" class="form-control form-control-sm filter-input" data-column="1"></th>
+                            <th><div class="d-flex gap-1"><input type="date" class="form-control form-control-sm date-from" placeholder="From" data-column="1"><input type="date" class="form-control form-control-sm date-to" placeholder="To" data-column="1"></div></th>
                             <th><select class="form-control form-control-sm filter-input" data-column="2"><option value="">All Units</option>@foreach($collections->pluck('unit.name')->unique()->filter() as $unit)<option value="{{ $unit }}">{{ $unit }}</option>@endforeach</select></th>
                             <th><select class="form-control form-control-sm filter-input" data-column="3"><option value="">All Terms</option>@foreach($collections->pluck('term')->unique()->filter() as $term)<option value="{{ $term }}">{{ $term }}</option>@endforeach</select></th>
                             <th><select class="form-control form-control-sm filter-input" data-column="4"><option value="">All Types</option>@foreach($collections->pluck('type')->unique()->filter() as $type)<option value="{{ $type }}">{{ $type }}</option>@endforeach</select></th>
@@ -78,6 +78,8 @@
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             const filterInputs = document.querySelectorAll('.filter-input');
+            const dateFromInput = document.querySelector('.date-from');
+            const dateToInput = document.querySelector('.date-to');
             const tableRows = document.querySelectorAll('tbody tr');
             
             filterInputs.forEach(input => {
@@ -89,23 +91,37 @@
                 });
             });
             
+            if (dateFromInput && dateToInput) {
+                dateFromInput.addEventListener('change', filterTable);
+                dateToInput.addEventListener('change', filterTable);
+            }
+            
             function filterTable() {
                 tableRows.forEach(row => {
                     let showRow = true;
+                    
+                    // Date range filter
+                    if (dateFromInput && dateToInput) {
+                        const fromDate = dateFromInput.value;
+                        const toDate = dateToInput.value;
+                        const cellDate = row.cells[1].textContent.trim();
+                        
+                        if (fromDate && cellDate < fromDate) {
+                            showRow = false;
+                        }
+                        if (toDate && cellDate > toDate) {
+                            showRow = false;
+                        }
+                    }
                     
                     filterInputs.forEach(input => {
                         const column = parseInt(input.dataset.column);
                         const filterValue = input.value.toLowerCase().trim();
                         
-                        if (filterValue && row.cells[column]) {
+                        if (filterValue && row.cells[column] && column !== 1) { // Skip column 1 (date) as it's handled above
                             const cellValue = row.cells[column].textContent.toLowerCase().trim();
                             
-                            if (input.type === 'date' && filterValue) {
-                                const cellDate = row.cells[column].textContent.trim();
-                                if (cellDate !== filterValue) {
-                                    showRow = false;
-                                }
-                            } else if (input.tagName === 'SELECT' && filterValue) {
+                            if (input.tagName === 'SELECT' && filterValue) {
                                 if (cellValue !== filterValue) {
                                     showRow = false;
                                 }
@@ -122,9 +138,16 @@
         
         function clearFilters() {
             const filterInputs = document.querySelectorAll('.filter-input');
+            const dateFromInput = document.querySelector('.date-from');
+            const dateToInput = document.querySelector('.date-to');
+            
             filterInputs.forEach(input => {
                 input.value = '';
             });
+            
+            if (dateFromInput) dateFromInput.value = '';
+            if (dateToInput) dateToInput.value = '';
+            
             document.querySelectorAll('tbody tr').forEach(row => {
                 row.style.display = '';
             });
