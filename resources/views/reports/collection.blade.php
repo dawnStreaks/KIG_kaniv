@@ -196,6 +196,7 @@
                             borderWidth: 1
                         }]
                     },
+                    plugins: [ChartDataLabels],
                     options: {
                         responsive: true,
                         plugins: {
