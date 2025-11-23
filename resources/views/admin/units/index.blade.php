@@ -53,6 +53,7 @@
                         <th>Name</th>
                         <th>Area</th>
                         <th>Mekhala</th>
+                        <th>Type</th>
                         <th>Status</th>
                         <th>Created At</th>
                         <th>Actions</th>
@@ -64,6 +65,7 @@
                         <td>{{ $unit->name }}</td>
                         <td>{{ $unit->area->name ?? 'N/A' }}</td>
                         <td>{{ $unit->area->mekhala->name ?? 'N/A' }}</td>
+                        <td><span class="badge bg-info">{{ $unit->type ?? 'IWA' }}</span></td>
                         <td>
                             <span class="badge {{ $unit->is_active ? 'bg-success' : 'bg-danger' }}">
                                 {{ $unit->is_active ? 'Active' : 'Inactive' }}

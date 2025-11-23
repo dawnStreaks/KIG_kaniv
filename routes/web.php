@@ -131,6 +131,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/collection/mekhala-drill-down', [ReportController::class, 'collectionMekhalaDrillDown'])->name('collection.mekhala-drilldown');
         Route::get('/collection/area-drill-down', [ReportController::class, 'collectionAreaDrillDown'])->name('collection.area-drilldown');
         Route::get('/export-financial', [ReportController::class, 'exportFinancialStatement'])->name('export-financial');
+        Route::get('/comparison', [ReportController::class, 'comparisonReport'])->name('comparison');
     });
     
     // API routes for dynamic dropdowns

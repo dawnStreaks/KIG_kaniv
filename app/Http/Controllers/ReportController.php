@@ -554,6 +554,29 @@ class ReportController extends Controller
         return response()->json($data);
     }
 
+    public function comparisonReport(Request $request)
+    {
+        $year = $request->get('year', date('Y'));
+        
+        $data = \App\Models\Unit::with(['collections' => function($q) use ($year) {
+            $q->whereYear('collection_date', $year);
+        }])
+        ->get()
+        ->groupBy('type')
+        ->map(function($units, $type) {
+            $total = $units->sum(function($unit) {
+                return $unit->collections->sum('amount');
+            });
+            return [
+                'type' => $type ?: 'IWA',
+                'total' => $total,
+                'count' => $units->count()
+            ];
+        })->values();
+        
+        return view('reports.comparison', compact('data', 'year'));
+    }
+
     public function exportFinancialStatement(Request $request)
     {
         $year = $request->get('year', date('Y'));

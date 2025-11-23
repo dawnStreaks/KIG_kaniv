@@ -76,6 +76,31 @@ function initMainChart() {
                 borderWidth: 1
             }]
         },
+        plugins: [{
+            id: 'datalabels',
+            afterDraw: function(chart) {
+                const ctx = chart.ctx;
+                ctx.save();
+                ctx.font = 'bold 10px Arial';
+                ctx.fillStyle = '#000';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'bottom';
+                
+                chart.data.datasets.forEach((dataset, datasetIndex) => {
+                    const meta = chart.getDatasetMeta(datasetIndex);
+                    if (!meta.hidden) {
+                        meta.data.forEach((element, index) => {
+                            const dataValue = dataset.data[index];
+                            if (dataValue && dataValue > 0) {
+                                const position = element.tooltipPosition();
+                                ctx.fillText('KWD ' + dataValue.toFixed(3), position.x, position.y - 5);
+                            }
+                        });
+                    }
+                });
+                ctx.restore();
+            }
+        }],
         options: {
             responsive: true,
             maintainAspectRatio: false,
@@ -153,6 +178,31 @@ function drillDown(mekhalaId, mekhalaName, type) {
                         borderWidth: 1
                     }]
                 },
+                plugins: [{
+                    id: 'datalabels',
+                    afterDraw: function(chart) {
+                        const ctx = chart.ctx;
+                        ctx.save();
+                        ctx.font = 'bold 10px Arial';
+                        ctx.fillStyle = '#000';
+                        ctx.textAlign = 'center';
+                        ctx.textBaseline = 'bottom';
+                        
+                        chart.data.datasets.forEach((dataset, datasetIndex) => {
+                            const meta = chart.getDatasetMeta(datasetIndex);
+                            if (!meta.hidden) {
+                                meta.data.forEach((element, index) => {
+                                    const dataValue = dataset.data[index];
+                                    if (dataValue && dataValue > 0) {
+                                        const position = element.tooltipPosition();
+                                        ctx.fillText('KWD ' + dataValue.toFixed(3), position.x, position.y - 5);
+                                    }
+                                });
+                            }
+                        });
+                        ctx.restore();
+                    }
+                }],
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,

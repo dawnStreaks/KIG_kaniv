@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class Unit extends Model
 {
-    protected $fillable = ['name', 'area_id', 'description', 'is_active'];
+    protected $fillable = ['name', 'area_id', 'type', 'description', 'is_active'];
 
     protected $casts = ['is_active' => 'boolean'];
 

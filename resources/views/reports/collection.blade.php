@@ -106,10 +106,6 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
-    <script>
-        Chart.register(ChartDataLabels);
-    </script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             const filterInputs = document.querySelectorAll('.filter-input');
@@ -175,8 +171,14 @@
                 document.getElementById('recordCount').textContent = visibleCount;
             }
             
+            // Debug: Check user type and mekhala data
+            console.log('User type check:', '{{ auth()->user()->user_type }}');
+            console.log('Is center user:', {{ auth()->user()->isCenterUser() ? 'true' : 'false' }});
+            console.log('Mekhala data available:', {{ !empty($mekhalaData) ? 'true' : 'false' }});
+            
             @if(!empty($mekhalaData))
             // Initialize chart
+            console.log('Mekhala Data:', {!! json_encode($mekhalaData) !!});
             const ctx = document.getElementById('collectionChart').getContext('2d');
             let currentChart;
             let currentLevel = 'mekhala';
@@ -199,25 +201,40 @@
                             borderWidth: 1
                         }]
                     },
-                    plugins: [ChartDataLabels],
+                    plugins: [{
+                        id: 'datalabels',
+                        afterDraw: function(chart) {
+                            const ctx = chart.ctx;
+                            ctx.save();
+                            ctx.font = 'bold 12px Arial';
+                            ctx.fillStyle = '#000';
+                            ctx.textAlign = 'center';
+                            ctx.textBaseline = 'bottom';
+                            
+                            chart.data.datasets.forEach((dataset, datasetIndex) => {
+                                const meta = chart.getDatasetMeta(datasetIndex);
+                                if (!meta.hidden) {
+                                    meta.data.forEach((element, index) => {
+                                        const dataValue = dataset.data[index];
+                                        if (dataValue && dataValue > 0) {
+                                            const position = element.tooltipPosition();
+                                            ctx.fillText('KWD ' + dataValue.toFixed(3), position.x, position.y - 5);
+                                        }
+                                    });
+                                }
+                            });
+                            ctx.restore();
+                        }
+                    }],
                     options: {
                         responsive: true,
                         plugins: {
                             title: {
                                 display: true,
                                 text: title
-                            },
-                            datalabels: {
-                                anchor: 'end',
-                                align: 'top',
-                                formatter: function(value) {
-                                    return value.toFixed(3);
-                                },
-                                font: {
-                                    size: 10
-                                }
                             }
                         },
+
                         scales: {
                             y: {
                                 beginAtZero: true
@@ -288,8 +305,12 @@
             }
             
             // Initialize with mekhala data
-            createChart({!! json_encode($mekhalaData) !!}, 'mekhala', 'Mekhala-wise Collections');
+            const mekhalaData = {!! json_encode($mekhalaData) !!};
+            console.log('Creating chart with data:', mekhalaData);
+            createChart(mekhalaData, 'mekhala', 'Mekhala-wise Collections');
             updateBreadcrumb();
+            @else
+            console.log('No mekhala data available or user is not center user');
             @endif
         });
         
