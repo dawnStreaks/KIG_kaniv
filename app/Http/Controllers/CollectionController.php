@@ -232,10 +232,12 @@ class CollectionController extends Controller
     public function collectionReport(Request $request)
     {
         $year = $request->get('year', date('Y'));
+        $dateFrom = $request->get('date_from', $year . '-01-01');
+        $dateTo = $request->get('date_to', $year . '-12-31');
         $user = auth()->user();
         
         $query = Collection::with(['unit.area'])
-            ->whereYear('collection_date', $year);
+            ->whereBetween('collection_date', [$dateFrom, $dateTo]);
         
         if ($user->isAreaUser()) {
             $query->whereHas('unit', function($q) use ($user) {
@@ -264,17 +266,18 @@ class CollectionController extends Controller
                 ->get();
         }
         
-        return view('collections.report', compact('year', 'user', 'data'));
+        return view('collections.report', compact('year', 'user', 'data', 'dateFrom', 'dateTo'));
     }
 
     public function collectionReportDrillDown(Request $request)
     {
         $areaId = $request->get('area_id');
-        $year = $request->get('year', date('Y'));
+        $dateFrom = $request->get('date_from', date('Y') . '-01-01');
+        $dateTo = $request->get('date_to', date('Y') . '-12-31');
         $user = auth()->user();
         
         $query = Collection::with(['unit'])
-            ->whereYear('collection_date', $year)
+            ->whereBetween('collection_date', [$dateFrom, $dateTo])
             ->whereHas('unit', function($q) use ($areaId) {
                 $q->where('area_id', $areaId);
             });

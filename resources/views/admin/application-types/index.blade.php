@@ -1,11 +1,11 @@
 @extends('layouts.app')
 
-@section('title', 'Application Types')
+@section('title', 'Application Terms')
 
 @section('content')
     <div>
         <div class="d-flex justify-content-between align-items-center mb-3">
-            <h2>Application Types</h2>
+            <h2>Application Terms</h2>
         </div>
 
         <div class="card">
@@ -14,7 +14,7 @@
                     @csrf
                     <div class="row">
                         <div class="col-md-8">
-                            <input type="text" class="form-control" name="name" placeholder="Enter application type name" required>
+                            <input type="text" class="form-control" name="name" placeholder="Enter application term name" required>
                         </div>
                         <div class="col-md-4">
                             <button type="submit" class="btn btn-primary">Add Type</button>

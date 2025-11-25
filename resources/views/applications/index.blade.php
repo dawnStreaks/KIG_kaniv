@@ -29,7 +29,7 @@
                                 <th>Civil ID</th>
                                 <th>Mobile</th>
                                 <th>Category</th>
-                                <th>Application Type</th>
+                                <th>Application Term</th>
                                 <th>Area</th>
                                 <th>Unit</th>
                                 <th>Status</th>

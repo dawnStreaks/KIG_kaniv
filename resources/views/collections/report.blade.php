@@ -5,14 +5,14 @@
     <div class="row">
         <div class="col-12">
             <div class="card">
-                <div class="card-header d-flex justify-content-between align-items-center">
-                    <h3>Collection Report - {{ $year }}</h3>
-                    <form method="GET" class="d-flex">
-                        <select name="year" class="form-select me-2" onchange="this.form.submit()">
-                            @for($y = date('Y'); $y >= 2020; $y--)
-                                <option value="{{ $y }}" {{ $year == $y ? 'selected' : '' }}>{{ $y }}</option>
-                            @endfor
-                        </select>
+                <div class="card-header">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h3>Collection Report</h3>
+                    </div>
+                    <form method="GET" class="d-flex gap-2">
+                        <input type="date" name="date_from" class="form-control" value="{{ request('date_from', $year . '-01-01') }}" onchange="this.form.submit()">
+                        <input type="date" name="date_to" class="form-control" value="{{ request('date_to', $year . '-12-31') }}" onchange="this.form.submit()">
+                        <button type="button" class="btn btn-secondary" onclick="clearDates()">Clear</button>
                     </form>
                 </div>
                 <div class="card-body">
@@ -38,6 +38,7 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
 <script>
+Chart.register(ChartDataLabels);
 const chartData = @json($data);
 const userType = '{{ $user->user_type }}';
 const year = {{ $year }};
@@ -65,6 +66,7 @@ function initMainChart() {
                 borderWidth: 1
             }]
         },
+        plugins: [ChartDataLabels],
         options: {
             responsive: true,
             maintainAspectRatio: false,
@@ -111,10 +113,14 @@ function initMainChart() {
 
 // Drill down function
 function drillDown(areaId, areaName) {
-    fetch(`/collections/report/drill-down?area_id=${areaId}&year=${year}`)
+    const dateFrom = '{{ request('date_from', $year . '-01-01') }}';
+    const dateTo = '{{ request('date_to', $year . '-12-31') }}';
+    fetch(`/collections/report/drill-down?area_id=${areaId}&date_from=${dateFrom}&date_to=${dateTo}`)
         .then(response => response.json())
         .then(data => {
-            document.getElementById('drillDownTitle').textContent = `Units in ${areaName} - ${year}`;
+            const dateFrom = '{{ request('date_from', $year . '-01-01') }}';
+            const dateTo = '{{ request('date_to', $year . '-12-31') }}';
+            document.getElementById('drillDownTitle').textContent = `Units in ${areaName} - ${dateFrom} to ${dateTo}`;
             document.getElementById('drillDownContainer').style.display = 'block';
             
             const ctx = document.getElementById('drillDownChart').getContext('2d');
@@ -135,6 +141,7 @@ function drillDown(areaId, areaName) {
                         borderWidth: 1
                     }]
                 },
+                plugins: [ChartDataLabels],
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
@@ -179,6 +186,11 @@ function drillDown(areaId, areaName) {
 function backToMain() {
     document.getElementById('drillDownContainer').style.display = 'none';
     document.getElementById('chartContainer').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+// Clear dates function
+function clearDates() {
+    window.location.href = '{{ route('collections.report') }}';
 }
 
 // Initialize chart on page load

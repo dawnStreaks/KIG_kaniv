@@ -352,7 +352,7 @@ class AdminController extends Controller
     {
         $request->validate(['name' => 'required|string|max:255']);
         \App\Models\ApplicationType::create(['name' => $request->name]);
-        return redirect()->route('admin.application-types.index')->with('success', 'Application type added successfully');
+        return redirect()->route('admin.application-types.index')->with('success', 'Application term added successfully');
     }
 
     public function updateApplicationType(Request $request, $id)
@@ -366,7 +366,7 @@ class AdminController extends Controller
     public function destroyApplicationType($id)
     {
         \App\Models\ApplicationType::findOrFail($id)->delete();
-        return redirect()->route('admin.application-types.index')->with('success', 'Application type deleted successfully');
+        return redirect()->route('admin.application-types.index')->with('success', 'Application term deleted successfully');
     }
     
     public function toggleApplicationTypeStatus(Request $request, $id)

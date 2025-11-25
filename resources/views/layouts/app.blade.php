@@ -116,7 +116,7 @@
                         </div>
                         <a class="nav-link" href="{{ route('admin.terms.index') }}">Manage Terms</a>
                         <a class="nav-link" href="{{ route('admin.types.index') }}">Manage Types</a>
-                        <a class="nav-link" href="{{ route('admin.application-types.index') }}">Application Types</a>
+                        <a class="nav-link" href="{{ route('admin.application-types.index') }}">Application Terms</a>
                         
                         <div class="px-3 py-2">
                             <small class="text-muted">MAIN</small>

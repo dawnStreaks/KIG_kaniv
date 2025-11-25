@@ -59,9 +59,9 @@
                             </div>
                             
                             <div class="mb-3">
-                                <label for="application_type_id" class="form-label">Application Type</label>
+                                <label for="application_type_id" class="form-label">Application Term</label>
                                 <select class="form-control" id="application_type_id" name="application_type_id">
-                                    <option value="">Select Application Type</option>
+                                    <option value="">Select Application Term</option>
                                     @foreach($applicationTypes as $type)
                                         <option value="{{ $type->id }}" {{ old('application_type_id') == $type->id ? 'selected' : '' }}>{{ $type->name }}</option>
                                     @endforeach
