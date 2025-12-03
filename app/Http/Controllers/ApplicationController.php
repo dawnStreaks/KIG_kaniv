@@ -138,7 +138,7 @@ class ApplicationController extends Controller
         $application->update([
             'approved_amount' => $validated['approved_amount'],
             'approved_date' => $validated['approved_date'] ?? now(),
-            'status' => 'approved',
+            'status' => 'payable',
             'reviewed_by' => auth()->id(),
         ]);
 

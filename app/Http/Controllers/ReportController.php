@@ -59,8 +59,8 @@ class ReportController extends Controller
         }
         $monthlyExpenses = $monthlyExpensesQuery->sum('amount');
         
-        // Applications Summary
-        $applicationsQuery = Application::whereYear('approved_date', $currentYear);
+        // Applications Summary (only paid applications)
+        $applicationsQuery = Application::where('status', 'paid')->whereYear('approved_date', $currentYear);
         if ($user->isMekhalaUser()) {
             $applicationsQuery->whereHas('submitter', function($q) use ($user) {
                 $q->where('mekhala_id', $user->mekhala_id);
@@ -68,7 +68,7 @@ class ReportController extends Controller
         }
         $yearlyApplications = $applicationsQuery->sum('approved_amount');
         
-        $monthlyApplicationsQuery = Application::whereMonth('approved_date', $currentMonth)
+        $monthlyApplicationsQuery = Application::where('status', 'paid')->whereMonth('approved_date', $currentMonth)
                                          ->whereYear('approved_date', $currentYear);
         if ($user->isMekhalaUser()) {
             $monthlyApplicationsQuery->whereHas('submitter', function($q) use ($user) {
@@ -122,7 +122,7 @@ class ReportController extends Controller
         }
         $expenses = $expensesDetailQuery->get();
         
-        $applicationsDetailQuery = Application::where('status', 'approved')->orderBy('approved_date');
+        $applicationsDetailQuery = Application::where('status', 'paid')->orderBy('approved_date');
         if ($user->isMekhalaUser()) {
             $applicationsDetailQuery->whereHas('submitter', function($q) use ($user) {
                 $q->where('mekhala_id', $user->mekhala_id);
@@ -236,7 +236,7 @@ class ReportController extends Controller
     {
         $user = auth()->user();
         
-        $query = Application::with(['submitter', 'reviewer'])->approved();
+        $query = Application::with(['submitter', 'reviewer'])->where('status', 'paid');
         
         // Filter by user's mekhala if they are a mekhala user
         if ($user->isMekhalaUser()) {
@@ -273,7 +273,7 @@ class ReportController extends Controller
                     $q->where('mekhala_id', $mekhala->id);
                 })->sum('amount');
                 
-            $applications = Application::whereYear('approved_date', $year)
+            $applications = Application::where('status', 'paid')->whereYear('approved_date', $year)
                 ->whereHas('submitter.area', function($q) use ($mekhala) {
                     $q->where('mekhala_id', $mekhala->id);
                 })->sum('approved_amount');
@@ -319,7 +319,7 @@ class ReportController extends Controller
             $data = \App\Models\Area::where('mekhala_id', $mekhalaId)
                 ->get()
                 ->map(function($area) use ($year) {
-                    $amount = Application::whereYear('approved_date', $year)
+                    $amount = Application::where('status', 'paid')->whereYear('approved_date', $year)
                         ->whereHas('submitter', function($q) use ($area) {
                             $q->where('area_id', $area->id);
                         })->sum('approved_amount');
@@ -401,8 +401,8 @@ class ReportController extends Controller
         }
         $monthlyExpenses = $monthlyExpensesQuery->sum('amount');
         
-        // Applications Summary
-        $applicationsQuery = Application::whereYear('approved_date', $currentYear);
+        // Applications Summary (only paid applications)
+        $applicationsQuery = Application::where('status', 'paid')->whereYear('approved_date', $currentYear);
         if (!empty($mekhalaIds)) {
             $applicationsQuery->whereHas('submitter', function($q) use ($mekhalaIds) {
                 $q->whereIn('mekhala_id', $mekhalaIds);
@@ -410,7 +410,7 @@ class ReportController extends Controller
         }
         $yearlyApplications = $applicationsQuery->sum('approved_amount');
         
-        $monthlyApplicationsQuery = Application::whereMonth('approved_date', $currentMonth)
+        $monthlyApplicationsQuery = Application::where('status', 'paid')->whereMonth('approved_date', $currentMonth)
                                          ->whereYear('approved_date', $currentYear);
         if (!empty($mekhalaIds)) {
             $monthlyApplicationsQuery->whereHas('submitter', function($q) use ($mekhalaIds) {
@@ -450,7 +450,7 @@ class ReportController extends Controller
         }
         $expenses = $expensesDetailQuery->get();
         
-        $applicationsDetailQuery = Application::where('status', 'approved')->orderBy('approved_date');
+        $applicationsDetailQuery = Application::where('status', 'paid')->orderBy('approved_date');
         if (!empty($mekhalaIds)) {
             $applicationsDetailQuery->whereHas('submitter', function($q) use ($mekhalaIds) {
                 $q->whereIn('mekhala_id', $mekhalaIds);

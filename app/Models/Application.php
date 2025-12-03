@@ -63,9 +63,14 @@ class Application extends Model
         return $query->where('status', 'pending');
     }
 
-    public function scopeApproved($query)
+    public function scopePayable($query)
     {
-        return $query->where('status', 'approved');
+        return $query->where('status', 'payable');
+    }
+
+    public function scopePaid($query)
+    {
+        return $query->where('status', 'paid');
     }
 
     public function scopeRejected($query)

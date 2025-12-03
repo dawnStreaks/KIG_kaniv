@@ -25,7 +25,7 @@
                             <th><input type="text" class="form-control form-control-sm filter-input" placeholder="Filter Name" data-column="0"></th>
                             <th><input type="text" class="form-control form-control-sm filter-input" placeholder="Filter Amount" data-column="1"></th>
                             <th><select class="form-control form-control-sm filter-input" data-column="2"><option value="">All Categories</option><option value="medical_support">Medical Support</option><option value="financial_support">Financial Support</option><option value="iqama_visa_residency">Iqama/Visa/Residency</option><option value="ticket">Ticket</option></select></th>
-                            <th><select class="form-control form-control-sm filter-input" data-column="3"><option value="">All Status</option><option value="pending">Pending</option><option value="approved">Approved</option><option value="rejected">Rejected</option></select></th>
+                            <th><select class="form-control form-control-sm filter-input" data-column="3"><option value="">All Status</option><option value="pending">Pending</option><option value="payable">Payable</option><option value="paid">Paid</option><option value="rejected">Rejected</option></select></th>
                             <th><input type="date" class="form-control form-control-sm filter-input" data-column="4"></th>
                             <th></th>
                         </tr>
@@ -37,7 +37,7 @@
                             <td>KWD {{ number_format($application->approved_amount, 3) }}</td>
                             <td>{{ ucfirst(str_replace('_', ' ', $application->category)) }}</td>
                             <td>
-                                <span class="badge bg-{{ $application->status == 'pending' ? 'warning' : ($application->status == 'approved' ? 'success' : 'danger') }}">
+                                <span class="badge bg-{{ $application->status == 'pending' ? 'warning' : ($application->status == 'payable' ? 'info' : ($application->status == 'paid' ? 'success' : 'danger')) }}">
                                     {{ ucfirst($application->status) }}
                                 </span>
                             </td>
