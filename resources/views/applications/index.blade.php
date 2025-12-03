@@ -47,7 +47,7 @@
                                 <th><input type="text" class="form-control form-control-sm" placeholder="Filter Type"></th>
                                 <th><input type="text" class="form-control form-control-sm" placeholder="Filter Area"></th>
                                 <th><input type="text" class="form-control form-control-sm" placeholder="Filter Unit"></th>
-                                <th><select class="form-control form-control-sm"><option value="">All Status</option><option value="pending">Pending</option><option value="approved">Approved</option><option value="rejected">Rejected</option></select></th>
+                                <th><select class="form-control form-control-sm"><option value="">All Status</option><option value="pending">Pending</option><option value="payable">Payable</option><option value="paid">Paid</option><option value="rejected">Rejected</option></select></th>
                                 <th><input type="text" class="form-control form-control-sm" placeholder="Filter Amount"></th>
                                 <th><input type="text" class="form-control form-control-sm" placeholder="Filter Submitter"></th>
                                 <th></th>
@@ -70,7 +70,7 @@
                                     <td>{{ $application->area->name ?? 'N/A' }}</td>
                                     <td>{{ $application->unit->name ?? 'N/A' }}</td>
                                     <td>
-                                        <span class="badge bg-{{ $application->status == 'approved' ? 'success' : ($application->status == 'rejected' ? 'danger' : 'warning') }}">
+                                        <span class="badge bg-{{ $application->status == 'paid' ? 'success' : ($application->status == 'payable' ? 'info' : ($application->status == 'rejected' ? 'danger' : 'warning')) }}">
                                             {{ ucfirst($application->status) }}
                                         </span>
                                     </td>
@@ -86,6 +86,12 @@
                                         <a href="{{ route('applications.show', $application) }}" class="btn btn-sm btn-outline-primary">View</a>
                                         @if($application->submitted_by == auth()->id() && $application->status == 'pending')
                                             <a href="{{ route('applications.edit', $application) }}" class="btn btn-sm btn-outline-secondary">Edit</a>
+                                        @endif
+                                        @if($application->status == 'payable' && auth()->user()->isTreasurer())
+                                            <form method="POST" action="{{ route('applications.pay', $application) }}" style="display: inline;">
+                                                @csrf
+                                                <button type="submit" class="btn btn-sm btn-success" onclick="return confirm('Mark this application as paid?')">Pay</button>
+                                            </form>
                                         @endif
                                         @php
                                             $hasDuplicates = \App\Models\Application::where(function($query) use ($application) {

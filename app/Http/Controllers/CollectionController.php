@@ -238,6 +238,16 @@ class CollectionController extends Controller
         
         $query = Collection::with(['unit.area'])
             ->whereBetween('collection_date', [$dateFrom, $dateTo]);
+            
+        // Apply term filter
+        if ($request->filled('term')) {
+            $query->where('term', $request->term);
+        }
+        
+        // Apply type filter
+        if ($request->filled('type')) {
+            $query->where('type', $request->type);
+        }
         
         if ($user->isAreaUser()) {
             $query->whereHas('unit', function($q) use ($user) {
@@ -266,7 +276,27 @@ class CollectionController extends Controller
                 ->get();
         }
         
-        return view('collections.report', compact('year', 'user', 'data', 'dateFrom', 'dateTo'));
+        // Get comparison data by unit type
+        $comparisonQuery = Collection::with(['unit'])
+            ->whereBetween('collection_date', [$dateFrom, $dateTo]);
+            
+        if ($user->isAreaUser()) {
+            $comparisonQuery->whereHas('unit', function($q) use ($user) {
+                $q->where('area_id', $user->area_id);
+            });
+        } elseif ($user->isMekhalaUser()) {
+            $comparisonQuery->whereHas('unit.area', function($q) use ($user) {
+                $q->where('mekhala_id', $user->mekhala_id);
+            });
+        }
+        
+        $comparisonData = $comparisonQuery->selectRaw('units.type as unit_type, SUM(amount) as total_amount')
+            ->join('units', 'collections.unit_id', '=', 'units.id')
+            ->whereIn('units.type', ['KIG', 'YI', 'IWA'])
+            ->groupBy('units.type')
+            ->get();
+        
+        return view('collections.report', compact('year', 'user', 'data', 'dateFrom', 'dateTo', 'comparisonData'));
     }
 
     public function collectionReportDrillDown(Request $request)
@@ -281,6 +311,16 @@ class CollectionController extends Controller
             ->whereHas('unit', function($q) use ($areaId) {
                 $q->where('area_id', $areaId);
             });
+            
+        // Apply term filter
+        if ($request->filled('term')) {
+            $query->where('term', $request->term);
+        }
+        
+        // Apply type filter
+        if ($request->filled('type')) {
+            $query->where('type', $request->type);
+        }
             
         // Restrict mekhala users to their own mekhala areas only
         if ($user->isMekhalaUser()) {

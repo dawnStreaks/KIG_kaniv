@@ -89,6 +89,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/applications-review', [ApplicationController::class, 'review'])->name('applications.review');
     Route::post('/applications/{application}/approve', [ApplicationController::class, 'approve'])->name('applications.approve');
     Route::post('/applications/{application}/reject', [ApplicationController::class, 'reject'])->name('applications.reject');
+    Route::post('/applications/{application}/pay', [ApplicationController::class, 'pay'])->name('applications.pay');
     
     // Collection routes
     Route::get('/collections/export', [CollectionController::class, 'export'])->name('collections.export');

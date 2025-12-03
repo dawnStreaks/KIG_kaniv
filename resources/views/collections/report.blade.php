@@ -9,15 +9,52 @@
                     <div class="d-flex justify-content-between align-items-center mb-3">
                         <h3>Collection Report</h3>
                     </div>
-                    <form method="GET" class="d-flex gap-2">
-                        <input type="date" name="date_from" class="form-control" value="{{ request('date_from', $year . '-01-01') }}" onchange="this.form.submit()">
-                        <input type="date" name="date_to" class="form-control" value="{{ request('date_to', $year . '-12-31') }}" onchange="this.form.submit()">
-                        <button type="button" class="btn btn-secondary" onclick="clearDates()">Clear</button>
+                    <form method="GET" class="row g-2">
+                        <div class="col-md-2">
+                            <select name="year" class="form-select" onchange="this.form.submit()">
+                                @for($y = date('Y'); $y >= 2020; $y--)
+                                    <option value="{{ $y }}" {{ request('year', date('Y')) == $y ? 'selected' : '' }}>{{ $y }}</option>
+                                @endfor
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <input type="date" name="date_from" class="form-control" value="{{ request('date_from') }}" placeholder="From Date">
+                        </div>
+                        <div class="col-md-2">
+                            <input type="date" name="date_to" class="form-control" value="{{ request('date_to') }}" placeholder="To Date">
+                        </div>
+                        <div class="col-md-2">
+                            <select name="term" class="form-select">
+                                <option value="">All Terms</option>
+                                @foreach(['monthly', 'quarterly', 'yearly'] as $term)
+                                    <option value="{{ $term }}" {{ request('term') == $term ? 'selected' : '' }}>{{ ucfirst($term) }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <select name="type" class="form-select">
+                                <option value="">All Types</option>
+                                @foreach(['membership', 'donation', 'subscription'] as $type)
+                                    <option value="{{ $type }}" {{ request('type') == $type ? 'selected' : '' }}>{{ ucfirst($type) }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <button type="submit" class="btn btn-primary">Filter</button>
+                            <button type="button" class="btn btn-secondary" onclick="clearFilters()">Clear</button>
+                        </div>
                     </form>
                 </div>
                 <div class="card-body">
                     <div id="chartContainer" style="height: 400px;">
                         <canvas id="collectionChart"></canvas>
+                    </div>
+                    
+                    <div class="mt-4">
+                        <h4>Collection Comparison by Unit Type</h4>
+                        <div style="height: 300px;">
+                            <canvas id="comparisonChart"></canvas>
+                        </div>
                     </div>
                     
                     @if($user->isMekhalaUser() || $user->isAdmin())
@@ -40,10 +77,11 @@
 <script>
 Chart.register(ChartDataLabels);
 const chartData = @json($data);
+const comparisonData = @json($comparisonData ?? []);
 const userType = '{{ $user->user_type }}';
 const year = {{ $year }};
 
-let mainChart, drillDownChart;
+let mainChart, drillDownChart, comparisonChart;
 
 // Initialize main chart
 function initMainChart() {
@@ -115,7 +153,12 @@ function initMainChart() {
 function drillDown(areaId, areaName) {
     const dateFrom = '{{ request('date_from', $year . '-01-01') }}';
     const dateTo = '{{ request('date_to', $year . '-12-31') }}';
-    fetch(`/collections/report/drill-down?area_id=${areaId}&date_from=${dateFrom}&date_to=${dateTo}`)
+    const term = '{{ request('term') }}';
+    const type = '{{ request('type') }}';
+    let url = `/collections/report/drill-down?area_id=${areaId}&date_from=${dateFrom}&date_to=${dateTo}`;
+    if (term) url += `&term=${term}`;
+    if (type) url += `&type=${type}`;
+    fetch(url)
         .then(response => response.json())
         .then(data => {
             const dateFrom = '{{ request('date_from', $year . '-01-01') }}';
@@ -188,14 +231,74 @@ function backToMain() {
     document.getElementById('chartContainer').scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
-// Clear dates function
-function clearDates() {
+// Clear filters function
+function clearFilters() {
     window.location.href = '{{ route('collections.report') }}';
+}
+
+// Initialize comparison chart
+function initComparisonChart() {
+    const ctx = document.getElementById('comparisonChart').getContext('2d');
+    
+    const labels = comparisonData.map(item => item.unit_type);
+    const amounts = comparisonData.map(item => parseFloat(item.total_amount));
+    
+    comparisonChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Collection Amount (KWD)',
+                data: amounts,
+                backgroundColor: ['rgba(255, 99, 132, 0.8)', 'rgba(54, 162, 235, 0.8)', 'rgba(255, 206, 86, 0.8)'],
+                borderColor: ['rgba(255, 99, 132, 1)', 'rgba(54, 162, 235, 1)', 'rgba(255, 206, 86, 1)'],
+                borderWidth: 1
+            }]
+        },
+        plugins: [ChartDataLabels],
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        callback: function(value) {
+                            return 'KWD ' + value.toLocaleString('en-US', {minimumFractionDigits: 3, maximumFractionDigits: 3});
+                        }
+                    }
+                }
+            },
+            plugins: {
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            return 'Amount: KWD ' + context.parsed.y.toLocaleString('en-US', {minimumFractionDigits: 3, maximumFractionDigits: 3});
+                        }
+                    }
+                },
+                datalabels: {
+                    anchor: 'end',
+                    align: 'top',
+                    formatter: function(value) {
+                        return value.toFixed(3);
+                    },
+                    font: {
+                        size: 12,
+                        weight: 'bold'
+                    }
+                }
+            }
+        }
+    });
 }
 
 // Initialize chart on page load
 document.addEventListener('DOMContentLoaded', function() {
     initMainChart();
+    if (comparisonData.length > 0) {
+        initComparisonChart();
+    }
 });
 </script>
 @endsection

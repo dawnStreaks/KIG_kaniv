@@ -158,6 +158,18 @@ class ApplicationController extends Controller
         return back()->with('success', 'Application rejected');
     }
 
+    public function pay(Application $application)
+    {
+        if (!auth()->user()->isTreasurer()) {
+            abort(403, 'Only treasurers can mark applications as paid');
+        }
+
+        $application->update([
+            'status' => 'paid',
+        ]);
+        return back()->with('success', 'Application marked as paid');
+    }
+
     public function download(Application $application)
     {
         if (!$application->front_page_photo || !Storage::disk('public')->exists($application->front_page_photo)) {
