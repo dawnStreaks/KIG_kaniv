@@ -87,8 +87,17 @@ Route::middleware('auth')->group(function () {
     Route::get('/applications/{application}/download', [ApplicationController::class, 'download'])->name('applications.download');
     Route::post('/applications/validate-field', [ApplicationController::class, 'validateField'])->name('applications.validate-field');
     Route::get('/applications-review', [ApplicationController::class, 'review'])->name('applications.review');
+    Route::get('/applications/{application}/approve', function() {
+        return redirect()->route('applications.review')->with('error', 'Invalid access method. Please use the approve button.');
+    });
     Route::post('/applications/{application}/approve', [ApplicationController::class, 'approve'])->name('applications.approve');
+    Route::get('/applications/{application}/reject', function() {
+        return redirect()->route('applications.review')->with('error', 'Invalid access method. Please use the reject button.');
+    });
     Route::post('/applications/{application}/reject', [ApplicationController::class, 'reject'])->name('applications.reject');
+    Route::get('/applications/{application}/pay', function() {
+        return redirect()->route('applications.index')->with('error', 'Invalid access method. Please use the pay button.');
+    });
     Route::post('/applications/{application}/pay', [ApplicationController::class, 'pay'])->name('applications.pay');
     
     // Collection routes
