@@ -6,7 +6,10 @@
     <div>
         <div class="d-flex justify-content-between align-items-center mb-3">
             <h2>Applications Review</h2>
-            <button type="button" class="btn btn-secondary" onclick="clearFilters()">Clear Filters</button>
+            <div>
+                <small class="text-muted me-3">User: {{ auth()->user()->user_type }} | Role: {{ auth()->user()->role ?? 'N/A' }} | Can Approve: {{ auth()->user()->canApproveApplications() ? 'Yes' : 'No' }}</small>
+                <button type="button" class="btn btn-secondary" onclick="clearFilters()">Clear Filters</button>
+            </div>
         </div>
 
         <div class="card">
