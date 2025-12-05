@@ -50,6 +50,7 @@ class ApplicationController extends Controller
 
         $validated['front_page_photo'] = $request->file('front_page_photo')->store('applications', 'public');
         $validated['submitted_by'] = auth()->id();
+        $validated['status'] = 'pending';
 
         Application::create($validated);
         return redirect()->route('applications.index')->with('success', 'Application submitted successfully');
