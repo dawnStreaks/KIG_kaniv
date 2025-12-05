@@ -295,6 +295,14 @@ class AdminController extends Controller
         return redirect()->route('admin.terms.index')->with('success', 'Term deleted successfully');
     }
 
+    public function toggleTermStatus(Request $request, $id)
+    {
+        $request->validate(['is_active' => 'required|boolean']);
+        $term = CollectionTerm::findOrFail($id);
+        $term->update(['is_active' => $request->is_active]);
+        return response()->json(['success' => true]);
+    }
+
     public function types()
     {
         $types = CollectionType::all();
@@ -320,6 +328,14 @@ class AdminController extends Controller
     {
         CollectionType::findOrFail($id)->delete();
         return redirect()->route('admin.types.index')->with('success', 'Type deleted successfully');
+    }
+
+    public function toggleTypeStatus(Request $request, $id)
+    {
+        $request->validate(['is_active' => 'required|boolean']);
+        $type = CollectionType::findOrFail($id);
+        $type->update(['is_active' => $request->is_active]);
+        return response()->json(['success' => true]);
     }
 
     public function exportUsers(Request $request)

@@ -61,10 +61,12 @@ Route::middleware('auth')->group(function () {
         Route::post('/terms', [AdminController::class, 'storeTerm'])->name('terms.store');
         Route::put('/terms/{id}', [AdminController::class, 'updateTerm'])->name('terms.update');
         Route::delete('/terms/{id}', [AdminController::class, 'destroyTerm'])->name('terms.destroy');
+        Route::post('/terms/{id}/toggle-status', [AdminController::class, 'toggleTermStatus'])->name('terms.toggle-status');
         Route::get('/types', [AdminController::class, 'types'])->name('types.index');
         Route::post('/types', [AdminController::class, 'storeType'])->name('types.store');
         Route::put('/types/{id}', [AdminController::class, 'updateType'])->name('types.update');
         Route::delete('/types/{id}', [AdminController::class, 'destroyType'])->name('types.destroy');
+        Route::post('/types/{id}/toggle-status', [AdminController::class, 'toggleTypeStatus'])->name('types.toggle-status');
         
         // Application types
         Route::get('/application-types', [AdminController::class, 'applicationTypes'])->name('application-types.index');

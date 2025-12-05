@@ -28,7 +28,7 @@
                                 </td>
                                 <td>
                                     <div class="form-check form-switch">
-                                        <input class="form-check-input" type="checkbox" id="status-{{ $term->id }}" {{ $term->is_active ? 'checked' : '' }}>
+                                        <input class="form-check-input" type="checkbox" id="status-{{ $term->id }}" {{ $term->is_active ? 'checked' : '' }} onchange="toggleTermStatus({{ $term->id }})">
                                         <label class="form-check-label" for="status-{{ $term->id }}">{{ $term->is_active ? 'Active' : 'Inactive' }}</label>
                                     </div>
                                 </td>
@@ -99,6 +99,33 @@
             .catch(error => {
                 console.error('Error:', error);
                 alert('Failed to update term');
+            });
+        }
+        
+        function toggleTermStatus(id) {
+            const checkbox = document.getElementById('status-' + id);
+            const label = checkbox.nextElementSibling;
+            
+            fetch(`/admin/terms/${id}/toggle-status`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                },
+                body: JSON.stringify({ is_active: checkbox.checked })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    label.textContent = checkbox.checked ? 'Active' : 'Inactive';
+                } else {
+                    checkbox.checked = !checkbox.checked;
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                checkbox.checked = !checkbox.checked;
+                alert('Failed to update status');
             });
         }
     </script>
