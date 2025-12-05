@@ -99,6 +99,7 @@
                     <a class="nav-link" href="{{ route('reports.financial') }}">Financial Statement</a>
                     <a class="nav-link" href="{{ route('reports.collection') }}">Collection Report</a>
                     <a class="nav-link" href="{{ route('collections.report') }}">Collection Chart Report</a>
+                    <a class="nav-link" href="{{ route('collections.unit-type-comparison') }}">Unit Type Comparison</a>
                     <a class="nav-link" href="{{ route('reports.application-payment') }}">Application Payment</a>
                 @else
                     @if(auth()->user()->user_type == 'admin' || auth()->user()->user_type == 'center')
@@ -137,6 +138,7 @@
                         <a class="nav-link" href="{{ route('reports.combined-financial') }}">Combined Financial</a>
                         <a class="nav-link" href="{{ route('reports.collection') }}">Collection Report</a>
                         <a class="nav-link" href="{{ route('collections.report') }}">Collection Chart Report</a>
+                        <a class="nav-link" href="{{ route('collections.unit-type-comparison') }}">Unit Type Comparison</a>
                         <a class="nav-link" href="{{ route('reports.mekhala') }}">Mekhala Report</a>
                         <a class="nav-link" href="{{ route('reports.application-payment') }}">Application Payment</a>
                     @endif

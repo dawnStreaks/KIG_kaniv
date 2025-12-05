@@ -370,4 +370,31 @@ class CollectionController extends Controller
         $collection->update(['collection_status' => 'received']);
         return back()->with('success', 'Collection marked as received');
     }
+
+    public function unitTypeComparison(Request $request)
+    {
+        $year = $request->get('year', date('Y'));
+        
+        $data = \App\Models\Unit::with(['collections' => function($q) use ($year) {
+            $q->whereYear('collection_date', $year);
+        }])
+        ->get()
+        ->groupBy(function($unit) {
+            if (str_starts_with($unit->name, 'YI')) return 'YI';
+            if (str_starts_with($unit->name, 'IWA')) return 'IWA';
+            return 'KIG';
+        })
+        ->map(function($units, $type) {
+            $total = $units->sum(function($unit) {
+                return $unit->collections->sum('amount');
+            });
+            return [
+                'type' => $type,
+                'total' => $total,
+                'count' => $units->count()
+            ];
+        })->values();
+        
+        return view('collections.unit-type-comparison', compact('data', 'year'));
+    }
 }

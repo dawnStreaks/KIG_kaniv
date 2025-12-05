@@ -103,6 +103,7 @@ Route::middleware('auth')->group(function () {
     // Collection routes
     Route::get('/collections/export', [CollectionController::class, 'export'])->name('collections.export');
     Route::get('/collections/report', [CollectionController::class, 'collectionReport'])->name('collections.report');
+    Route::get('/collections/unit-type-comparison', [CollectionController::class, 'unitTypeComparison'])->name('collections.unit-type-comparison');
     Route::get('/collections/report/drill-down', [CollectionController::class, 'collectionReportDrillDown'])->name('collections.report.drilldown');
     Route::get('/collections/receive', [CollectionController::class, 'receiveCollections'])->name('collections.receive');
     Route::patch('/collections/{collection}/mark-received', [CollectionController::class, 'markAsReceived'])->name('collections.mark-received');
