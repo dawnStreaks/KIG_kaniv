@@ -127,9 +127,47 @@
             <div class="col-12">
                 <div class="card">
                     <div class="card-header">
-                        <h5>Detailed Financial Statement</h5>
+                        <h5>Area Summary</h5>
                     </div>
                     <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th>Area</th>
+                                        <th class="text-end">Collections</th>
+                                        <th class="text-end">Expenses</th>
+                                        <th class="text-end">Balance</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach($areaSummary as $summary)
+                                    <tr>
+                                        <td><strong>{{ $summary['area'] }}</strong></td>
+                                        <td class="text-end">KWD {{ number_format($summary['collections'], 3) }}</td>
+                                        <td class="text-end">KWD {{ number_format($summary['expenses'], 3) }}</td>
+                                        <td class="text-end {{ $summary['balance'] >= 0 ? 'text-success' : 'text-danger' }}">
+                                            <strong>KWD {{ number_format($summary['balance'], 3) }}</strong>
+                                        </td>
+                                    </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row mt-4">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h5>Detailed Financial Statement by Area</h5>
+                    </div>
+                    <div class="card-body">
+                        @foreach($groupedTransactions as $areaName => $areaTransactions)
+                        <h6 class="mt-3 mb-2">{{ $areaName }}</h6>
                         <div class="table-responsive">
                             <table class="table table-sm">
                                 <thead>
@@ -139,11 +177,10 @@
                                         <th>Description</th>
                                         <th class="text-end">Collection</th>
                                         <th class="text-end">Expense</th>
-                                        <th class="text-end">Balance</th>
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    @foreach($transactions as $transaction)
+                                    @foreach($areaTransactions as $transaction)
                                     <tr>
                                         <td>{{ $transaction['date'] }}</td>
                                         <td>
@@ -158,14 +195,12 @@
                                         <td class="text-end">
                                             {{ $transaction['expense'] > 0 ? 'KWD ' . number_format($transaction['expense'], 3) : '-' }}
                                         </td>
-                                        <td class="text-end {{ $transaction['balance'] >= 0 ? 'text-success' : 'text-danger' }}">
-                                            KWD {{ number_format($transaction['balance'], 3) }}
-                                        </td>
                                     </tr>
                                     @endforeach
                                 </tbody>
                             </table>
                         </div>
+                        @endforeach
                     </div>
                 </div>
             </div>

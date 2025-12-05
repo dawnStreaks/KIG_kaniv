@@ -163,20 +163,66 @@ class ReportController extends Controller
             ]);
         }
         
-        $transactions = $transactions->sortBy('date');
+        // Group transactions by area
+        $transactionsByArea = collect();
         
-        // Calculate cumulative balance
-        $balance = 0;
-        $transactions = $transactions->map(function ($transaction) use (&$balance) {
-            $balance += $transaction['collection'] - $transaction['expense'];
-            $transaction['balance'] = $balance;
-            return $transaction;
+        foreach ($collections as $collection) {
+            $areaName = $collection->unit->area->name ?? 'Unknown Area';
+            $transactionsByArea->push([
+                'area' => $areaName,
+                'date' => $collection->collection_date,
+                'type' => 'Collection',
+                'description' => 'Collection from ' . ($collection->unit->name ?? 'N/A'),
+                'collection' => $collection->amount,
+                'expense' => 0,
+            ]);
+        }
+        
+        foreach ($expenses as $expense) {
+            $areaName = $expense->enteredBy->area->name ?? 'General';
+            $transactionsByArea->push([
+                'area' => $areaName,
+                'date' => $expense->expense_date,
+                'type' => 'Expense',
+                'description' => $expense->particulars,
+                'collection' => 0,
+                'expense' => $expense->amount,
+            ]);
+        }
+        
+        foreach ($applications as $application) {
+            $areaName = $application->area->name ?? 'Unknown Area';
+            $transactionsByArea->push([
+                'area' => $areaName,
+                'date' => $application->approved_date,
+                'type' => 'Application Payment',
+                'description' => 'Payment to ' . $application->name . ' (' . ucfirst($application->category) . ')',
+                'collection' => 0,
+                'expense' => $application->approved_amount,
+            ]);
+        }
+        
+        // Group by area and sort within each area by date
+        $groupedTransactions = $transactionsByArea->groupBy('area')->map(function($areaTransactions) {
+            return $areaTransactions->sortBy('date');
+        });
+        
+        // Calculate area totals
+        $areaSummary = $groupedTransactions->map(function($areaTransactions, $areaName) {
+            $totalCollections = $areaTransactions->sum('collection');
+            $totalExpenses = $areaTransactions->sum('expense');
+            return [
+                'area' => $areaName,
+                'collections' => $totalCollections,
+                'expenses' => $totalExpenses,
+                'balance' => $totalCollections - $totalExpenses
+            ];
         });
         
         return view('reports.financial-statement', compact(
             'yearlyCollections', 'monthlyCollections', 'yearlyExpenses', 'monthlyExpenses',
             'yearlyApplications', 'monthlyApplications', 'yearlyInvestments', 'monthlyInvestments',
-            'yearlyIncome', 'monthlyIncome', 'yearlyReturned', 'monthlyReturned', 'transactions', 'mekhalaName'
+            'yearlyIncome', 'monthlyIncome', 'yearlyReturned', 'monthlyReturned', 'groupedTransactions', 'areaSummary', 'mekhalaName'
         ));
     }
 

@@ -87,7 +87,13 @@
                                         @if($application->submitted_by == auth()->id() && $application->status == 'pending')
                                             <a href="{{ route('applications.edit', $application) }}" class="btn btn-sm btn-outline-secondary">Edit</a>
                                         @endif
-                                        @if($application->status == 'payable' && auth()->user()->isTreasurer())
+                                        @if($application->status == 'pending' && auth()->user()->canApproveApplications())
+                                            <button type="button" class="btn btn-sm btn-success" data-bs-toggle="modal" data-bs-target="#approveModal{{ $application->id }}">Approve</button>
+                                            <form method="POST" action="{{ route('applications.reject', $application->id) }}" class="d-inline">
+                                                @csrf
+                                                <button type="submit" class="btn btn-sm btn-danger">Reject</button>
+                                            </form>
+                                        @elseif($application->status == 'payable' && auth()->user()->isTreasurer())
                                             <form method="POST" action="{{ route('applications.pay', $application) }}" style="display: inline;">
                                                 @csrf
                                                 <button type="submit" class="btn btn-sm btn-success" onclick="return confirm('Mark this application as paid?')">Pay</button>
@@ -117,6 +123,39 @@
             </div>
         </div>
     </div>
+
+    <!-- Approval Modals -->
+    @foreach($applications as $application)
+        @if($application->status == 'pending')
+        <div class="modal fade" id="approveModal{{ $application->id }}" tabindex="-1">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <form method="POST" action="{{ route('applications.approve', $application->id) }}">
+                        @csrf
+                        <div class="modal-header">
+                            <h5 class="modal-title">Approve Application - {{ $application->name }}</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                        </div>
+                        <div class="modal-body">
+                            <div class="mb-3">
+                                <label for="approved_amount{{ $application->id }}" class="form-label">Approved Amount (KWD)</label>
+                                <input type="number" step="0.01" class="form-control" id="approved_amount{{ $application->id }}" name="approved_amount" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="approved_date{{ $application->id }}" class="form-label">Approved Date</label>
+                                <input type="date" class="form-control" id="approved_date{{ $application->id }}" name="approved_date" value="{{ date('Y-m-d') }}">
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                            <button type="submit" class="btn btn-success">Approve</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        @endif
+    @endforeach
 
     <script src="{{ asset('js/filtered-export.js') }}"></script>
     <script>
