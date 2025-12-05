@@ -49,6 +49,11 @@
                                         @csrf
                                         <button type="submit" class="btn btn-sm btn-danger">Reject</button>
                                     </form>
+                                @elseif($application->status == 'payable' && auth()->user()->isTreasurer())
+                                    <form method="POST" action="{{ route('applications.pay', $application) }}" style="display: inline;">
+                                        @csrf
+                                        <button type="submit" class="btn btn-sm btn-success" onclick="return confirm('Mark this application as paid?')">Pay</button>
+                                    </form>
                                 @else
                                     <span class="text-muted">{{ ucfirst($application->status) }}</span>
                                 @endif
