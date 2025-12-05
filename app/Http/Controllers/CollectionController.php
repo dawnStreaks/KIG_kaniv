@@ -276,27 +276,7 @@ class CollectionController extends Controller
                 ->get();
         }
         
-        // Get comparison data by unit type
-        $comparisonQuery = Collection::with(['unit'])
-            ->whereBetween('collection_date', [$dateFrom, $dateTo]);
-            
-        if ($user->isAreaUser()) {
-            $comparisonQuery->whereHas('unit', function($q) use ($user) {
-                $q->where('area_id', $user->area_id);
-            });
-        } elseif ($user->isMekhalaUser()) {
-            $comparisonQuery->whereHas('unit.area', function($q) use ($user) {
-                $q->where('mekhala_id', $user->mekhala_id);
-            });
-        }
-        
-        $comparisonData = $comparisonQuery->selectRaw('units.type as unit_type, SUM(amount) as total_amount')
-            ->join('units', 'collections.unit_id', '=', 'units.id')
-            ->whereIn('units.type', ['KIG', 'YI', 'IWA'])
-            ->groupBy('units.type')
-            ->get();
-        
-        return view('collections.report', compact('year', 'user', 'data', 'dateFrom', 'dateTo', 'comparisonData'));
+        return view('collections.report', compact('year', 'user', 'data', 'dateFrom', 'dateTo'));
     }
 
     public function collectionReportDrillDown(Request $request)

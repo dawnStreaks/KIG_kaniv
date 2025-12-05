@@ -50,12 +50,7 @@
                         <canvas id="collectionChart"></canvas>
                     </div>
                     
-                    <div class="mt-4">
-                        <h4>Collection Comparison by Unit Type</h4>
-                        <div style="height: 300px;">
-                            <canvas id="comparisonChart"></canvas>
-                        </div>
-                    </div>
+
                     
                     @if($user->isMekhalaUser() || $user->isAdmin())
                     <div id="drillDownContainer" style="display: none; margin-top: 30px;">
@@ -77,11 +72,10 @@
 <script>
 Chart.register(ChartDataLabels);
 const chartData = @json($data);
-const comparisonData = @json($comparisonData ?? []);
 const userType = '{{ $user->user_type }}';
 const year = {{ $year }};
 
-let mainChart, drillDownChart, comparisonChart;
+let mainChart, drillDownChart;
 
 // Initialize main chart
 function initMainChart() {
@@ -236,69 +230,11 @@ function clearFilters() {
     window.location.href = '{{ route('collections.report') }}';
 }
 
-// Initialize comparison chart
-function initComparisonChart() {
-    const ctx = document.getElementById('comparisonChart').getContext('2d');
-    
-    const labels = comparisonData.map(item => item.unit_type);
-    const amounts = comparisonData.map(item => parseFloat(item.total_amount));
-    
-    comparisonChart = new Chart(ctx, {
-        type: 'bar',
-        data: {
-            labels: labels,
-            datasets: [{
-                label: 'Collection Amount (KWD)',
-                data: amounts,
-                backgroundColor: ['rgba(255, 99, 132, 0.8)', 'rgba(54, 162, 235, 0.8)', 'rgba(255, 206, 86, 0.8)'],
-                borderColor: ['rgba(255, 99, 132, 1)', 'rgba(54, 162, 235, 1)', 'rgba(255, 206, 86, 1)'],
-                borderWidth: 1
-            }]
-        },
-        plugins: [ChartDataLabels],
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            scales: {
-                y: {
-                    beginAtZero: true,
-                    ticks: {
-                        callback: function(value) {
-                            return 'KWD ' + value.toLocaleString('en-US', {minimumFractionDigits: 3, maximumFractionDigits: 3});
-                        }
-                    }
-                }
-            },
-            plugins: {
-                tooltip: {
-                    callbacks: {
-                        label: function(context) {
-                            return 'Amount: KWD ' + context.parsed.y.toLocaleString('en-US', {minimumFractionDigits: 3, maximumFractionDigits: 3});
-                        }
-                    }
-                },
-                datalabels: {
-                    anchor: 'end',
-                    align: 'top',
-                    formatter: function(value) {
-                        return value.toFixed(3);
-                    },
-                    font: {
-                        size: 12,
-                        weight: 'bold'
-                    }
-                }
-            }
-        }
-    });
-}
+
 
 // Initialize chart on page load
 document.addEventListener('DOMContentLoaded', function() {
     initMainChart();
-    if (comparisonData.length > 0) {
-        initComparisonChart();
-    }
 });
 </script>
 @endsection
