@@ -256,6 +256,18 @@ class ReportController extends Controller
         $collections = $query->latest('collection_date')->get();
         $totalAmount = $collections->sum('amount');
         
+        // Group collections by area
+        $collectionsByArea = $collections->groupBy(function($collection) {
+            return $collection->unit->area->name ?? 'Unknown Area';
+        })->map(function($areaCollections, $areaName) {
+            return [
+                'area' => $areaName,
+                'total' => $areaCollections->sum('amount'),
+                'count' => $areaCollections->count(),
+                'collections' => $areaCollections
+            ];
+        });
+        
         // Get mekhala-wise data for center users
         $mekhalaData = [];
         if ($user->isCenterUser()) {
@@ -275,7 +287,7 @@ class ReportController extends Controller
                 })->toArray();
         }
         
-        return view('reports.collection', compact('collections', 'totalAmount', 'mekhalaData'));
+        return view('reports.collection', compact('collections', 'totalAmount', 'mekhalaData', 'collectionsByArea'));
     }
 
     public function applicationPaymentReport(Request $request)

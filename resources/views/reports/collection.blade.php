@@ -41,62 +41,79 @@
         @endif
 
         <div class="card">
+            <div class="card-header">
+                <h5>Collections by Area</h5>
+            </div>
             <div class="card-body">
                 <div class="table-responsive">
-                    <table class="table table-striped">
+                    <table class="table">
                         <thead>
                             <tr>
-                                <th>Collection Date</th>
-                                <th>Amount</th>
-                                <th>Unit</th>
-                                <th>Mekhala</th>
                                 <th>Area</th>
-                                <th>Status</th>
-                                <th>Entered By</th>
-                                <th>Created At</th>
-                            </tr>
-                        </thead>
-                        <thead>
-                            <tr>
-                                <th><input type="date" class="form-control form-control-sm filter-input" data-column="0"></th>
-                                <th><input type="text" class="form-control form-control-sm filter-input" placeholder="Filter Amount" data-column="1"></th>
-                                <th><input type="text" class="form-control form-control-sm filter-input" placeholder="Filter Unit" data-column="2"></th>
-                                <th><input type="text" class="form-control form-control-sm filter-input" placeholder="Filter Mekhala" data-column="3"></th>
-                                <th><input type="text" class="form-control form-control-sm filter-input" placeholder="Filter Area" data-column="4"></th>
-                                <th><select class="form-control form-control-sm filter-input" data-column="5"><option value="">All Status</option><option value="payable">Payable</option><option value="received">Received</option></select></th>
-                                <th><input type="text" class="form-control form-control-sm filter-input" placeholder="Filter User" data-column="6"></th>
-                                <th><input type="date" class="form-control form-control-sm filter-input" data-column="7"></th>
+                                <th class="text-end">Total Amount</th>
+                                <th class="text-center">Records</th>
+                                <th class="text-center">Actions</th>
                             </tr>
                         </thead>
                         <tbody>
-                            @forelse($collections as $collection)
-                                <tr>
-                                    <td>{{ $collection->collection_date }}</td>
-                                    <td>KWD {{ number_format($collection->amount, 3) }}</td>
-                                    <td>{{ $collection->unit->name ?? 'N/A' }}</td>
-                                    <td>{{ $collection->unit->area->mekhala->name ?? 'N/A' }}</td>
-                                    <td>{{ $collection->unit->area->name ?? 'N/A' }}</td>
-                                    <td>
-                                        @if($collection->collection_status === 'received')
-                                            <span class="badge bg-success">Received</span>
-                                        @else
-                                            <span class="badge bg-warning">Payable</span>
-                                        @endif
-                                    </td>
-                                    <td>{{ $collection->enteredBy->name ?? 'N/A' }}</td>
-                                    <td>{{ $collection->created_at->format('Y-m-d H:i:s') }}</td>
-                                </tr>
-                            @empty
-                                <tr>
-                                    <td colspan="8" class="text-center">No collections found</td>
-                                </tr>
-                            @endforelse
+                            @foreach($collectionsByArea as $index => $areaData)
+                            <tr>
+                                <td><strong>{{ $areaData['area'] }}</strong></td>
+                                <td class="text-end">KWD {{ number_format($areaData['total'], 3) }}</td>
+                                <td class="text-center">{{ $areaData['count'] }}</td>
+                                <td class="text-center">
+                                    <button class="btn btn-sm btn-outline-primary" type="button" data-bs-toggle="collapse" data-bs-target="#areaDetails{{ $index }}">
+                                        <i class="fas fa-eye"></i> View Details
+                                    </button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td colspan="4" class="p-0">
+                                    <div class="collapse" id="areaDetails{{ $index }}">
+                                        <div class="p-3 bg-light">
+                                            <h6>{{ $areaData['area'] }} - Detailed Collections</h6>
+                                            <div class="table-responsive">
+                                                <table class="table table-sm mb-0">
+                                                    <thead>
+                                                        <tr>
+                                                            <th>Date</th>
+                                                            <th>Amount</th>
+                                                            <th>Unit</th>
+                                                            <th>Status</th>
+                                                            <th>Entered By</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        @foreach($areaData['collections'] as $collection)
+                                                        <tr>
+                                                            <td>{{ $collection->collection_date }}</td>
+                                                            <td>KWD {{ number_format($collection->amount, 3) }}</td>
+                                                            <td>{{ $collection->unit->name ?? 'N/A' }}</td>
+                                                            <td>
+                                                                @if($collection->collection_status === 'received')
+                                                                    <span class="badge bg-success">Received</span>
+                                                                @else
+                                                                    <span class="badge bg-warning">Payable</span>
+                                                                @endif
+                                                            </td>
+                                                            <td>{{ $collection->enteredBy->name ?? 'N/A' }}</td>
+                                                        </tr>
+                                                        @endforeach
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                            @endforeach
                         </tbody>
                         <tfoot>
                             <tr class="table-info">
                                 <th>Total:</th>
-                                <th id="totalAmount">KWD {{ number_format($totalAmount ?? $collections->sum('amount'), 3) }}</th>
-                                <th colspan="6"></th>
+                                <th class="text-end">KWD {{ number_format($totalAmount, 3) }}</th>
+                                <th class="text-center">{{ $collections->count() }}</th>
+                                <th></th>
                             </tr>
                         </tfoot>
                     </table>
