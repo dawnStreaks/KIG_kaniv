@@ -351,6 +351,32 @@ class CollectionController extends Controller
         return back()->with('success', 'Collection marked as received');
     }
 
+    public function bulkReceive(Request $request)
+    {
+        if (!auth()->user()->isMekhalaUser()) {
+            abort(403, 'Only mekhala users can receive collections');
+        }
+
+        $request->validate([
+            'collection_ids' => 'required|array',
+            'collection_ids.*' => 'exists:collections,id'
+        ]);
+
+        $collections = Collection::whereIn('id', $request->collection_ids)
+            ->whereHas('unit.area', function($q) {
+                $q->where('mekhala_id', auth()->user()->mekhala_id);
+            })
+            ->where('collection_status', 'payable')
+            ->get();
+
+        $count = $collections->count();
+        $collections->each(function($collection) {
+            $collection->update(['collection_status' => 'received']);
+        });
+
+        return back()->with('success', "$count collections marked as received");
+    }
+
     public function unitTypeComparison(Request $request)
     {
         $year = $request->get('year', date('Y'));

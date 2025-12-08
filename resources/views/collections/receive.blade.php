@@ -6,7 +6,10 @@
     <div>
         <div class="d-flex justify-content-between align-items-center mb-3">
             <h2>Receive Collections</h2>
-            <button type="button" class="btn btn-secondary" onclick="clearFilters()">Clear Filters</button>
+            <div>
+                <button type="button" class="btn btn-primary me-2" id="bulkReceiveBtn" onclick="bulkReceive()" disabled>Bulk Receive</button>
+                <button type="button" class="btn btn-secondary" onclick="clearFilters()">Clear Filters</button>
+            </div>
         </div>
 
         <div class="card">
@@ -14,6 +17,7 @@
                 <table class="table" id="receiveCollectionsTable">
                     <thead>
                         <tr>
+                            <th><input type="checkbox" id="selectAll" onchange="toggleSelectAll()"></th>
                             <th>Unit</th>
                             <th>Area</th>
                             <th>Amount</th>
@@ -25,20 +29,26 @@
                             <th>Actions</th>
                         </tr>
                         <tr>
-                            <th><input type="text" class="form-control form-control-sm filter-input" placeholder="Filter Unit" data-column="0"></th>
-                            <th><input type="text" class="form-control form-control-sm filter-input" placeholder="Filter Area" data-column="1"></th>
-                            <th><input type="text" class="form-control form-control-sm filter-input" placeholder="Filter Amount" data-column="2"></th>
-                            <th><input type="date" class="form-control form-control-sm filter-input" data-column="3"></th>
-                            <th><input type="text" class="form-control form-control-sm filter-input" placeholder="Filter Type" data-column="4"></th>
-                            <th><input type="text" class="form-control form-control-sm filter-input" placeholder="Filter Term" data-column="5"></th>
-                            <th><select class="form-control form-control-sm filter-input" data-column="6"><option value="">All Status</option><option value="payable">Payable</option><option value="received">Received</option></select></th>
-                            <th><input type="text" class="form-control form-control-sm filter-input" placeholder="Filter User" data-column="7"></th>
+                            <th></th>
+                            <th><input type="text" class="form-control form-control-sm filter-input" placeholder="Filter Unit" data-column="1"></th>
+                            <th><input type="text" class="form-control form-control-sm filter-input" placeholder="Filter Area" data-column="2"></th>
+                            <th><input type="text" class="form-control form-control-sm filter-input" placeholder="Filter Amount" data-column="3"></th>
+                            <th><input type="date" class="form-control form-control-sm filter-input" data-column="4"></th>
+                            <th><input type="text" class="form-control form-control-sm filter-input" placeholder="Filter Type" data-column="5"></th>
+                            <th><input type="text" class="form-control form-control-sm filter-input" placeholder="Filter Term" data-column="6"></th>
+                            <th><select class="form-control form-control-sm filter-input" data-column="7"><option value="">All Status</option><option value="payable">Payable</option><option value="received">Received</option></select></th>
+                            <th><input type="text" class="form-control form-control-sm filter-input" placeholder="Filter User" data-column="8"></th>
                             <th></th>
                         </tr>
                     </thead>
                     <tbody>
                         @foreach($collections as $collection)
                         <tr>
+                            <td>
+                                @if($collection->collection_status === 'payable')
+                                    <input type="checkbox" class="collection-checkbox" value="{{ $collection->id }}" onchange="updateBulkButton()">
+                                @endif
+                            </td>
                             <td>{{ $collection->unit->name ?? 'N/A' }}</td>
                             <td>{{ $collection->unit->area->name ?? 'N/A' }}</td>
                             <td>KWD {{ number_format($collection->amount, 3) }}</td>
@@ -112,6 +122,59 @@
                 input.value = '';
             });
             filterTable();
+        }
+        
+        function toggleSelectAll() {
+            const selectAll = document.getElementById('selectAll');
+            const checkboxes = document.querySelectorAll('.collection-checkbox');
+            
+            checkboxes.forEach(checkbox => {
+                checkbox.checked = selectAll.checked;
+            });
+            
+            updateBulkButton();
+        }
+        
+        function updateBulkButton() {
+            const checkedBoxes = document.querySelectorAll('.collection-checkbox:checked');
+            const bulkBtn = document.getElementById('bulkReceiveBtn');
+            
+            bulkBtn.disabled = checkedBoxes.length === 0;
+            bulkBtn.textContent = `Bulk Receive (${checkedBoxes.length})`;
+        }
+        
+        function bulkReceive() {
+            const checkedBoxes = document.querySelectorAll('.collection-checkbox:checked');
+            
+            if (checkedBoxes.length === 0) {
+                alert('Please select collections to receive');
+                return;
+            }
+            
+            if (!confirm(`Mark ${checkedBoxes.length} collections as received?`)) {
+                return;
+            }
+            
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = '{{ route('collections.bulk-receive') }}';
+            
+            const csrfToken = document.createElement('input');
+            csrfToken.type = 'hidden';
+            csrfToken.name = '_token';
+            csrfToken.value = '{{ csrf_token() }}';
+            form.appendChild(csrfToken);
+            
+            checkedBoxes.forEach(checkbox => {
+                const input = document.createElement('input');
+                input.type = 'hidden';
+                input.name = 'collection_ids[]';
+                input.value = checkbox.value;
+                form.appendChild(input);
+            });
+            
+            document.body.appendChild(form);
+            form.submit();
         }
     </script>
 @endsection
