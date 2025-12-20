@@ -44,7 +44,7 @@
                                 <th><input type="text" class="form-control form-control-sm" placeholder="Filter Civil ID"></th>
                                 <th><input type="text" class="form-control form-control-sm" placeholder="Filter Mobile"></th>
                                 <th><select class="form-control form-control-sm"><option value="">All Categories</option><option value="medical_support">Medical Support</option><option value="financial_support">Financial Support</option><option value="iqama_visa_residency">Iqama/Visa/Residency</option><option value="ticket">Ticket</option></select></th>
-                                <th><input type="text" class="form-control form-control-sm" placeholder="Filter Type"></th>
+                                <th><select class="form-control form-control-sm"><option value="">All Terms</option>@foreach($applicationTypes as $type)<option value="{{ $type->name }}">{{ $type->name }}</option>@endforeach</select></th>
                                 <th><input type="text" class="form-control form-control-sm" placeholder="Filter Area"></th>
                                 <th><input type="text" class="form-control form-control-sm" placeholder="Filter Unit"></th>
                                 <th><select class="form-control form-control-sm"><option value="">All Status</option><option value="pending">Pending</option><option value="payable">Payable</option><option value="paid">Paid</option><option value="rejected">Rejected</option></select></th>

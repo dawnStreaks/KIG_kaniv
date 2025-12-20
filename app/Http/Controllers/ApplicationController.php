@@ -23,7 +23,8 @@ class ApplicationController extends Controller
         }
         
         $applications = $query->latest()->paginate(10);
-        return view('applications.index', compact('applications'));
+        $applicationTypes = \App\Models\ApplicationType::active()->get();
+        return view('applications.index', compact('applications', 'applicationTypes'));
     }
 
     public function create()

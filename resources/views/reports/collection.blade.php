@@ -28,6 +28,85 @@
             </div>
         </div>
 
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5>Filters</h5>
+            </div>
+            <div class="card-body">
+                <form method="GET" action="{{ route('reports.collection') }}">
+                    <div class="row">
+                        <div class="col-md-3">
+                            <label for="area_id" class="form-label">Area</label>
+                            <select name="area_id" id="area_id" class="form-select">
+                                <option value="">All Areas</option>
+                                @foreach($areas as $area)
+                                    <option value="{{ $area->id }}" {{ request('area_id') == $area->id ? 'selected' : '' }}>
+                                        {{ $area->name }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label for="date_from" class="form-label">Date From</label>
+                            <input type="date" name="date_from" id="date_from" class="form-control" value="{{ request('date_from') }}">
+                        </div>
+                        <div class="col-md-3">
+                            <label for="date_to" class="form-label">Date To</label>
+                            <input type="date" name="date_to" id="date_to" class="form-control" value="{{ request('date_to') }}">
+                        </div>
+                        <div class="col-md-3 d-flex align-items-end">
+                            <button type="submit" class="btn btn-primary me-2">Filter</button>
+                            <a href="{{ route('reports.collection') }}" class="btn btn-secondary">Clear</a>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5>All Collections</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Unit</th>
+                                <th>Area</th>
+                                <th>Amount</th>
+                                <th>Type</th>
+                                <th>Term</th>
+                                <th>Status</th>
+                                <th>Entered By</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach($collections as $collection)
+                            <tr>
+                                <td>{{ $collection->collection_date }}</td>
+                                <td>{{ $collection->unit->name ?? 'N/A' }}</td>
+                                <td>{{ $collection->unit->area->name ?? 'N/A' }}</td>
+                                <td>KWD {{ number_format($collection->amount, 3) }}</td>
+                                <td>{{ $collection->type }}</td>
+                                <td>{{ $collection->term }}</td>
+                                <td>
+                                    @if($collection->collection_status === 'received')
+                                        <span class="badge bg-success">Received</span>
+                                    @else
+                                        <span class="badge bg-warning">Payable</span>
+                                    @endif
+                                </td>
+                                <td>{{ $collection->enteredBy->name ?? 'N/A' }}</td>
+                            </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
         @if(!empty($mekhalaData))
         <div class="card mb-4">
             <div class="card-header d-flex justify-content-between align-items-center">

@@ -179,6 +179,10 @@ class ReportController extends Controller
         }
         
         foreach ($expenses as $expense) {
+            // Skip expenses from areas that don't belong to user's mekhala
+            if ($user->isMekhalaUser() && $expense->enteredBy->area && $expense->enteredBy->area->mekhala_id !== $user->mekhala_id) {
+                continue;
+            }
             $areaName = $expense->enteredBy->area->name ?? 'General';
             $transactionsByArea->push([
                 'area' => $areaName,
@@ -191,6 +195,10 @@ class ReportController extends Controller
         }
         
         foreach ($applications as $application) {
+            // Skip applications from areas that don't belong to user's mekhala
+            if ($user->isMekhalaUser() && $application->area && $application->area->mekhala_id !== $user->mekhala_id) {
+                continue;
+            }
             $areaName = $application->area->name ?? 'Unknown Area';
             $transactionsByArea->push([
                 'area' => $areaName,
@@ -256,6 +264,11 @@ class ReportController extends Controller
         $collections = $query->latest('collection_date')->get();
         $totalAmount = $collections->sum('amount');
         
+        // Get areas for filter dropdown
+        $areas = \App\Models\Area::when($user->isMekhalaUser(), function($q) use ($user) {
+            $q->where('mekhala_id', $user->mekhala_id);
+        })->get();
+        
         // Group collections by area
         $collectionsByArea = $collections->groupBy(function($collection) {
             return $collection->unit->area->name ?? 'Unknown Area';
@@ -287,7 +300,7 @@ class ReportController extends Controller
                 })->toArray();
         }
         
-        return view('reports.collection', compact('collections', 'totalAmount', 'mekhalaData', 'collectionsByArea'));
+        return view('reports.collection', compact('collections', 'totalAmount', 'mekhalaData', 'collectionsByArea', 'areas'));
     }
 
     public function applicationPaymentReport(Request $request)
@@ -410,17 +423,14 @@ class ReportController extends Controller
         $currentYear = date('Y');
         $currentMonth = date('m');
         
-        // Get mekhala IDs
-        $eastMekhala = \App\Models\Mekhala::where('name', 'LIKE', '%east%')->first();
-        $westMekhala = \App\Models\Mekhala::where('name', 'LIKE', '%west%')->first();
-        
+        // Get mekhala IDs (based on database: 1=East, 2=West)
         $mekhalaIds = [];
-        if ($type === 'east' && $eastMekhala) {
-            $mekhalaIds = [$eastMekhala->id];
-        } elseif ($type === 'west' && $westMekhala) {
-            $mekhalaIds = [$westMekhala->id];
+        if ($type === 'east') {
+            $mekhalaIds = [1]; // East Mekhala
+        } elseif ($type === 'west') {
+            $mekhalaIds = [2]; // West Mekhala
         } elseif ($type === 'combined') {
-            $mekhalaIds = array_filter([$eastMekhala?->id, $westMekhala?->id]);
+            $mekhalaIds = [1, 2]; // Both East and West
         }
         
         // Collections Summary
@@ -566,8 +576,61 @@ class ReportController extends Controller
         
         $mekhalaName = $type !== 'combined' ? ucfirst($type) . ' Mekhala' : null;
         
-        $areaSummary = collect([]);
-        $groupedTransactions = collect([]);
+        // Group transactions by area
+        $transactionsByArea = collect();
+        
+        foreach ($collections as $collection) {
+            $areaName = $collection->unit->area->name ?? 'Unknown Area';
+            $transactionsByArea->push([
+                'area' => $areaName,
+                'date' => $collection->collection_date,
+                'type' => 'Collection',
+                'description' => 'Collection from ' . ($collection->unit->name ?? 'N/A'),
+                'collection' => $collection->amount,
+                'expense' => 0,
+            ]);
+        }
+        
+        foreach ($expenses as $expense) {
+            $areaName = $expense->enteredBy->area->name ?? 'General';
+            $transactionsByArea->push([
+                'area' => $areaName,
+                'date' => $expense->expense_date,
+                'type' => 'Expense',
+                'description' => $expense->particulars,
+                'collection' => 0,
+                'expense' => $expense->amount,
+            ]);
+        }
+        
+        foreach ($applications as $application) {
+            $areaName = $application->area->name ?? 'Unknown Area';
+            $transactionsByArea->push([
+                'area' => $areaName,
+                'date' => $application->approved_date,
+                'type' => 'Application Payment',
+                'description' => 'Payment to ' . $application->name . ' (' . ucfirst($application->category) . ')',
+                'collection' => 0,
+                'expense' => $application->approved_amount,
+            ]);
+        }
+        
+        // Group by area and sort within each area by date
+        $groupedTransactions = $transactionsByArea->groupBy('area')->map(function($areaTransactions) {
+            return $areaTransactions->sortBy('date');
+        });
+        
+        // Calculate area totals
+        $areaSummary = $groupedTransactions->map(function($areaTransactions, $areaName) {
+            $totalCollections = $areaTransactions->sum('collection');
+            $totalExpenses = $areaTransactions->sum('expense');
+            return [
+                'area' => $areaName,
+                'collections' => $totalCollections,
+                'expenses' => $totalExpenses,
+                'balance' => $totalCollections - $totalExpenses
+            ];
+        });
         
         return view('reports.financial-statement', compact(
             'yearlyCollections', 'monthlyCollections', 'yearlyExpenses', 'monthlyExpenses',

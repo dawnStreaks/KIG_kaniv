@@ -380,11 +380,20 @@ class CollectionController extends Controller
     public function unitTypeComparison(Request $request)
     {
         $year = $request->get('year', date('Y'));
+        $user = auth()->user();
         
-        $data = \App\Models\Unit::with(['collections' => function($q) use ($year) {
+        $query = \App\Models\Unit::with(['collections' => function($q) use ($year) {
             $q->whereYear('collection_date', $year);
-        }])
-        ->get()
+        }]);
+        
+        // Filter by mekhala for mekhala users
+        if ($user->isMekhalaUser()) {
+            $query->whereHas('area', function($q) use ($user) {
+                $q->where('mekhala_id', $user->mekhala_id);
+            });
+        }
+        
+        $data = $query->get()
         ->groupBy(function($unit) {
             if (str_starts_with($unit->name, 'YI')) return 'YI';
             if (str_starts_with($unit->name, 'IWA')) return 'IWA';
