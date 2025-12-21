@@ -77,33 +77,57 @@ class ReportController extends Controller
         }
         $monthlyApplications = $monthlyApplicationsQuery->sum('approved_amount');
         
-        // Investment Summary - restrict for mekhala users
-        $investmentsQuery = Investment::whereYear('investment_date', $currentYear);
+        // Investment Summary
+        $yearlyInvestmentsQuery = Investment::whereYear('investment_date', $currentYear);
+        if ($user->isMekhalaUser()) {
+            $yearlyInvestmentsQuery->whereHas('creator', function($q) use ($user) {
+                $q->where('mekhala_id', $user->mekhala_id);
+            });
+        }
+        $yearlyInvestments = $yearlyInvestmentsQuery->sum('amount');
+        
         $monthlyInvestmentsQuery = Investment::whereMonth('investment_date', $currentMonth)
-                                            ->whereYear('investment_date', $currentYear);
-        $incomeQuery = Investment::whereYear('investment_date', $currentYear);
+                                           ->whereYear('investment_date', $currentYear);
+        if ($user->isMekhalaUser()) {
+            $monthlyInvestmentsQuery->whereHas('creator', function($q) use ($user) {
+                $q->where('mekhala_id', $user->mekhala_id);
+            });
+        }
+        $monthlyInvestments = $monthlyInvestmentsQuery->sum('amount');
+        
+        $yearlyIncomeQuery = Investment::whereYear('investment_date', $currentYear);
+        if ($user->isMekhalaUser()) {
+            $yearlyIncomeQuery->whereHas('creator', function($q) use ($user) {
+                $q->where('mekhala_id', $user->mekhala_id);
+            });
+        }
+        $yearlyIncome = $yearlyIncomeQuery->sum('income_generated');
+        
         $monthlyIncomeQuery = Investment::whereMonth('investment_date', $currentMonth)
-                                       ->whereYear('investment_date', $currentYear);
-        $returnedQuery = Investment::whereYear('investment_date', $currentYear);
+                                      ->whereYear('investment_date', $currentYear);
+        if ($user->isMekhalaUser()) {
+            $monthlyIncomeQuery->whereHas('creator', function($q) use ($user) {
+                $q->where('mekhala_id', $user->mekhala_id);
+            });
+        }
+        $monthlyIncome = $monthlyIncomeQuery->sum('income_generated');
+        
+        $yearlyReturnedQuery = Investment::whereYear('investment_date', $currentYear);
+        if ($user->isMekhalaUser()) {
+            $yearlyReturnedQuery->whereHas('creator', function($q) use ($user) {
+                $q->where('mekhala_id', $user->mekhala_id);
+            });
+        }
+        $yearlyReturned = $yearlyReturnedQuery->sum('returned_amount');
+        
         $monthlyReturnedQuery = Investment::whereMonth('investment_date', $currentMonth)
                                          ->whereYear('investment_date', $currentYear);
-        
-        // For mekhala users, only show investments if they are center-level users
         if ($user->isMekhalaUser()) {
-            $yearlyInvestments = 0;
-            $monthlyInvestments = 0;
-            $yearlyIncome = 0;
-            $monthlyIncome = 0;
-            $yearlyReturned = 0;
-            $monthlyReturned = 0;
-        } else {
-            $yearlyInvestments = $investmentsQuery->sum('amount');
-            $monthlyInvestments = $monthlyInvestmentsQuery->sum('amount');
-            $yearlyIncome = $incomeQuery->sum('income_generated');
-            $monthlyIncome = $monthlyIncomeQuery->sum('income_generated');
-            $yearlyReturned = $returnedQuery->sum('returned_amount');
-            $monthlyReturned = $monthlyReturnedQuery->sum('returned_amount');
+            $monthlyReturnedQuery->whereHas('creator', function($q) use ($user) {
+                $q->where('mekhala_id', $user->mekhala_id);
+            });
         }
+        $monthlyReturned = $monthlyReturnedQuery->sum('returned_amount');
         
         // Get detailed transactions (only received collections)
         $collectionsDetailQuery = Collection::received()->with('unit')->orderBy('collection_date');
@@ -253,6 +277,14 @@ class ReportController extends Controller
             });
         }
         
+        if ($request->filled('term')) {
+            $query->where('term', $request->term);
+        }
+        
+        if ($request->filled('type')) {
+            $query->where('type', $request->type);
+        }
+        
         if ($request->filled('date_from')) {
             $query->where('collection_date', '>=', $request->date_from);
         }
@@ -269,14 +301,30 @@ class ReportController extends Controller
             $q->where('mekhala_id', $user->mekhala_id);
         })->get();
         
-        // Group collections by area
+        // Get terms and types for filters
+        $terms = \App\Models\CollectionTerm::all();
+        $types = \App\Models\CollectionType::all();
+        
+        // Group collections by area, term, and type
         $collectionsByArea = $collections->groupBy(function($collection) {
             return $collection->unit->area->name ?? 'Unknown Area';
         })->map(function($areaCollections, $areaName) {
+            $termTypeGroups = $areaCollections->groupBy(function($collection) {
+                return $collection->term . ' - ' . $collection->type;
+            })->map(function($termTypeCollections, $termType) {
+                return [
+                    'term_type' => $termType,
+                    'total' => $termTypeCollections->sum('amount'),
+                    'count' => $termTypeCollections->count(),
+                    'collections' => $termTypeCollections
+                ];
+            });
+            
             return [
                 'area' => $areaName,
                 'total' => $areaCollections->sum('amount'),
                 'count' => $areaCollections->count(),
+                'term_type_groups' => $termTypeGroups,
                 'collections' => $areaCollections
             ];
         });
@@ -300,7 +348,7 @@ class ReportController extends Controller
                 })->toArray();
         }
         
-        return view('reports.collection', compact('collections', 'totalAmount', 'mekhalaData', 'collectionsByArea', 'areas'));
+        return view('reports.collection', compact('collections', 'totalAmount', 'mekhalaData', 'collectionsByArea', 'areas', 'terms', 'types'));
     }
 
     public function applicationPaymentReport(Request $request)
@@ -487,19 +535,57 @@ class ReportController extends Controller
         }
         $monthlyApplications = $monthlyApplicationsQuery->sum('approved_amount');
         
-        // Investment Summary (same as before)
-        $yearlyInvestments = Investment::whereYear('investment_date', $currentYear)->sum('amount');
-        $monthlyInvestments = Investment::whereMonth('investment_date', $currentMonth)
-                                       ->whereYear('investment_date', $currentYear)
-                                       ->sum('amount');
-        $yearlyIncome = Investment::whereYear('investment_date', $currentYear)->sum('income_generated');
-        $monthlyIncome = Investment::whereMonth('investment_date', $currentMonth)
-                                  ->whereYear('investment_date', $currentYear)
-                                  ->sum('income_generated');
-        $yearlyReturned = Investment::whereYear('investment_date', $currentYear)->sum('returned_amount');
-        $monthlyReturned = Investment::whereMonth('investment_date', $currentMonth)
-                                   ->whereYear('investment_date', $currentYear)
-                                   ->sum('returned_amount');
+        // Investment Summary
+        $yearlyInvestmentsQuery = Investment::whereYear('investment_date', $currentYear);
+        if (!empty($mekhalaIds)) {
+            $yearlyInvestmentsQuery->whereHas('creator', function($q) use ($mekhalaIds) {
+                $q->whereIn('mekhala_id', $mekhalaIds);
+            });
+        }
+        $yearlyInvestments = $yearlyInvestmentsQuery->sum('amount');
+        
+        $monthlyInvestmentsQuery = Investment::whereMonth('investment_date', $currentMonth)
+                                           ->whereYear('investment_date', $currentYear);
+        if (!empty($mekhalaIds)) {
+            $monthlyInvestmentsQuery->whereHas('creator', function($q) use ($mekhalaIds) {
+                $q->whereIn('mekhala_id', $mekhalaIds);
+            });
+        }
+        $monthlyInvestments = $monthlyInvestmentsQuery->sum('amount');
+        
+        $yearlyIncomeQuery = Investment::whereYear('investment_date', $currentYear);
+        if (!empty($mekhalaIds)) {
+            $yearlyIncomeQuery->whereHas('creator', function($q) use ($mekhalaIds) {
+                $q->whereIn('mekhala_id', $mekhalaIds);
+            });
+        }
+        $yearlyIncome = $yearlyIncomeQuery->sum('income_generated');
+        
+        $monthlyIncomeQuery = Investment::whereMonth('investment_date', $currentMonth)
+                                      ->whereYear('investment_date', $currentYear);
+        if (!empty($mekhalaIds)) {
+            $monthlyIncomeQuery->whereHas('creator', function($q) use ($mekhalaIds) {
+                $q->whereIn('mekhala_id', $mekhalaIds);
+            });
+        }
+        $monthlyIncome = $monthlyIncomeQuery->sum('income_generated');
+        
+        $yearlyReturnedQuery = Investment::whereYear('investment_date', $currentYear);
+        if (!empty($mekhalaIds)) {
+            $yearlyReturnedQuery->whereHas('creator', function($q) use ($mekhalaIds) {
+                $q->whereIn('mekhala_id', $mekhalaIds);
+            });
+        }
+        $yearlyReturned = $yearlyReturnedQuery->sum('returned_amount');
+        
+        $monthlyReturnedQuery = Investment::whereMonth('investment_date', $currentMonth)
+                                         ->whereYear('investment_date', $currentYear);
+        if (!empty($mekhalaIds)) {
+            $monthlyReturnedQuery->whereHas('creator', function($q) use ($mekhalaIds) {
+                $q->whereIn('mekhala_id', $mekhalaIds);
+            });
+        }
+        $monthlyReturned = $monthlyReturnedQuery->sum('returned_amount');
         
         // Get detailed transactions
         $collectionsDetailQuery = Collection::received()->with('unit')->orderBy('collection_date');

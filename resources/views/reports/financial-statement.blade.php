@@ -108,16 +108,47 @@
         <div class="row mt-4">
             <div class="col-12">
                 <div class="card">
-                    <div class="card-header">
+                    <div class="card-header d-flex justify-content-between align-items-center">
                         <h5>Net Balance</h5>
+                        <button class="btn btn-sm btn-outline-primary" type="button" data-bs-toggle="collapse" data-bs-target="#netBalanceDetails">
+                            <i class="fas fa-eye"></i> View Details
+                        </button>
                     </div>
                     <div class="card-body">
                         @php
-                            $netBalance = ($yearlyCollections ?? 0) - ($yearlyExpenses ?? 0) - ($yearlyApplications ?? 0);
+                            $investedAmount = ($yearlyInvestments ?? 0) - ($yearlyReturned ?? 0);
+                            $netBalance = ($yearlyCollections ?? 0) - ($yearlyExpenses ?? 0) - ($yearlyApplications ?? 0) - $investedAmount;
                         @endphp
                         <h3 class="text-center {{ $netBalance >= 0 ? 'text-success' : 'text-danger' }}">
                             KWD {{ number_format($netBalance, 3) }}
                         </h3>
+                        
+                        <div class="collapse mt-3" id="netBalanceDetails">
+                            <div class="table-responsive">
+                                <table class="table table-sm">
+                                    <tr class="table-success">
+                                        <td><strong>Total Collections</strong></td>
+                                        <td class="text-end"><strong>+ KWD {{ number_format($yearlyCollections ?? 0, 3) }}</strong></td>
+                                    </tr>
+                                    <tr class="table-danger">
+                                        <td><strong>Total Expenses</strong></td>
+                                        <td class="text-end"><strong>- KWD {{ number_format($yearlyExpenses ?? 0, 3) }}</strong></td>
+                                    </tr>
+                                    <tr class="table-danger">
+                                        <td><strong>Total Applications</strong></td>
+                                        <td class="text-end"><strong>- KWD {{ number_format($yearlyApplications ?? 0, 3) }}</strong></td>
+                                    </tr>
+                                    <tr class="table-warning">
+                                        <td><strong>Amount Invested (Net)</strong></td>
+                                        <td class="text-end"><strong>- KWD {{ number_format($investedAmount, 3) }}</strong></td>
+                                    </tr>
+                                    <tr class="table-info">
+                                        <td><strong>Net Balance</strong></td>
+                                        <td class="text-end"><strong>KWD {{ number_format($netBalance, 3) }}</strong></td>
+                                    </tr>
+                                </table>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
