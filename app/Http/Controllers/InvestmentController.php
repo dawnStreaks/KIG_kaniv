@@ -10,7 +10,16 @@ class InvestmentController extends Controller
 {
     public function index()
     {
-        $investments = Investment::with(['creator'])->latest()->paginate(10);
+        $query = Investment::with(['creator']);
+        
+        // Filter by user's mekhala if they are a mekhala user
+        if (auth()->user()->isMekhalaUser()) {
+            $query->whereHas('creator', function($q) {
+                $q->where('mekhala_id', auth()->user()->mekhala_id);
+            });
+        }
+        
+        $investments = $query->latest()->paginate(10);
         return view('investments.index', compact('investments'));
     }
 

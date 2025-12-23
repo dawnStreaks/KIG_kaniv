@@ -23,8 +23,8 @@ class ReportController extends Controller
             $mekhalaName = $user->mekhala->name;
         }
         
-        // Collections Summary (only received collections)
-        $collectionsQuery = Collection::received()->whereYear('collection_date', $currentYear);
+        // Collections Summary (only received collections, not forwarded)
+        $collectionsQuery = Collection::where('collection_status', 'received')->whereYear('collection_date', $currentYear);
         if ($user->isMekhalaUser()) {
             $collectionsQuery->whereHas('unit.area', function($q) use ($user) {
                 $q->where('mekhala_id', $user->mekhala_id);
@@ -32,7 +32,7 @@ class ReportController extends Controller
         }
         $yearlyCollections = $collectionsQuery->sum('amount');
         
-        $monthlyCollectionsQuery = Collection::received()->whereMonth('collection_date', $currentMonth)
+        $monthlyCollectionsQuery = Collection::where('collection_status', 'received')->whereMonth('collection_date', $currentMonth)
                                       ->whereYear('collection_date', $currentYear);
         if ($user->isMekhalaUser()) {
             $monthlyCollectionsQuery->whereHas('unit.area', function($q) use ($user) {
@@ -40,6 +40,24 @@ class ReportController extends Controller
             });
         }
         $monthlyCollections = $monthlyCollectionsQuery->sum('amount');
+        
+        // Forwarded Collections Summary
+        $forwardedQuery = Collection::where('collection_status', 'forwarded')->whereYear('collection_date', $currentYear);
+        if ($user->isMekhalaUser()) {
+            $forwardedQuery->whereHas('unit.area', function($q) use ($user) {
+                $q->where('mekhala_id', $user->mekhala_id);
+            });
+        }
+        $yearlyForwarded = $forwardedQuery->sum('amount');
+        
+        $monthlyForwardedQuery = Collection::where('collection_status', 'forwarded')->whereMonth('collection_date', $currentMonth)
+                                      ->whereYear('collection_date', $currentYear);
+        if ($user->isMekhalaUser()) {
+            $monthlyForwardedQuery->whereHas('unit.area', function($q) use ($user) {
+                $q->where('mekhala_id', $user->mekhala_id);
+            });
+        }
+        $monthlyForwarded = $monthlyForwardedQuery->sum('amount');
         
         // Expenses Summary
         $expensesQuery = Expense::whereYear('expense_date', $currentYear);
@@ -254,7 +272,8 @@ class ReportController extends Controller
         return view('reports.financial-statement', compact(
             'yearlyCollections', 'monthlyCollections', 'yearlyExpenses', 'monthlyExpenses',
             'yearlyApplications', 'monthlyApplications', 'yearlyInvestments', 'monthlyInvestments',
-            'yearlyIncome', 'monthlyIncome', 'yearlyReturned', 'monthlyReturned', 'groupedTransactions', 'areaSummary', 'mekhalaName'
+            'yearlyIncome', 'monthlyIncome', 'yearlyReturned', 'monthlyReturned', 'groupedTransactions', 'areaSummary', 'mekhalaName',
+            'yearlyForwarded', 'monthlyForwarded'
         ));
     }
 

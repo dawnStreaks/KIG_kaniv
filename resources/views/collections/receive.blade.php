@@ -36,7 +36,7 @@
                             <th><input type="date" class="form-control form-control-sm filter-input" data-column="4"></th>
                             <th><input type="text" class="form-control form-control-sm filter-input" placeholder="Filter Type" data-column="5"></th>
                             <th><input type="text" class="form-control form-control-sm filter-input" placeholder="Filter Term" data-column="6"></th>
-                            <th><select class="form-control form-control-sm filter-input" data-column="7"><option value="">All Status</option><option value="payable">Payable</option><option value="received">Received</option></select></th>
+                            <th><select class="form-control form-control-sm filter-input" data-column="7"><option value="">All Status</option><option value="payable">Payable</option><option value="received">Received</option><option value="forwarded">Forwarded</option></select></th>
                             <th><input type="text" class="form-control form-control-sm filter-input" placeholder="Filter User" data-column="8"></th>
                             <th></th>
                         </tr>
@@ -58,6 +58,8 @@
                             <td>
                                 @if($collection->collection_status === 'received')
                                     <span class="badge bg-success">Received</span>
+                                @elseif($collection->collection_status === 'forwarded')
+                                    <span class="badge bg-info">Forwarded</span>
                                 @else
                                     <span class="badge bg-warning">Payable</span>
                                 @endif
@@ -72,8 +74,16 @@
                                             Receive Collection
                                         </button>
                                     </form>
+                                @elseif($collection->collection_status === 'received')
+                                    <form method="POST" action="{{ route('collections.forward-to-center', $collection) }}" style="display: inline;">
+                                        @csrf
+                                        @method('PATCH')
+                                        <button type="submit" class="btn btn-sm btn-info" onclick="return confirm('Forward this collection to center?')">
+                                            Forward to Center
+                                        </button>
+                                    </form>
                                 @else
-                                    <span class="text-muted">Already Received</span>
+                                    <span class="text-muted">Forwarded to Center</span>
                                 @endif
                             </td>
                         </tr>

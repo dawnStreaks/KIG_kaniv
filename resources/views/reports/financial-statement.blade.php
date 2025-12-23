@@ -70,39 +70,45 @@
                     </div>
                 </div>
             </div>
-            @if(!$mekhalaName)
             <div class="col-md-6">
                 <div class="card">
                     <div class="card-header">
-                        <h5>Investment Summary</h5>
+                        <h5>Forwarded to Center</h5>
                     </div>
                     <div class="card-body">
                         <table class="table">
                             <tr>
-                                <td>Yearly Total Investments:</td>
-                                <td class="text-end">KWD {{ number_format($yearlyInvestments ?? 0, 3) }}</td>
+                                <td>Yearly Forwarded:</td>
+                                <td class="text-end">KWD {{ number_format($yearlyForwarded ?? 0, 3) }}</td>
                             </tr>
                             <tr>
-                                <td>Monthly Total Investments:</td>
-                                <td class="text-end">KWD {{ number_format($monthlyInvestments ?? 0, 3) }}</td>
-                            </tr>
-                            <tr>
-                                <td>Income Generated:</td>
-                                <td class="text-end">KWD {{ number_format($yearlyIncome ?? 0, 3) }}</td>
-                            </tr>
-                            <tr>
-                                <td>Capital Returned:</td>
-                                <td class="text-end">KWD {{ number_format($yearlyReturned ?? 0, 3) }}</td>
-                            </tr>
-                            <tr class="table-info">
-                                <td><strong>Investment Balance:</strong></td>
-                                <td class="text-end"><strong>KWD {{ number_format(($yearlyInvestments ?? 0) + ($yearlyIncome ?? 0) - ($yearlyReturned ?? 0), 3) }}</strong></td>
+                                <td>Monthly Forwarded:</td>
+                                <td class="text-end">KWD {{ number_format($monthlyForwarded ?? 0, 3) }}</td>
                             </tr>
                         </table>
                     </div>
                 </div>
             </div>
-            @endif
+        </div>
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h5>Other Income</h5>
+                    </div>
+                    <div class="card-body">
+                        <table class="table">
+                            <tr>
+                                <td>Amount Invested:</td>
+                                <td class="text-end">KWD {{ number_format($yearlyInvestments ?? 0, 3) }}</td>
+                            </tr>
+                            <tr>
+                                <td>Investment Income:</td>
+                                <td class="text-end">KWD {{ number_format($yearlyIncome ?? 0, 3) }}</td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+            </div>
         </div>
 
         <div class="row mt-4">
@@ -117,7 +123,7 @@
                     <div class="card-body">
                         @php
                             $investedAmount = ($yearlyInvestments ?? 0) - ($yearlyReturned ?? 0);
-                            $netBalance = ($yearlyCollections ?? 0) - ($yearlyExpenses ?? 0) - ($yearlyApplications ?? 0) - $investedAmount;
+                            $netBalance = ($yearlyCollections ?? 0) + ($yearlyIncome ?? 0) - ($yearlyExpenses ?? 0) - ($yearlyApplications ?? 0) - $investedAmount;
                         @endphp
                         <h3 class="text-center {{ $netBalance >= 0 ? 'text-success' : 'text-danger' }}">
                             KWD {{ number_format($netBalance, 3) }}
@@ -141,6 +147,10 @@
                                     <tr class="table-warning">
                                         <td><strong>Amount Invested (Net)</strong></td>
                                         <td class="text-end"><strong>- KWD {{ number_format($investedAmount, 3) }}</strong></td>
+                                    </tr>
+                                    <tr class="table-success">
+                                        <td><strong>Other Income</strong></td>
+                                        <td class="text-end"><strong>+ KWD {{ number_format($yearlyIncome ?? 0, 3) }}</strong></td>
                                     </tr>
                                     <tr class="table-info">
                                         <td><strong>Net Balance</strong></td>

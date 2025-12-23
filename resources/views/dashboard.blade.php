@@ -9,11 +9,11 @@
     </div>
         <div class="row">
             <div class="col-md-12">
-                <h2>Dashboard</h2>
+                <!-- <h2>Dashboard</h2> -->
                 
                 <div class="row mt-4">
                     @if(auth()->user()->isAdmin())
-                        <div class="col-md-3">
+                        <div class="col-md-3 mb-3">
                             <div class="card text-white bg-primary">
                                 <div class="card-body">
                                     <h5 class="card-title">Admin Panel</h5>
@@ -25,7 +25,7 @@
                     @endif
                     
                     @if(auth()->user()->isAreaUser() || auth()->user()->isAdmin())
-                        <div class="col-md-3">
+                        <div class="col-md-3 mb-3">
                             <div class="card text-white bg-success">
                                 <div class="card-body">
                                     <h5 class="card-title">Applications</h5>
@@ -35,7 +35,7 @@
                             </div>
                         </div>
                         
-                        <div class="col-md-3">
+                        <div class="col-md-3 mb-3">
                             <div class="card text-white bg-info">
                                 <div class="card-body">
                                     <h5 class="card-title">Collections</h5>
@@ -47,7 +47,7 @@
                     @endif
                     
                     @if(auth()->user()->isMekhalaUser() || auth()->user()->isAdmin())
-                        <div class="col-md-3">
+                        <div class="col-md-3 mb-3">
                             <div class="card text-white bg-warning">
                                 <div class="card-body">
                                     <h5 class="card-title">Review Applications</h5>
@@ -57,7 +57,7 @@
                             </div>
                         </div>
                         
-                        <div class="col-md-3">
+                        <div class="col-md-3 mb-3">
                             <div class="card text-white bg-danger">
                                 <div class="card-body">
                                     <h5 class="card-title">Expenses</h5>
@@ -67,7 +67,7 @@
                             </div>
                         </div>
                         
-                        <div class="col-md-3">
+                        <div class="col-md-3 mb-3">
                             <div class="card text-white bg-secondary">
                                 <div class="card-body">
                                     <h5 class="card-title">Reports</h5>
