@@ -52,4 +52,9 @@ class Collection extends Model
     {
         return $query->where('collection_status', 'received');
     }
+
+    public function scopeCenterReceived($query)
+    {
+        return $query->where('collection_status', 'center_received');
+    }
 }

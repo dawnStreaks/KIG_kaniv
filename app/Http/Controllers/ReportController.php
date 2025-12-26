@@ -485,6 +485,47 @@ class ReportController extends Controller
         return $this->getMekhalaFinancialStatement($request, 'combined');
     }
 
+    public function centerFinancial(Request $request)
+    {
+        $currentYear = date('Y');
+        $currentMonth = date('m');
+        
+        // Collections Summary (only center received collections)
+        $yearlyCollections = Collection::centerReceived()->whereYear('collection_date', $currentYear)->sum('amount');
+        $monthlyCollections = Collection::centerReceived()->whereMonth('collection_date', $currentMonth)
+                                      ->whereYear('collection_date', $currentYear)->sum('amount');
+        
+        // Center expenses (all expenses as center manages everything)
+        $yearlyExpenses = Expense::whereYear('expense_date', $currentYear)->sum('amount');
+        $monthlyExpenses = Expense::whereMonth('expense_date', $currentMonth)
+                                 ->whereYear('expense_date', $currentYear)->sum('amount');
+        
+        // Applications Summary (only paid applications)
+        $yearlyApplications = Application::where('status', 'paid')->whereYear('approved_date', $currentYear)->sum('approved_amount');
+        $monthlyApplications = Application::where('status', 'paid')->whereMonth('approved_date', $currentMonth)
+                                         ->whereYear('approved_date', $currentYear)->sum('approved_amount');
+        
+        // Investment Summary (all investments)
+        $yearlyInvestments = Investment::whereYear('investment_date', $currentYear)->sum('amount');
+        $monthlyInvestments = Investment::whereMonth('investment_date', $currentMonth)
+                                       ->whereYear('investment_date', $currentYear)->sum('amount');
+        $yearlyIncome = Investment::whereYear('investment_date', $currentYear)->sum('income_generated');
+        $monthlyIncome = Investment::whereMonth('investment_date', $currentMonth)
+                                  ->whereYear('investment_date', $currentYear)->sum('income_generated');
+        $yearlyReturned = Investment::whereYear('investment_date', $currentYear)->sum('returned_amount');
+        $monthlyReturned = Investment::whereMonth('investment_date', $currentMonth)
+                                   ->whereYear('investment_date', $currentYear)->sum('returned_amount');
+        
+        $reportType = 'Center';
+        $mekhalaName = 'Center Office';
+        
+        return view('reports.financial-statement', compact(
+            'yearlyCollections', 'monthlyCollections', 'yearlyExpenses', 'monthlyExpenses',
+            'yearlyApplications', 'monthlyApplications', 'yearlyInvestments', 'monthlyInvestments',
+            'yearlyIncome', 'monthlyIncome', 'yearlyReturned', 'monthlyReturned', 'reportType', 'mekhalaName'
+        ));
+    }
+
     private function getMekhalaFinancialStatement(Request $request, $type)
     {
         $currentYear = date('Y');

@@ -124,6 +124,7 @@
                         </div>
                         <a class="nav-link" href="{{ route('applications.index') }}">Applications</a>
                         <a class="nav-link" href="{{ route('collections.index') }}">Collections</a>
+                        <a class="nav-link" href="{{ route('collections.center-receive') }}">Center Receive Collections</a>
                         <a class="nav-link" href="{{ route('applications.review') }}">Review Applications</a>
                         <a class="nav-link" href="{{ route('expenses.index') }}">Expenses</a>
                         @if(auth()->user()->canAddInvestments())
@@ -136,6 +137,7 @@
                         <a class="nav-link" href="{{ route('reports.east-financial') }}">East Mekhala Financial</a>
                         <a class="nav-link" href="{{ route('reports.west-financial') }}">West Mekhala Financial</a>
                         <a class="nav-link" href="{{ route('reports.combined-financial') }}">Combined Financial</a>
+                        <a class="nav-link" href="{{ route('reports.center-financial') }}">Center Financial</a>
                         <a class="nav-link" href="{{ route('reports.collection') }}">Collection Report</a>
                         <a class="nav-link" href="{{ route('collections.report') }}">Collection Chart Report</a>
                         <a class="nav-link" href="{{ route('collections.unit-type-comparison') }}">Unit Type Comparison</a>

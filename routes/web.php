@@ -109,6 +109,8 @@ Route::middleware('auth')->group(function () {
     Route::get('/collections/report/drill-down', [CollectionController::class, 'collectionReportDrillDown'])->name('collections.report.drilldown');
     Route::get('/collections/receive', [CollectionController::class, 'receiveCollections'])->name('collections.receive');
     Route::patch('/collections/{collection}/mark-received', [CollectionController::class, 'markAsReceived'])->name('collections.mark-received');
+    Route::get('/collections/center-receive', [CollectionController::class, 'centerReceiveCollections'])->name('collections.center-receive');
+    Route::patch('/collections/{collection}/mark-center-received', [CollectionController::class, 'markAsCenterReceived'])->name('collections.mark-center-received');
     Route::patch('/collections/{collection}/forward-to-center', [CollectionController::class, 'forwardToCenter'])->name('collections.forward-to-center');
     Route::post('/collections/bulk-receive', [CollectionController::class, 'bulkReceive'])->name('collections.bulk-receive');
     Route::resource('collections', CollectionController::class);

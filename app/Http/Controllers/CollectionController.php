@@ -351,6 +351,33 @@ class CollectionController extends Controller
         return back()->with('success', 'Collection marked as received');
     }
 
+    public function centerReceiveCollections()
+    {
+        if (!auth()->user()->isCenterUser()) {
+            abort(403, 'Only center users can access this page');
+        }
+
+        $query = Collection::with(['unit.area.mekhala', 'enteredBy'])
+            ->where('collection_status', 'received');
+
+        $collections = $query->latest()->paginate(10);
+        return view('collections.center-receive', compact('collections'));
+    }
+
+    public function markAsCenterReceived(Collection $collection)
+    {
+        if (!auth()->user()->isCenterUser()) {
+            abort(403, 'Only center users can receive collections');
+        }
+
+        if ($collection->collection_status !== 'received') {
+            abort(403, 'Collection must be received by mekhala first');
+        }
+
+        $collection->update(['collection_status' => 'center_received']);
+        return back()->with('success', 'Collection marked as center received');
+    }
+
     public function forwardToCenter(Collection $collection)
     {
         if (!auth()->user()->isMekhalaUser()) {
