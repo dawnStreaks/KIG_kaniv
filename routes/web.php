@@ -138,6 +138,7 @@ Route::middleware('auth')->group(function () {
     // Report routes
     Route::middleware('mekhala')->prefix('reports')->name('reports.')->group(function () {
         Route::get('/financial-statement', [ReportController::class, 'financialStatement'])->name('financial');
+        Route::get('/center-financial', [ReportController::class, 'financialStatement'])->name('center-financial');
         Route::get('/east-mekhala-financial', [ReportController::class, 'eastMekhalaFinancial'])->name('east-financial');
         Route::get('/west-mekhala-financial', [ReportController::class, 'westMekhalaFinancial'])->name('west-financial');
         Route::get('/combined-financial', [ReportController::class, 'combinedFinancial'])->name('combined-financial');
