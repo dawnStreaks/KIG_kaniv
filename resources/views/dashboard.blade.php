@@ -77,6 +77,18 @@
                             </div>
                         </div>
                     @endif
+                    
+                    @if(auth()->user()->isCenterUser() || auth()->user()->isAdmin())
+                        <div class="col-md-3 mb-3">
+                            <div class="card text-white bg-dark">
+                                <div class="card-body">
+                                    <h5 class="card-title">Center Collections</h5>
+                                    <p class="card-text">Receive forwarded collections</p>
+                                    <a href="{{ route('collections.center-receive') }}" class="btn btn-light">Receive</a>
+                                </div>
+                            </div>
+                        </div>
+                    @endif
                 </div>
             </div>
         </div>
