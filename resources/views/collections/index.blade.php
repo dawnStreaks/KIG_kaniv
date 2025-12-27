@@ -65,6 +65,15 @@
                             <td>{{ $collection->enteredBy->name ?? 'N/A' }}</td>
                             <td>
                                 <a href="{{ route('collections.edit', $collection->id) }}" class="btn btn-sm btn-warning">Edit</a>
+                                @if(auth()->user()->isCenterUser() && $collection->collection_status === 'received')
+                                    <form method="POST" action="{{ route('collections.mark-center-received', $collection) }}" class="d-inline">
+                                        @csrf
+                                        @method('PATCH')
+                                        <button type="submit" class="btn btn-sm btn-success" onclick="return confirm('Mark as center received?')">
+                                            Center Receive
+                                        </button>
+                                    </form>
+                                @endif
                             </td>
                         </tr>
                         @endforeach
