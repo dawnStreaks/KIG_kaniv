@@ -357,8 +357,9 @@ class CollectionController extends Controller
             abort(403, 'Only center users can access this page');
         }
 
+        // Only show collections that were received by mekhala (forwarded to center)
         $query = Collection::with(['unit.area.mekhala', 'enteredBy'])
-            ->where('collection_status', 'received');
+            ->where('collection_status', 'received'); // Only mekhala-received collections
 
         $collections = $query->latest()->paginate(10);
         return view('collections.center-receive', compact('collections'));
