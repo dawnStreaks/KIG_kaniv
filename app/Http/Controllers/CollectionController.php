@@ -357,9 +357,9 @@ class CollectionController extends Controller
             abort(403, 'Only center users can access this page');
         }
 
-        // Only show collections that were received by mekhala (forwarded to center)
+        // Only show collections that were forwarded to center
         $query = Collection::with(['unit.area.mekhala', 'enteredBy'])
-            ->where('collection_status', 'received'); // Only mekhala-received collections
+            ->where('collection_status', 'forwarded');
 
         $collections = $query->latest()->paginate(10);
         return view('collections.center-receive', compact('collections'));
@@ -371,8 +371,8 @@ class CollectionController extends Controller
             abort(403, 'Only center users can receive collections');
         }
 
-        if ($collection->collection_status !== 'received') {
-            abort(403, 'Collection must be received by mekhala first');
+        if ($collection->collection_status !== 'forwarded') {
+            abort(403, 'Collection must be forwarded to center first');
         }
 
         $collection->update(['collection_status' => 'center_received']);
