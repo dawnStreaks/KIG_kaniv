@@ -351,7 +351,7 @@ class CollectionController extends Controller
         return back()->with('success', 'Collection marked as mekhala received');
     }
 
-    public function centerReceiveCollections()
+    public function centerReceiveCollections(Request $request)
     {
         if (!auth()->user()->isCenterUser()) {
             abort(403, 'Only center users can access this page');
@@ -361,7 +361,44 @@ class CollectionController extends Controller
         $query = Collection::with(['unit.area.mekhala', 'enteredBy'])
             ->whereIn('collection_status', ['forwarded', 'center_received']);
 
-        $collections = $query->latest()->paginate(10);
+        // Apply filters
+        if ($request->filled('amount')) {
+            $query->where('amount', 'like', '%' . $request->amount . '%');
+        }
+        
+        if ($request->filled('collection_date')) {
+            $query->whereDate('collection_date', $request->collection_date);
+        }
+        
+        if ($request->filled('unit')) {
+            $query->whereHas('unit', function($q) use ($request) {
+                $q->where('name', 'like', '%' . $request->unit . '%');
+            });
+        }
+        
+        if ($request->filled('area')) {
+            $query->whereHas('unit.area', function($q) use ($request) {
+                $q->where('name', 'like', '%' . $request->area . '%');
+            });
+        }
+        
+        if ($request->filled('mekhala')) {
+            $query->whereHas('unit.area.mekhala', function($q) use ($request) {
+                $q->where('name', 'like', '%' . $request->mekhala . '%');
+            });
+        }
+        
+        if ($request->filled('user')) {
+            $query->whereHas('enteredBy', function($q) use ($request) {
+                $q->where('name', 'like', '%' . $request->user . '%');
+            });
+        }
+        
+        if ($request->filled('status')) {
+            $query->where('collection_status', $request->status);
+        }
+
+        $collections = $query->latest()->paginate(10)->appends($request->query());
         $totalAmount = $query->sum('amount');
         
         return view('collections.center-receive', compact('collections', 'totalAmount'));
