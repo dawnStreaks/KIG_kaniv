@@ -36,7 +36,7 @@
                             <th><input type="date" class="form-control form-control-sm filter-input" data-column="4"></th>
                             <th><input type="text" class="form-control form-control-sm filter-input" placeholder="Filter Type" data-column="5"></th>
                             <th><input type="text" class="form-control form-control-sm filter-input" placeholder="Filter Term" data-column="6"></th>
-                            <th><select class="form-control form-control-sm filter-input" data-column="7"><option value="">All Status</option><option value="payable">Payable</option><option value="received">Received</option><option value="forwarded">Forwarded</option></select></th>
+                            <th><select class="form-control form-control-sm filter-input" data-column="7"><option value="">All Status</option><option value="payable">Payable</option><option value="received">Mekhala Received</option><option value="forwarded">Forwarded</option><option value="center_received">Center Received</option></select></th>
                             <th><input type="text" class="form-control form-control-sm filter-input" placeholder="Filter User" data-column="8"></th>
                             <th></th>
                         </tr>
@@ -57,9 +57,11 @@
                             <td>{{ ucfirst($collection->term) }}</td>
                             <td>
                                 @if($collection->collection_status === 'received')
-                                    <span class="badge bg-success">Received</span>
+                                    <span class="badge bg-success">Mekhala Received</span>
                                 @elseif($collection->collection_status === 'forwarded')
                                     <span class="badge bg-info">Forwarded</span>
+                                @elseif($collection->collection_status === 'center_received')
+                                    <span class="badge bg-primary">Center Received</span>
                                 @else
                                     <span class="badge bg-warning">Payable</span>
                                 @endif
@@ -70,8 +72,8 @@
                                     <form method="POST" action="{{ route('collections.mark-received', $collection) }}" style="display: inline;">
                                         @csrf
                                         @method('PATCH')
-                                        <button type="submit" class="btn btn-sm btn-primary" onclick="return confirm('Mark this collection as received?')">
-                                            Receive Collection
+                                        <button type="submit" class="btn btn-sm btn-primary" onclick="return confirm('Mark this collection as mekhala received?')">
+                                            Mekhala Receive
                                         </button>
                                     </form>
                                 @elseif($collection->collection_status === 'received')
@@ -83,7 +85,7 @@
                                         </button>
                                     </form>
                                 @else
-                                    <span class="text-muted">Forwarded to Center</span>
+                                    <span class="text-muted">Mekhala Received</span>
                                 @endif
                             </td>
                         </tr>

@@ -348,7 +348,7 @@ class CollectionController extends Controller
         }
 
         $collection->update(['collection_status' => 'received']);
-        return back()->with('success', 'Collection marked as received');
+        return back()->with('success', 'Collection marked as mekhala received');
     }
 
     public function centerReceiveCollections()
@@ -420,7 +420,7 @@ class CollectionController extends Controller
             $collection->update(['collection_status' => 'received']);
         });
 
-        return back()->with('success', "$count collections marked as received");
+        return back()->with('success', "$count collections marked as mekhala received");
     }
 
     public function unitTypeComparison(Request $request)

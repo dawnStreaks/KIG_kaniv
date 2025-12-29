@@ -74,7 +74,15 @@
                                         </button>
                                     </form>
                                 @elseif(auth()->user()->isCenterUser())
-                                    <span class="text-muted">{{ ucfirst($collection->collection_status) }}</span>
+                                    @if($collection->collection_status === 'received')
+                                        <span class="text-muted">Mekhala Received</span>
+                                    @elseif($collection->collection_status === 'forwarded')
+                                        <span class="text-muted">Forwarded</span>
+                                    @elseif($collection->collection_status === 'center_received')
+                                        <span class="text-muted">Center Received</span>
+                                    @else
+                                        <span class="text-muted">Payable</span>
+                                    @endif
                                 @endif
                             </td>
                         </tr>
