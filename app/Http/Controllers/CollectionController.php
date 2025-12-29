@@ -357,12 +357,14 @@ class CollectionController extends Controller
             abort(403, 'Only center users can access this page');
         }
 
-        // Only show collections that were forwarded to center
+        // Show collections that are forwarded to center or already center received
         $query = Collection::with(['unit.area.mekhala', 'enteredBy'])
-            ->where('collection_status', 'forwarded');
+            ->whereIn('collection_status', ['forwarded', 'center_received']);
 
         $collections = $query->latest()->paginate(10);
-        return view('collections.center-receive', compact('collections'));
+        $totalAmount = $query->sum('amount');
+        
+        return view('collections.center-receive', compact('collections', 'totalAmount'));
     }
 
     public function markAsCenterReceived(Collection $collection)
