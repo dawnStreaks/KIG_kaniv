@@ -9,18 +9,27 @@ return new class extends Migration
 {
     public function up(): void
     {
-        // First, update any invalid enum values to valid ones
+        // First, clean up any invalid enum values
         DB::statement("UPDATE collections SET collection_status = 'received' WHERE collection_status NOT IN ('payable', 'received', 'forwarded')");
         
-        // Then modify the enum to include center_received
-        DB::statement("ALTER TABLE collections MODIFY COLUMN collection_status ENUM('payable', 'received', 'forwarded', 'center_received') NOT NULL DEFAULT 'payable'");
+        // Drop the column and recreate it with all enum values
+        Schema::table('collections', function (Blueprint $table) {
+            $table->dropColumn('collection_status');
+        });
+        
+        Schema::table('collections', function (Blueprint $table) {
+            $table->enum('collection_status', ['payable', 'received', 'forwarded', 'center_received'])->default('payable')->after('amount');
+        });
     }
 
     public function down(): void
     {
-        // Update any center_received back to forwarded before removing the enum value
-        DB::statement("UPDATE collections SET collection_status = 'forwarded' WHERE collection_status = 'center_received'");
+        Schema::table('collections', function (Blueprint $table) {
+            $table->dropColumn('collection_status');
+        });
         
-        DB::statement("ALTER TABLE collections MODIFY COLUMN collection_status ENUM('payable', 'received', 'forwarded') NOT NULL DEFAULT 'payable'");
+        Schema::table('collections', function (Blueprint $table) {
+            $table->enum('collection_status', ['payable', 'received', 'forwarded'])->default('payable')->after('amount');
+        });
     }
 };
