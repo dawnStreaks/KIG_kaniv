@@ -54,6 +54,7 @@
                             <th></th>
                         </tr>
                     </thead>
+                </form>
                     <tbody>
                         @foreach($collections as $collection)
                         <tr>
