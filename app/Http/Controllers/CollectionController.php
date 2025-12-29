@@ -397,6 +397,20 @@ class CollectionController extends Controller
         return back()->with('success', 'Collection forwarded to center');
     }
 
+    public function markAsCenterReceived(Collection $collection)
+    {
+        if (!auth()->user()->isCenterUser()) {
+            abort(403, 'Only center users can receive forwarded collections');
+        }
+
+        if ($collection->collection_status !== 'forwarded') {
+            abort(403, 'Only forwarded collections can be received by center');
+        }
+
+        $collection->update(['collection_status' => 'center_received']);
+        return back()->with('success', 'Collection received by center');
+    }
+
     public function bulkReceive(Request $request)
     {
         if (!auth()->user()->isMekhalaUser()) {
