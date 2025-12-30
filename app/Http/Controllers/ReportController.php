@@ -533,7 +533,7 @@ class ReportController extends Controller
         $transactionsByArea = collect();
         
         foreach ($collections as $collection) {
-            $areaName = $collection->unit->area->name ?? 'Unknown Area';
+            $areaName = 'Center'; // All center-received collections go under Center
             $transactionsByArea->push([
                 'area' => $areaName,
                 'date' => $collection->collection_date,
@@ -545,7 +545,7 @@ class ReportController extends Controller
         }
         
         foreach ($expenses as $expense) {
-            $areaName = 'Center Office';
+            $areaName = 'Center';
             $transactionsByArea->push([
                 'area' => $areaName,
                 'date' => $expense->expense_date,
@@ -557,7 +557,7 @@ class ReportController extends Controller
         }
         
         foreach ($applications as $application) {
-            $areaName = $application->area->name ?? 'Center Office';
+            $areaName = 'Center';
             $transactionsByArea->push([
                 'area' => $areaName,
                 'date' => $application->approved_date,
