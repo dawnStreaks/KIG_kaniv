@@ -63,6 +63,10 @@ class CollectionController extends Controller
             });
         }
         
+        if ($request->filled('status')) {
+            $query->where('collection_status', $request->status);
+        }
+        
         $collections = $query->latest()->paginate(10)->appends($request->query());
         $totalAmount = $query->sum('amount');
         

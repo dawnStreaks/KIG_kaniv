@@ -495,10 +495,16 @@ class ReportController extends Controller
         $monthlyCollections = Collection::centerReceived()->whereMonth('collection_date', $currentMonth)
                                       ->whereYear('collection_date', $currentYear)->sum('amount');
         
-        // Center expenses (all expenses as center manages everything)
-        $yearlyExpenses = Expense::whereYear('expense_date', $currentYear)->sum('amount');
+        // Center expenses (expenses by center users)
+        $yearlyExpenses = Expense::whereYear('expense_date', $currentYear)
+            ->whereHas('enteredBy', function($q) {
+                $q->where('user_type', 'center');
+            })->sum('amount');
         $monthlyExpenses = Expense::whereMonth('expense_date', $currentMonth)
-                                 ->whereYear('expense_date', $currentYear)->sum('amount');
+                                 ->whereYear('expense_date', $currentYear)
+                                 ->whereHas('enteredBy', function($q) {
+                                     $q->where('user_type', 'center');
+                                 })->sum('amount');
         
         // Applications Summary (only paid applications)
         $yearlyApplications = Application::where('status', 'paid')->whereYear('approved_date', $currentYear)->sum('approved_amount');
@@ -516,13 +522,77 @@ class ReportController extends Controller
         $monthlyReturned = Investment::whereMonth('investment_date', $currentMonth)
                                    ->whereYear('investment_date', $currentYear)->sum('returned_amount');
         
+        // Get detailed transactions
+        $collections = Collection::centerReceived()->with('unit')->orderBy('collection_date')->get();
+        $expenses = Expense::whereHas('enteredBy', function($q) {
+            $q->where('user_type', 'center');
+        })->orderBy('expense_date')->get();
+        $applications = Application::where('status', 'paid')->orderBy('approved_date')->get();
+        
+        // Group transactions by area
+        $transactionsByArea = collect();
+        
+        foreach ($collections as $collection) {
+            $areaName = $collection->unit->area->name ?? 'Unknown Area';
+            $transactionsByArea->push([
+                'area' => $areaName,
+                'date' => $collection->collection_date,
+                'type' => 'Collection',
+                'description' => 'Collection from ' . ($collection->unit->name ?? 'N/A'),
+                'collection' => $collection->amount,
+                'expense' => 0,
+            ]);
+        }
+        
+        foreach ($expenses as $expense) {
+            $areaName = 'Center Office';
+            $transactionsByArea->push([
+                'area' => $areaName,
+                'date' => $expense->expense_date,
+                'type' => 'Expense',
+                'description' => $expense->particulars,
+                'collection' => 0,
+                'expense' => $expense->amount,
+            ]);
+        }
+        
+        foreach ($applications as $application) {
+            $areaName = $application->area->name ?? 'Center Office';
+            $transactionsByArea->push([
+                'area' => $areaName,
+                'date' => $application->approved_date,
+                'type' => 'Application Payment',
+                'description' => 'Payment to ' . $application->name . ' (' . ucfirst($application->category) . ')',
+                'collection' => 0,
+                'expense' => $application->approved_amount,
+            ]);
+        }
+        
+        // Group by area and sort within each area by date
+        $groupedTransactions = $transactionsByArea->groupBy('area')->map(function($areaTransactions) {
+            return $areaTransactions->sortBy('date');
+        });
+        
+        // Calculate area totals
+        $areaSummary = $groupedTransactions->map(function($areaTransactions, $areaName) {
+            $totalCollections = $areaTransactions->sum('collection');
+            $totalExpenses = $areaTransactions->sum('expense');
+            return [
+                'area' => $areaName,
+                'collections' => $totalCollections,
+                'expenses' => $totalExpenses,
+                'balance' => $totalCollections - $totalExpenses
+            ];
+        });
+        
         $reportType = 'Center';
         $mekhalaName = 'Center Office';
         
         return view('reports.financial-statement', compact(
             'yearlyCollections', 'monthlyCollections', 'yearlyExpenses', 'monthlyExpenses',
             'yearlyApplications', 'monthlyApplications', 'yearlyInvestments', 'monthlyInvestments',
-            'yearlyIncome', 'monthlyIncome', 'yearlyReturned', 'monthlyReturned', 'reportType', 'mekhalaName'
+            'yearlyIncome', 'monthlyIncome', 'yearlyReturned', 'monthlyReturned', 'reportType', 'mekhalaName',
+            'groupedTransactions', 'areaSummary'
         ));
     }
 
