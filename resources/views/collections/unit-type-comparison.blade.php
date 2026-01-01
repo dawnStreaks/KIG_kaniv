@@ -59,74 +59,78 @@
 
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
-        const ctx = document.getElementById('comparisonChart').getContext('2d');
-        const data = @json($data);
-        
-        new Chart(ctx, {
-            type: 'bar',
-            data: {
-                labels: data.map(item => item.type),
-                datasets: [{
-                    label: 'Collections (KWD)',
-                    data: data.map(item => item.total),
-                    backgroundColor: [
-                        'rgba(54, 162, 235, 0.8)',
-                        'rgba(255, 99, 132, 0.8)',
-                        'rgba(75, 192, 192, 0.8)',
-                        'rgba(255, 206, 86, 0.8)'
-                    ],
-                    borderColor: [
-                        'rgba(54, 162, 235, 1)',
-                        'rgba(255, 99, 132, 1)',
-                        'rgba(75, 192, 192, 1)',
-                        'rgba(255, 206, 86, 1)'
-                    ],
-                    borderWidth: 1
-                }]
-            },
-            options: {
-                responsive: true,
-                plugins: {
-                    legend: {
-                        display: false
-                    },
-                    datalabels: {
-                        anchor: 'end',
-                        align: 'top',
-                        formatter: function(value) {
-                            return 'KWD ' + value.toLocaleString();
-                        },
-                        font: {
-                            weight: 'bold'
-                        }
-                    }
+        document.addEventListener('DOMContentLoaded', function() {
+            const ctx = document.getElementById('comparisonChart').getContext('2d');
+            const data = @json($data);
+            
+            console.log('Chart data:', data); // Debug log
+            
+            if (!data || data.length === 0) {
+                ctx.font = '16px Arial';
+                ctx.fillStyle = '#666';
+                ctx.textAlign = 'center';
+                ctx.fillText('No data available for {{ $year }}', ctx.canvas.width / 2, ctx.canvas.height / 2);
+                return;
+            }
+            
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: data.map(item => item.type),
+                    datasets: [{
+                        label: 'Collections (KWD)',
+                        data: data.map(item => parseFloat(item.total)),
+                        backgroundColor: [
+                            'rgba(54, 162, 235, 0.8)',
+                            'rgba(255, 99, 132, 0.8)',
+                            'rgba(75, 192, 192, 0.8)',
+                            'rgba(255, 206, 86, 0.8)'
+                        ],
+                        borderColor: [
+                            'rgba(54, 162, 235, 1)',
+                            'rgba(255, 99, 132, 1)',
+                            'rgba(75, 192, 192, 1)',
+                            'rgba(255, 206, 86, 1)'
+                        ],
+                        borderWidth: 1
+                    }]
                 },
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        ticks: {
-                            callback: function(value) {
-                                return 'KWD ' + value.toLocaleString();
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function(value) {
+                                    return 'KWD ' + value.toLocaleString();
+                                }
                             }
                         }
                     }
-                }
-            },
-            plugins: [{
-                afterDraw: function(chart) {
-                    const ctx = chart.ctx;
-                    chart.data.datasets.forEach((dataset, i) => {
-                        const meta = chart.getDatasetMeta(i);
-                        meta.data.forEach((bar, index) => {
-                            const data = dataset.data[index];
-                            ctx.fillStyle = '#000';
-                            ctx.font = 'bold 12px Arial';
-                            ctx.textAlign = 'center';
-                            ctx.fillText('KWD ' + data.toLocaleString(), bar.x, bar.y - 5);
+                },
+                plugins: [{
+                    afterDraw: function(chart) {
+                        const ctx = chart.ctx;
+                        chart.data.datasets.forEach((dataset, i) => {
+                            const meta = chart.getDatasetMeta(i);
+                            meta.data.forEach((bar, index) => {
+                                const data = dataset.data[index];
+                                if (data > 0) {
+                                    ctx.fillStyle = '#000';
+                                    ctx.font = 'bold 12px Arial';
+                                    ctx.textAlign = 'center';
+                                    ctx.fillText('KWD ' + data.toLocaleString(), bar.x, bar.y - 5);
+                                }
+                            });
                         });
-                    });
-                }
-            }]
+                    }
+                }]
+            });
         });
     </script>
 @endsection

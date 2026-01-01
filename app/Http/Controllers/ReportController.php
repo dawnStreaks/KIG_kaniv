@@ -495,6 +495,11 @@ class ReportController extends Controller
         $monthlyCollections = Collection::centerReceived()->whereMonth('collection_date', $currentMonth)
                                       ->whereYear('collection_date', $currentYear)->sum('amount');
         
+        // Forwarded Collections Summary (collections with 'forwarded' status)
+        $yearlyForwarded = Collection::where('collection_status', 'forwarded')->whereYear('collection_date', $currentYear)->sum('amount');
+        $monthlyForwarded = Collection::where('collection_status', 'forwarded')->whereMonth('collection_date', $currentMonth)
+                                      ->whereYear('collection_date', $currentYear)->sum('amount');
+        
         // Center expenses (expenses by center users)
         $yearlyExpenses = Expense::whereYear('expense_date', $currentYear)
             ->whereHas('enteredBy', function($q) {
@@ -523,7 +528,7 @@ class ReportController extends Controller
                                    ->whereYear('investment_date', $currentYear)->sum('returned_amount');
         
         // Get detailed transactions
-        $collections = Collection::centerReceived()->with('unit')->orderBy('collection_date')->get();
+        $collections = Collection::centerReceived()->with('unit.area')->orderBy('collection_date')->get();
         $expenses = Expense::whereHas('enteredBy', function($q) {
             $q->where('user_type', 'center');
         })->orderBy('expense_date')->get();
@@ -538,7 +543,7 @@ class ReportController extends Controller
                 'area' => $areaName,
                 'date' => $collection->collection_date,
                 'type' => 'Collection',
-                'description' => 'Collection from ' . ($collection->unit->name ?? 'N/A'),
+                'description' => 'Collection from ' . ($collection->unit->name ?? 'N/A') . ' (' . ($collection->unit->area->name ?? 'Unknown Area') . ')',
                 'collection' => $collection->amount,
                 'expense' => 0,
             ]);

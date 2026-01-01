@@ -125,7 +125,9 @@
                         <a class="nav-link" href="{{ route('applications.index') }}">Applications</a>
                         <a class="nav-link" href="{{ route('collections.index') }}">Collections</a>
                         <a class="nav-link" href="{{ route('collections.center-receive') }}">Center Receive Collections</a>
-                        <a class="nav-link" href="{{ route('applications.review') }}">Review Applications</a>
+                        @if(auth()->user()->user_type !== 'center')
+                            <a class="nav-link" href="{{ route('applications.review') }}">Review Applications</a>
+                        @endif
                         <a class="nav-link" href="{{ route('expenses.index') }}">Expenses</a>
                         @if(auth()->user()->canAddInvestments())
                             <a class="nav-link" href="{{ route('investments.index') }}">Investments</a>
@@ -142,7 +144,9 @@
                         <a class="nav-link" href="{{ route('collections.report') }}">Collection Chart Report</a>
                         <a class="nav-link" href="{{ route('collections.unit-type-comparison') }}">Unit Type Comparison</a>
                         <a class="nav-link" href="{{ route('reports.mekhala') }}">Mekhala Report</a>
-                        <a class="nav-link" href="{{ route('reports.application-payment') }}">Application Payment</a>
+                        @if(auth()->user()->user_type !== 'center')
+                            <a class="nav-link" href="{{ route('reports.application-payment') }}">Application Payment</a>
+                        @endif
                     @endif
                 @endif
             @endauth

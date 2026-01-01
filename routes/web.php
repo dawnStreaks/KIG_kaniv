@@ -88,7 +88,7 @@ Route::middleware('auth')->group(function () {
     Route::resource('applications', ApplicationController::class);
     Route::get('/applications/{application}/download', [ApplicationController::class, 'download'])->name('applications.download');
     Route::post('/applications/validate-field', [ApplicationController::class, 'validateField'])->name('applications.validate-field');
-    Route::get('/applications-review', [ApplicationController::class, 'review'])->name('applications.review');
+    Route::get('/applications-review', [ApplicationController::class, 'review'])->name('applications.review')->middleware('mekhala');
     Route::get('/applications/{application}/approve', function() {
         return redirect()->route('applications.review')->with('error', 'Invalid access method. Please use the approve button.');
     });

@@ -72,8 +72,11 @@
             </div>
             <div class="col-md-6">
                 <div class="card">
-                    <div class="card-header">
+                    <div class="card-header d-flex justify-content-between align-items-center">
                         <h5>Forwarded to Center</h5>
+                        <button class="btn btn-sm btn-outline-primary" type="button" data-bs-toggle="collapse" data-bs-target="#forwardedDetails">
+                            <i class="fas fa-eye"></i> View Details
+                        </button>
                     </div>
                     <div class="card-body">
                         <table class="table">
@@ -85,7 +88,30 @@
                                 <td>Monthly Forwarded:</td>
                                 <td class="text-end">KWD {{ number_format($monthlyForwarded ?? 0, 3) }}</td>
                             </tr>
+                            <tr>
+                                <td>Yearly Received:</td>
+                                <td class="text-end">KWD {{ number_format($yearlyCollections ?? 0, 3) }}</td>
+                            </tr>
+                            <tr>
+                                <td>Monthly Received:</td>
+                                <td class="text-end">KWD {{ number_format($monthlyCollections ?? 0, 3) }}</td>
+                            </tr>
                         </table>
+                        
+                        <div class="collapse mt-3" id="forwardedDetails">
+                            <div class="table-responsive">
+                                <table class="table table-sm">
+                                    <tr class="table-warning">
+                                        <td><strong>Pending Receipt</strong></td>
+                                        <td class="text-end"><strong>KWD {{ number_format(($yearlyForwarded ?? 0) - ($yearlyCollections ?? 0), 3) }}</strong></td>
+                                    </tr>
+                                    <tr class="table-info">
+                                        <td><strong>Receipt Rate</strong></td>
+                                        <td class="text-end"><strong>{{ ($yearlyForwarded ?? 0) > 0 ? number_format((($yearlyCollections ?? 0) / ($yearlyForwarded ?? 0)) * 100, 1) : 0 }}%</strong></td>
+                                    </tr>
+                                </table>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
