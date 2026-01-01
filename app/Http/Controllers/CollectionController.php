@@ -472,7 +472,7 @@ class CollectionController extends Controller
         $user = auth()->user();
         
         $query = \App\Models\Unit::with(['collections' => function($q) use ($year) {
-            $q->whereYear('collection_date', $year)->where('collection_status', 'received');
+            $q->whereYear('collection_date', $year);
         }]);
         
         // Filter by mekhala for mekhala users
