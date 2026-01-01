@@ -46,7 +46,7 @@
                         <button type="button" class="btn btn-sm btn-secondary float-end" onclick="hideDrillDown()">Close</button>
                     </div>
                     <div class="card-body">
-                        <div id="drillDownContent"></div>
+                        <canvas id="drillDownChart" width="400" height="200"></canvas>
                     </div>
                 </div>
             </div>
@@ -65,13 +65,17 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                @foreach($data as $item)
+                                @forelse($data as $item)
                                 <tr>
                                     <td><strong>{{ $item['type'] }}</strong></td>
                                     <td>{{ $item['count'] }}</td>
                                     <td>KWD {{ number_format($item['total'], 3) }}</td>
                                 </tr>
-                                @endforeach
+                                @empty
+                                <tr>
+                                    <td colspan="3" class="text-center text-muted">No data available</td>
+                                </tr>
+                                @endforelse
                             </tbody>
                         </table>
                     </div>
@@ -83,6 +87,7 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
         let chartInstance;
+        let drillDownChartInstance;
         const unitData = @json($data);
         
         document.addEventListener('DOMContentLoaded', function() {
@@ -99,13 +104,24 @@
                 return;
             }
             
+            // Filter out zero values and ensure we have valid data
+            const validData = data.filter(item => item.total > 0);
+            
+            if (validData.length === 0) {
+                ctx.font = '16px Arial';
+                ctx.fillStyle = '#666';
+                ctx.textAlign = 'center';
+                ctx.fillText('No collections found for selected filters', ctx.canvas.width / 2, ctx.canvas.height / 2);
+                return;
+            }
+            
             chartInstance = new Chart(ctx, {
                 type: 'bar',
                 data: {
-                    labels: data.map(item => item.type),
+                    labels: validData.map(item => item.type),
                     datasets: [{
                         label: 'Collections (KWD)',
-                        data: data.map(item => parseFloat(item.total)),
+                        data: validData.map(item => parseFloat(item.total) || 0),
                         backgroundColor: [
                             'rgba(54, 162, 235, 0.8)',
                             'rgba(255, 99, 132, 0.8)',
@@ -126,7 +142,7 @@
                     onClick: function(event, elements) {
                         if (elements.length > 0) {
                             const index = elements[0].index;
-                            const unitType = data[index].type;
+                            const unitType = validData[index].type;
                             showDrillDown(unitType);
                         }
                     },
@@ -181,31 +197,98 @@
             if (term) url += `&term=${encodeURIComponent(term)}`;
             if (collectionType) url += `&collection_type=${encodeURIComponent(collectionType)}`;
             
-            fetch(url))
+            fetch(url)
                 .then(response => response.json())
                 .then(data => {
                     document.getElementById('drillDownTitle').textContent = `${unitType} Units - {{ $year }}`;
                     
-                    let html = '<div class="table-responsive"><table class="table table-striped"><thead><tr><th>Unit Name</th><th>Area</th><th>Collections</th><th>Total Amount</th></tr></thead><tbody>';
+                    // Destroy existing drill-down chart if it exists
+                    if (drillDownChartInstance) {
+                        drillDownChartInstance.destroy();
+                    }
                     
-                    data.forEach(unit => {
-                        html += `<tr><td>${unit.unit_name}</td><td>${unit.area_name}</td><td>${unit.collection_count}</td><td>KWD ${parseFloat(unit.total_amount).toLocaleString()}</td></tr>`;
+                    // Filter units with collections
+                    const validUnits = data.filter(unit => unit.total_amount > 0);
+                    
+                    if (validUnits.length === 0) {
+                        const ctx = document.getElementById('drillDownChart').getContext('2d');
+                        ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+                        ctx.font = '16px Arial';
+                        ctx.fillStyle = '#666';
+                        ctx.textAlign = 'center';
+                        ctx.fillText('No units found with collections', ctx.canvas.width / 2, ctx.canvas.height / 2);
+                        document.getElementById('drillDownSection').style.display = 'block';
+                        return;
+                    }
+                    
+                    // Create drill-down bar chart
+                    const ctx = document.getElementById('drillDownChart').getContext('2d');
+                    drillDownChartInstance = new Chart(ctx, {
+                        type: 'bar',
+                        data: {
+                            labels: validUnits.map(unit => unit.unit_name),
+                            datasets: [{
+                                label: 'Collections (KWD)',
+                                data: validUnits.map(unit => parseFloat(unit.total_amount) || 0),
+                                backgroundColor: 'rgba(54, 162, 235, 0.8)',
+                                borderColor: 'rgba(54, 162, 235, 1)',
+                                borderWidth: 1
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            plugins: {
+                                legend: {
+                                    display: false
+                                },
+                                tooltip: {
+                                    callbacks: {
+                                        afterLabel: function(context) {
+                                            const unit = validUnits[context.dataIndex];
+                                            return [`Area: ${unit.area_name}`, `Collections: ${unit.collection_count}`];
+                                        }
+                                    }
+                                }
+                            },
+                            scales: {
+                                y: {
+                                    beginAtZero: true,
+                                    ticks: {
+                                        callback: function(value) {
+                                            return 'KWD ' + value.toLocaleString();
+                                        }
+                                    }
+                                },
+                                x: {
+                                    ticks: {
+                                        maxRotation: 45,
+                                        minRotation: 45
+                                    }
+                                }
+                            }
+                        }
                     });
                     
-                    html += '</tbody></table></div>';
-                    
-                    document.getElementById('drillDownContent').innerHTML = html;
                     document.getElementById('drillDownSection').style.display = 'block';
                 })
                 .catch(error => {
                     console.error('Error fetching drill-down data:', error);
-                    document.getElementById('drillDownContent').innerHTML = '<p class="text-danger">Error loading unit details</p>';
+                    const ctx = document.getElementById('drillDownChart').getContext('2d');
+                    ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+                    ctx.font = '16px Arial';
+                    ctx.fillStyle = '#dc3545';
+                    ctx.textAlign = 'center';
+                    ctx.fillText('Error loading unit details', ctx.canvas.width / 2, ctx.canvas.height / 2);
                     document.getElementById('drillDownSection').style.display = 'block';
                 });
         }
         
         function hideDrillDown() {
             document.getElementById('drillDownSection').style.display = 'none';
+            if (drillDownChartInstance) {
+                drillDownChartInstance.destroy();
+                drillDownChartInstance = null;
+            }
         }
     </script>
 @endsection
