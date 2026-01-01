@@ -469,10 +469,18 @@ class CollectionController extends Controller
     public function unitTypeComparison(Request $request)
     {
         $year = $request->get('year', date('Y'));
+        $term = $request->get('term');
+        $type = $request->get('type');
         $user = auth()->user();
         
-        $query = \App\Models\Unit::with(['collections' => function($q) use ($year) {
+        $query = \App\Models\Unit::with(['collections' => function($q) use ($year, $term, $type) {
             $q->whereYear('collection_date', $year);
+            if ($term) {
+                $q->where('term', $term);
+            }
+            if ($type) {
+                $q->where('type', $type);
+            }
         }]);
         
         // Filter by mekhala for mekhala users
@@ -488,17 +496,73 @@ class CollectionController extends Controller
             if (str_starts_with($unit->name, 'IWA')) return 'IWA';
             return 'KIG';
         })
-        ->map(function($units, $type) {
+        ->map(function($units, $unitType) {
             $total = $units->sum(function($unit) {
                 return $unit->collections->sum('amount');
             });
             return [
-                'type' => $type,
+                'type' => $unitType,
                 'total' => $total,
                 'count' => $units->count()
             ];
         })->values();
         
-        return view('collections.unit-type-comparison', compact('data', 'year'));
+        // Get filter options
+        $terms = \App\Models\CollectionTerm::active()->pluck('name')->toArray();
+        $types = \App\Models\CollectionType::active()->pluck('name')->toArray();
+        
+        return view('collections.unit-type-comparison', compact('data', 'year', 'term', 'type', 'terms', 'types'));
+    }
+
+    public function unitTypeDrillDown(Request $request)
+    {
+        $year = $request->get('year', date('Y'));
+        $unitType = $request->get('type');
+        $term = $request->get('term');
+        $collectionType = $request->get('collection_type');
+        $user = auth()->user();
+        
+        $query = \App\Models\Unit::with(['collections' => function($q) use ($year, $term, $collectionType) {
+            $q->whereYear('collection_date', $year);
+            if ($term) {
+                $q->where('term', $term);
+            }
+            if ($collectionType) {
+                $q->where('type', $collectionType);
+            }
+        }, 'area']);
+        
+        // Filter by mekhala for mekhala users
+        if ($user->isMekhalaUser()) {
+            $query->whereHas('area', function($q) use ($user) {
+                $q->where('mekhala_id', $user->mekhala_id);
+            });
+        }
+        
+        // Filter by unit type
+        if ($unitType === 'YI') {
+            $query->where('name', 'like', 'YI%');
+        } elseif ($unitType === 'IWA') {
+            $query->where('name', 'like', 'IWA%');
+        } else {
+            $query->where('name', 'not like', 'YI%')
+                  ->where('name', 'not like', 'IWA%');
+        }
+        
+        $units = $query->get()->map(function($unit) {
+            $totalAmount = $unit->collections->sum('amount');
+            $collectionCount = $unit->collections->count();
+            
+            return [
+                'unit_name' => $unit->name,
+                'area_name' => $unit->area->name ?? 'N/A',
+                'total_amount' => $totalAmount,
+                'collection_count' => $collectionCount
+            ];
+        })->filter(function($unit) {
+            return $unit['total_amount'] > 0 || $unit['collection_count'] > 0;
+        })->sortByDesc('total_amount')->values();
+        
+        return response()->json($units);
     }
 }
