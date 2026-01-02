@@ -51,11 +51,14 @@ class ExpenseController extends Controller
             abort(403, 'Only treasurers can add expenses');
         }
 
+        $collectionTerms = \App\Models\CollectionTerm::active()->pluck('name')->toArray();
+        $allowedTypes = array_merge(['refreshment', 'miscellaneous'], $collectionTerms);
+        
         $validated = $request->validate([
             'expense_date' => 'required|date',
             'particulars' => 'required|string|max:255',
             'amount' => 'required|numeric|min:0',
-            'type' => 'required|in:refreshment,miscellaneous',
+            'type' => 'required|in:' . implode(',', $allowedTypes),
             'bill' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:2048',
         ]);
 
@@ -83,11 +86,14 @@ class ExpenseController extends Controller
 
     public function update(Request $request, Expense $expense)
     {
+        $collectionTerms = \App\Models\CollectionTerm::active()->pluck('name')->toArray();
+        $allowedTypes = array_merge(['refreshment', 'miscellaneous'], $collectionTerms);
+        
         $validated = $request->validate([
             'expense_date' => 'required|date',
             'particulars' => 'required|string|max:255',
             'amount' => 'required|numeric|min:0',
-            'type' => 'required|in:refreshment,miscellaneous',
+            'type' => 'required|in:' . implode(',', $allowedTypes),
             'bill' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:2048',
         ]);
 

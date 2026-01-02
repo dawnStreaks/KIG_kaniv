@@ -74,6 +74,8 @@
                                         @endforeach
                                     </select>
                                 </th>
+                                <th><input type="text" class="form-control form-control-sm" name="type" placeholder="Filter Type" value="{{ request('type') }}"></th>
+                                <th><input type="text" class="form-control form-control-sm" name="term" placeholder="Filter Term" value="{{ request('term') }}"></th>
                                 <th>
                                     <select class="form-control form-control-sm" name="user">
                                         <option value="">All Users</option>
