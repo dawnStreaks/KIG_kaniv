@@ -61,7 +61,7 @@
 </head>
 <body>
     <!-- Sidebar -->
-    <div class="sidebar position-fixed d-none d-md-block" style="width: 250px;">
+    <div class="sidebar position-fixed d-none d-md-block" id="sidebar" style="width: 250px;">
         <div class="p-3">
             <h5 class="text-white">Kaniv System</h5>
             @auth
@@ -69,7 +69,13 @@
             @endauth
         </div>
         <nav class="nav flex-column">
-            <a class="nav-link" href="{{ route('dashboard') }}">Dashboard</a>
+            @auth
+                @if(auth()->user()->user_type !== 'admin' && auth()->user()->user_type !== 'center')
+                    <a class="nav-link" href="{{ route('dashboard') }}">Dashboard</a>
+                @endif
+            @else
+                <a class="nav-link" href="{{ route('dashboard') }}">Dashboard</a>
+            @endauth
             
             @auth
                 @if(auth()->user()->user_type == 'area')
@@ -100,7 +106,6 @@
                     <a class="nav-link" href="{{ route('reports.collection') }}">Collection Report</a>
                     <a class="nav-link" href="{{ route('collections.report') }}">Collection Chart Report</a>
                     <a class="nav-link" href="{{ route('collections.unit-type-comparison') }}">Unit Type Comparison</a>
-                    <a class="nav-link" href="{{ route('reports.application-payment') }}">Application Payment</a>
                 @else
                     @if(auth()->user()->user_type == 'admin' || auth()->user()->user_type == 'center')
                         <div class="px-3 py-2">
@@ -167,10 +172,9 @@
         <nav class="navbar navbar-expand-lg navbar-dark bg-dark d-md-none">
             <div class="container-fluid">
                 <a class="navbar-brand" href="{{ route('dashboard') }}">Kaniv System</a>
-                <form method="POST" action="{{ route('logout') }}" class="d-inline">
-                    @csrf
-                    <button type="submit" class="btn btn-outline-light">Logout</button>
-                </form>
+                <button class="btn btn-outline-light" type="button" onclick="toggleSidebar()">
+                    <i class="fas fa-bars"></i>
+                </button>
             </div>
         </nav>
 
@@ -181,6 +185,12 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script>
+        // Toggle sidebar for mobile
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            sidebar.classList.toggle('d-none');
+        }
+        
         // Set active navigation link
         document.addEventListener('DOMContentLoaded', function() {
             const currentPath = window.location.pathname;

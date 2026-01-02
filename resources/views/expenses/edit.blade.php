@@ -46,6 +46,19 @@
                                 <input type="date" class="form-control" id="expense_date" name="expense_date" value="{{ old('expense_date', $expense->expense_date ? $expense->expense_date->format('Y-m-d') : '') }}" required>
                             </div>
                             <div class="mb-3">
+                                <label for="beneficiary" class="form-label">Beneficiary (Optional)</label>
+                                <input type="text" class="form-control" id="beneficiary" name="beneficiary" value="{{ old('beneficiary', $expense->beneficiary) }}">
+                            </div>
+                            <div class="mb-3">
+                                <label for="paid_by_area_id" class="form-label">Paid By (Optional)</label>
+                                <select class="form-control" id="paid_by_area_id" name="paid_by_area_id">
+                                    <option value="">Select Area</option>
+                                    @foreach($areas as $area)
+                                        <option value="{{ $area->id }}" {{ old('paid_by_area_id', $expense->paid_by_area_id) == $area->id ? 'selected' : '' }}>{{ $area->name }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                            <div class="mb-3">
                                 <label for="bill" class="form-label">Upload Bill (Optional)</label>
                                 @if($expense->bill_path)
                                     <div class="mb-2">

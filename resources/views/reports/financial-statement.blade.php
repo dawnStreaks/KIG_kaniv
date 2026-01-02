@@ -195,8 +195,47 @@
                 <div class="card">
                     <div class="card-header">
                         <h5>Area Summary with Detailed Transactions</h5>
+                        <small class="text-muted">Showing data for {{ date('F Y', mktime(0, 0, 0, $currentMonth ?? date('m'), 1, $currentYear ?? date('Y'))) }}</small>
                     </div>
                     <div class="card-body">
+                        <!-- Filter Form -->
+                        <form method="GET" class="mb-3">
+                            <div class="row g-2">
+                                <div class="col-md-3">
+                                    <select name="year" class="form-select form-select-sm">
+                                        @for($i = date('Y'); $i >= 2020; $i--)
+                                            <option value="{{ $i }}" {{ ($currentYear ?? date('Y')) == $i ? 'selected' : '' }}>{{ $i }}</option>
+                                        @endfor
+                                    </select>
+                                </div>
+                                <div class="col-md-3">
+                                    <select name="month" class="form-select form-select-sm">
+                                        @for($i = 1; $i <= 12; $i++)
+                                            <option value="{{ $i }}" {{ ($currentMonth ?? date('m')) == $i ? 'selected' : '' }}>{{ date('F', mktime(0, 0, 0, $i, 1)) }}</option>
+                                        @endfor
+                                    </select>
+                                </div>
+                                <div class="col-md-2">
+                                    <select name="type" class="form-select form-select-sm">
+                                        <option value="">All Types</option>
+                                        @foreach($types ?? [] as $typeOption)
+                                            <option value="{{ $typeOption }}" {{ ($type ?? '') == $typeOption ? 'selected' : '' }}>{{ $typeOption }}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                                <div class="col-md-2">
+                                    <select name="term" class="form-select form-select-sm">
+                                        <option value="">All Terms</option>
+                                        @foreach($terms ?? [] as $termOption)
+                                            <option value="{{ $termOption }}" {{ ($term ?? '') == $termOption ? 'selected' : '' }}>{{ $termOption }}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                                <div class="col-md-2">
+                                    <button type="submit" class="btn btn-primary btn-sm">Filter</button>
+                                </div>
+                            </div>
+                        </form>
                         <div class="table-responsive">
                             <table class="table">
                                 <thead>

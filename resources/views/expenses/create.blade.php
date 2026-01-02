@@ -45,6 +45,19 @@
                                 <input type="date" class="form-control" id="expense_date" name="expense_date" value="{{ old('expense_date') }}" required>
                             </div>
                             <div class="mb-3">
+                                <label for="beneficiary" class="form-label">Beneficiary (Optional)</label>
+                                <input type="text" class="form-control" id="beneficiary" name="beneficiary" value="{{ old('beneficiary') }}">
+                            </div>
+                            <div class="mb-3">
+                                <label for="paid_by_area_id" class="form-label">Paid By (Optional)</label>
+                                <select class="form-control" id="paid_by_area_id" name="paid_by_area_id">
+                                    <option value="">Select Area</option>
+                                    @foreach($areas as $area)
+                                        <option value="{{ $area->id }}" {{ old('paid_by_area_id') == $area->id ? 'selected' : '' }}>{{ $area->name }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                            <div class="mb-3">
                                 <label for="bill" class="form-label">Upload Bill (Optional)</label>
                                 <input type="file" class="form-control" id="bill" name="bill" accept=".pdf,.jpg,.jpeg,.png">
                                 <small class="form-text text-muted">Accepted formats: PDF, JPG, JPEG, PNG. Max size: 2MB</small>

@@ -74,8 +74,8 @@
                                         @endforeach
                                     </select>
                                 </th>
-                                <th><input type="text" class="form-control form-control-sm" name="type" placeholder="Filter Type" value="{{ request('type') }}"></th>
-                                <th><input type="text" class="form-control form-control-sm" name="term" placeholder="Filter Term" value="{{ request('term') }}"></th>
+                                <th><select class="form-control form-control-sm" name="type"><option value="">All Types</option>@foreach($types as $type)<option value="{{ $type }}" {{ request('type') == $type ? 'selected' : '' }}>{{ $type }}</option>@endforeach</select></th>
+                                <th><select class="form-control form-control-sm" name="term"><option value="">All Terms</option>@foreach($terms as $term)<option value="{{ $term }}" {{ request('term') == $term ? 'selected' : '' }}>{{ $term }}</option>@endforeach</select></th>
                                 <th>
                                     <select class="form-control form-control-sm" name="user">
                                         <option value="">All Users</option>

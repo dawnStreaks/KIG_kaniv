@@ -13,8 +13,10 @@ class ReportController extends Controller
 {
     public function financialStatement(Request $request)
     {
-        $currentYear = date('Y');
-        $currentMonth = date('m');
+        $currentYear = $request->get('year', date('Y'));
+        $currentMonth = $request->get('month', date('m'));
+        $type = $request->get('type');
+        $term = $request->get('term');
         $user = auth()->user();
         
         // Get mekhala name for title
@@ -208,7 +210,32 @@ class ReportController extends Controller
         // Group transactions by area
         $transactionsByArea = collect();
         
-        foreach ($collections as $collection) {
+        // Group transactions by area (filtered by current month/year and filters)
+        $transactionsByArea = collect();
+        
+        // Filter collections for area summary (current month/year only)
+        $filteredCollections = Collection::received()
+            ->with('unit.area')
+            ->whereMonth('collection_date', $currentMonth)
+            ->whereYear('collection_date', $currentYear);
+            
+        if ($user->isMekhalaUser()) {
+            $filteredCollections->whereHas('unit.area', function($q) use ($user) {
+                $q->where('mekhala_id', $user->mekhala_id);
+            });
+        }
+        
+        if ($type) {
+            $filteredCollections->where('type', $type);
+        }
+        
+        if ($term) {
+            $filteredCollections->where('term', $term);
+        }
+        
+        $filteredCollections = $filteredCollections->get();
+        
+        foreach ($filteredCollections as $collection) {
             $areaName = $collection->unit->area->name ?? 'Unknown Area';
             $transactionsByArea->push([
                 'area' => $areaName,
@@ -217,38 +244,6 @@ class ReportController extends Controller
                 'description' => 'Collection from ' . ($collection->unit->name ?? 'N/A'),
                 'collection' => $collection->amount,
                 'expense' => 0,
-            ]);
-        }
-        
-        foreach ($expenses as $expense) {
-            // Skip expenses from areas that don't belong to user's mekhala
-            if ($user->isMekhalaUser() && $expense->enteredBy->area && $expense->enteredBy->area->mekhala_id !== $user->mekhala_id) {
-                continue;
-            }
-            $areaName = $expense->enteredBy->area->name ?? 'General';
-            $transactionsByArea->push([
-                'area' => $areaName,
-                'date' => $expense->expense_date,
-                'type' => 'Expense',
-                'description' => $expense->particulars,
-                'collection' => 0,
-                'expense' => $expense->amount,
-            ]);
-        }
-        
-        foreach ($applications as $application) {
-            // Skip applications from areas that don't belong to user's mekhala
-            if ($user->isMekhalaUser() && $application->area && $application->area->mekhala_id !== $user->mekhala_id) {
-                continue;
-            }
-            $areaName = $application->area->name ?? 'Unknown Area';
-            $transactionsByArea->push([
-                'area' => $areaName,
-                'date' => $application->approved_date,
-                'type' => 'Application Payment',
-                'description' => 'Payment to ' . $application->name . ' (' . ucfirst($application->category) . ')',
-                'collection' => 0,
-                'expense' => $application->approved_amount,
             ]);
         }
         
@@ -269,11 +264,15 @@ class ReportController extends Controller
             ];
         });
         
+        // Get filter options
+        $types = \App\Models\Collection::pluck('type')->unique()->filter()->sort()->values();
+        $terms = \App\Models\Collection::pluck('term')->unique()->filter()->sort()->values();
+        
         return view('reports.financial-statement', compact(
             'yearlyCollections', 'monthlyCollections', 'yearlyExpenses', 'monthlyExpenses',
             'yearlyApplications', 'monthlyApplications', 'yearlyInvestments', 'monthlyInvestments',
             'yearlyIncome', 'monthlyIncome', 'yearlyReturned', 'monthlyReturned', 'groupedTransactions', 'areaSummary', 'mekhalaName',
-            'yearlyForwarded', 'monthlyForwarded'
+            'yearlyForwarded', 'monthlyForwarded', 'types', 'terms', 'currentYear', 'currentMonth', 'type', 'term'
         ));
     }
 

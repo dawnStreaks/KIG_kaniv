@@ -402,7 +402,7 @@ class CollectionController extends Controller
             $query->where('collection_status', $request->status);
         }
 
-        $collections = $query->latest()->paginate(10)->appends($request->query());
+        $collections = $query->orderByRaw("FIELD(collection_status, 'forwarded', 'center_received')")->latest('collection_date')->paginate(10)->appends($request->query());
         $totalAmount = $query->sum('amount');
         
         // Get dropdown options
@@ -422,7 +422,13 @@ class CollectionController extends Controller
             $q->whereIn('collection_status', ['forwarded', 'center_received']);
         })->pluck('name', 'name')->sort();
         
-        return view('collections.center-receive', compact('collections', 'totalAmount', 'units', 'areas', 'mekhalas', 'users'));
+        $types = \App\Models\Collection::whereIn('collection_status', ['forwarded', 'center_received'])
+            ->pluck('type')->unique()->filter()->sort()->values();
+            
+        $terms = \App\Models\Collection::whereIn('collection_status', ['forwarded', 'center_received'])
+            ->pluck('term')->unique()->filter()->sort()->values();
+        
+        return view('collections.center-receive', compact('collections', 'totalAmount', 'units', 'areas', 'mekhalas', 'users', 'types', 'terms'));
     }
 
     public function markAsCenterReceived(Collection $collection)

@@ -13,7 +13,7 @@ class ExpenseController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Expense::with(['application', 'enteredBy']);
+        $query = Expense::with(['application', 'enteredBy', 'paidByArea']);
         
         // Filter by mekhala for mekhala users
         if (auth()->user()->isMekhalaUser()) {
@@ -42,7 +42,15 @@ class ExpenseController extends Controller
             abort(403, 'Only treasurers can add expenses');
         }
         $collectionTerms = \App\Models\CollectionTerm::active()->pluck('name')->toArray();
-        return view('expenses.create', compact('collectionTerms'));
+        
+        // Get areas based on user type
+        if (auth()->user()->isMekhalaUser()) {
+            $areas = \App\Models\Area::where('mekhala_id', auth()->user()->mekhala_id)->get();
+        } else {
+            $areas = \App\Models\Area::all();
+        }
+        
+        return view('expenses.create', compact('collectionTerms', 'areas'));
     }
 
     public function store(Request $request)
@@ -60,6 +68,8 @@ class ExpenseController extends Controller
             'amount' => 'required|numeric|min:0',
             'type' => 'required|in:' . implode(',', $allowedTypes),
             'bill' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:2048',
+            'beneficiary' => 'nullable|string|max:255',
+            'paid_by_area_id' => 'nullable|exists:areas,id',
         ]);
 
         if ($request->hasFile('bill')) {
@@ -81,7 +91,15 @@ class ExpenseController extends Controller
     {
         $applications = Application::approved()->get();
         $collectionTerms = \App\Models\CollectionTerm::active()->pluck('name')->toArray();
-        return view('expenses.edit', compact('expense', 'applications', 'collectionTerms'));
+        
+        // Get areas based on user type
+        if (auth()->user()->isMekhalaUser()) {
+            $areas = \App\Models\Area::where('mekhala_id', auth()->user()->mekhala_id)->get();
+        } else {
+            $areas = \App\Models\Area::all();
+        }
+        
+        return view('expenses.edit', compact('expense', 'applications', 'collectionTerms', 'areas'));
     }
 
     public function update(Request $request, Expense $expense)
@@ -95,6 +113,8 @@ class ExpenseController extends Controller
             'amount' => 'required|numeric|min:0',
             'type' => 'required|in:' . implode(',', $allowedTypes),
             'bill' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:2048',
+            'beneficiary' => 'nullable|string|max:255',
+            'paid_by_area_id' => 'nullable|exists:areas,id',
         ]);
 
         if ($request->hasFile('bill')) {

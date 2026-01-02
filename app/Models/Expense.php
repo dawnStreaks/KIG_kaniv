@@ -14,6 +14,8 @@ class Expense extends Model
         'type',
         'application_id',
         'entered_by',
+        'beneficiary',
+        'paid_by_area_id',
     ];
 
     protected $casts = [
@@ -29,6 +31,11 @@ class Expense extends Model
     public function enteredBy()
     {
         return $this->belongsTo(User::class, 'entered_by');
+    }
+
+    public function paidByArea()
+    {
+        return $this->belongsTo(Area::class, 'paid_by_area_id');
     }
 
     public function scopeApplicationExpenses($query)
