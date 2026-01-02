@@ -10,7 +10,7 @@ use Maatwebsite\Excel\Facades\Excel;
 
 class ApplicationController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
         $query = Application::with(['submitter', 'reviewer', 'applicationType', 'unit', 'area']);
         
@@ -22,9 +22,34 @@ class ApplicationController extends Controller
             });
         }
         
-        $applications = $query->latest()->paginate(10);
+        // Apply area filter
+        if ($request->filled('area_id')) {
+            $query->where('area_id', $request->area_id);
+        }
+        
+        // Apply unit filter
+        if ($request->filled('unit_id')) {
+            $query->where('unit_id', $request->unit_id);
+        }
+        
+        $applications = $query->latest()->paginate(10)->appends($request->query());
         $applicationTypes = \App\Models\ApplicationType::active()->get();
-        return view('applications.index', compact('applications', 'applicationTypes'));
+        
+        // Get filter options based on user permissions
+        if (auth()->user()->isAreaUser()) {
+            $areas = \App\Models\Area::where('id', auth()->user()->area_id)->get();
+            $units = \App\Models\Unit::where('area_id', auth()->user()->area_id)->get();
+        } elseif (auth()->user()->isMekhalaUser()) {
+            $areas = \App\Models\Area::where('mekhala_id', auth()->user()->mekhala_id)->get();
+            $units = \App\Models\Unit::whereHas('area', function($q) {
+                $q->where('mekhala_id', auth()->user()->mekhala_id);
+            })->with('area')->get();
+        } else {
+            $areas = \App\Models\Area::all();
+            $units = \App\Models\Unit::with('area')->get();
+        }
+        
+        return view('applications.index', compact('applications', 'applicationTypes', 'areas', 'units'));
     }
 
     public function create()

@@ -19,6 +19,7 @@
 
         <div class="card">
             <div class="card-body">
+                <form method="GET" id="filterForm">
                 <div class="table-responsive">
                     <table class="table table-striped" id="applicationsTable">
                         <thead>
@@ -38,21 +39,22 @@
                                 <th>Actions</th>
                             </tr>
                             <tr>
-                                <th><input type="text" class="form-control form-control-sm" placeholder="Filter ID"></th>
-                                <th><input type="text" class="form-control form-control-sm" placeholder="Filter Name"></th>
-                                <th><input type="text" class="form-control form-control-sm" placeholder="Filter Passport"></th>
-                                <th><input type="text" class="form-control form-control-sm" placeholder="Filter Civil ID"></th>
-                                <th><input type="text" class="form-control form-control-sm" placeholder="Filter Mobile"></th>
-                                <th><select class="form-control form-control-sm"><option value="">All Categories</option><option value="medical_support">Medical Support</option><option value="financial_support">Financial Support</option><option value="iqama_visa_residency">Iqama/Visa/Residency</option><option value="ticket">Ticket</option></select></th>
-                                <th><select class="form-control form-control-sm"><option value="">All Terms</option>@foreach($applicationTypes as $type)<option value="{{ $type->name }}">{{ $type->name }}</option>@endforeach</select></th>
-                                <th><input type="text" class="form-control form-control-sm" placeholder="Filter Area"></th>
-                                <th><input type="text" class="form-control form-control-sm" placeholder="Filter Unit"></th>
-                                <th><select class="form-control form-control-sm"><option value="">All Status</option><option value="pending">Pending</option><option value="payable">Payable</option><option value="paid">Paid</option><option value="rejected">Rejected</option></select></th>
-                                <th><input type="text" class="form-control form-control-sm" placeholder="Filter Amount"></th>
-                                <th><input type="text" class="form-control form-control-sm" placeholder="Filter Submitter"></th>
+                                <th><input type="text" class="form-control form-control-sm" name="id" placeholder="Filter ID" value="{{ request('id') }}"></th>
+                                <th><input type="text" class="form-control form-control-sm" name="name" placeholder="Filter Name" value="{{ request('name') }}"></th>
+                                <th><input type="text" class="form-control form-control-sm" name="passport" placeholder="Filter Passport" value="{{ request('passport') }}"></th>
+                                <th><input type="text" class="form-control form-control-sm" name="civil_id" placeholder="Filter Civil ID" value="{{ request('civil_id') }}"></th>
+                                <th><input type="text" class="form-control form-control-sm" name="mobile" placeholder="Filter Mobile" value="{{ request('mobile') }}"></th>
+                                <th><select class="form-control form-control-sm" name="category"><option value="">All Categories</option><option value="medical_support" {{ request('category') == 'medical_support' ? 'selected' : '' }}>Medical Support</option><option value="financial_support" {{ request('category') == 'financial_support' ? 'selected' : '' }}>Financial Support</option><option value="iqama_visa_residency" {{ request('category') == 'iqama_visa_residency' ? 'selected' : '' }}>Iqama/Visa/Residency</option><option value="ticket" {{ request('category') == 'ticket' ? 'selected' : '' }}>Ticket</option></select></th>
+                                <th><select class="form-control form-control-sm" name="application_type"><option value="">All Terms</option>@foreach($applicationTypes as $type)<option value="{{ $type->name }}" {{ request('application_type') == $type->name ? 'selected' : '' }}>{{ $type->name }}</option>@endforeach</select></th>
+                                <th><select class="form-control form-control-sm" name="area_id"><option value="">All Areas</option>@foreach($areas as $area)<option value="{{ $area->id }}" {{ request('area_id') == $area->id ? 'selected' : '' }}>{{ $area->name }}</option>@endforeach</select></th>
+                                <th><select class="form-control form-control-sm" name="unit_id"><option value="">All Units</option>@foreach($units as $unit)<option value="{{ $unit->id }}" {{ request('unit_id') == $unit->id ? 'selected' : '' }}>{{ $unit->name }}</option>@endforeach</select></th>
+                                <th><select class="form-control form-control-sm" name="status"><option value="">All Status</option><option value="pending" {{ request('status') == 'pending' ? 'selected' : '' }}>Pending</option><option value="payable" {{ request('status') == 'payable' ? 'selected' : '' }}>Payable</option><option value="paid" {{ request('status') == 'paid' ? 'selected' : '' }}>Paid</option><option value="rejected" {{ request('status') == 'rejected' ? 'selected' : '' }}>Rejected</option></select></th>
+                                <th><input type="text" class="form-control form-control-sm" name="amount" placeholder="Filter Amount" value="{{ request('amount') }}"></th>
+                                <th><input type="text" class="form-control form-control-sm" name="submitter" placeholder="Filter Submitter" value="{{ request('submitter') }}"></th>
                                 <th></th>
                             </tr>
                         </thead>
+                </form>
                         <tbody>
                             @forelse($applications as $application)
                                 <tr>
@@ -157,34 +159,20 @@
         @endif
     @endforeach
 
-    <script src="{{ asset('js/filtered-export.js') }}"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            const table = document.getElementById('applicationsTable');
-            const filterInputs = table.querySelectorAll('thead tr:nth-child(2) input, thead tr:nth-child(2) select');
-            const rows = table.querySelectorAll('tbody tr');
+            const form = document.getElementById('filterForm');
+            const inputs = form.querySelectorAll('input, select');
             
-            filterInputs.forEach((input, index) => {
-                input.addEventListener('input', function() {
-                    const filterValue = this.value.toLowerCase();
-                    
-                    rows.forEach(row => {
-                        const cell = row.cells[index];
-                        if (cell) {
-                            const cellText = cell.textContent.toLowerCase();
-                            const shouldShow = cellText.includes(filterValue);
-                            row.style.display = shouldShow ? '' : 'none';
-                        }
-                    });
+            inputs.forEach(input => {
+                input.addEventListener('change', function() {
+                    form.submit();
                 });
             });
-            
-            // Initialize filtered export
-            FilteredExport.initializeExportButton('applicationsTable', '{{ route("applications.export") }}');
         });
         
         function clearFilters() {
-            FilteredExport.clearFilters('applicationsTable');
+            window.location.href = '{{ route('applications.index') }}';
         }
     </script>
 @endsection
