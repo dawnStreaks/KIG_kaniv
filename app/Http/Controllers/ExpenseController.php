@@ -41,7 +41,8 @@ class ExpenseController extends Controller
         if (!auth()->user()->canAddExpenses()) {
             abort(403, 'Only treasurers can add expenses');
         }
-        return view('expenses.create');
+        $collectionTerms = \App\Models\CollectionTerm::active()->pluck('name')->toArray();
+        return view('expenses.create', compact('collectionTerms'));
     }
 
     public function store(Request $request)
@@ -76,7 +77,8 @@ class ExpenseController extends Controller
     public function edit(Expense $expense)
     {
         $applications = Application::approved()->get();
-        return view('expenses.edit', compact('expense', 'applications'));
+        $collectionTerms = \App\Models\CollectionTerm::active()->pluck('name')->toArray();
+        return view('expenses.edit', compact('expense', 'applications', 'collectionTerms'));
     }
 
     public function update(Request $request, Expense $expense)

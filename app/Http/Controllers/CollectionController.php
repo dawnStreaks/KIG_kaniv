@@ -405,7 +405,24 @@ class CollectionController extends Controller
         $collections = $query->latest()->paginate(10)->appends($request->query());
         $totalAmount = $query->sum('amount');
         
-        return view('collections.center-receive', compact('collections', 'totalAmount'));
+        // Get dropdown options
+        $units = \App\Models\Unit::whereHas('collections', function($q) {
+            $q->whereIn('collection_status', ['forwarded', 'center_received']);
+        })->pluck('name', 'name')->sort();
+        
+        $areas = \App\Models\Area::whereHas('units.collections', function($q) {
+            $q->whereIn('collection_status', ['forwarded', 'center_received']);
+        })->pluck('name', 'name')->sort();
+        
+        $mekhalas = \App\Models\Mekhala::whereHas('areas.units.collections', function($q) {
+            $q->whereIn('collection_status', ['forwarded', 'center_received']);
+        })->pluck('name', 'name')->sort();
+        
+        $users = \App\Models\User::whereHas('enteredCollections', function($q) {
+            $q->whereIn('collection_status', ['forwarded', 'center_received']);
+        })->pluck('name', 'name')->sort();
+        
+        return view('collections.center-receive', compact('collections', 'totalAmount', 'units', 'areas', 'mekhalas', 'users'));
     }
 
     public function markAsCenterReceived(Collection $collection)
