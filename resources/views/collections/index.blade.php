@@ -37,8 +37,8 @@
                             <th>Amount</th>
                             <th>Collection Date</th>
                             <th>Unit</th>
-                            <th>Term</th>
                             <th>Type</th>
+                            <th>Term</th>
                             <th>Status</th>
                             <th>Entered By</th>
                             <th>Actions</th>
@@ -49,8 +49,8 @@
                             <th><input type="text" class="form-control form-control-sm" name="amount" placeholder="Filter Amount" value="{{ request('amount') }}"></th>
                             <th><div class="d-flex gap-1"><input type="date" class="form-control form-control-sm" name="date_from" value="{{ request('date_from') }}"><input type="date" class="form-control form-control-sm" name="date_to" value="{{ request('date_to') }}"></div></th>
                             <th><select class="form-control form-control-sm" name="unit"><option value="">All Units</option>@foreach($allUnits as $unit)<option value="{{ $unit }}" {{ request('unit') == $unit ? 'selected' : '' }}>{{ $unit }}</option>@endforeach</select></th>
-                            <th><select class="form-control form-control-sm" name="term"><option value="">All Terms</option>@foreach($allTerms as $term)<option value="{{ $term }}" {{ request('term') == $term ? 'selected' : '' }}>{{ $term }}</option>@endforeach</select></th>
                             <th><select class="form-control form-control-sm" name="type"><option value="">All Types</option>@foreach($allTypes as $type)<option value="{{ $type }}" {{ request('type') == $type ? 'selected' : '' }}>{{ $type }}</option>@endforeach</select></th>
+                            <th><select class="form-control form-control-sm" name="term"><option value="">All Terms</option>@foreach($allTerms as $term)<option value="{{ $term }}" {{ request('term') == $term ? 'selected' : '' }}>{{ $term }}</option>@endforeach</select></th>
                             <th><select class="form-control form-control-sm" name="status"><option value="">All Status</option><option value="pending" {{ request('status') == 'pending' ? 'selected' : '' }}>Pending</option><option value="received" {{ request('status') == 'received' ? 'selected' : '' }}>Received</option><option value="center_received" {{ request('status') == 'center_received' ? 'selected' : '' }}>Center Received</option></select></th>
                             <th><input type="text" class="form-control form-control-sm" name="user" placeholder="Filter User" value="{{ request('user') }}"></th>
                             <th></th>
@@ -63,8 +63,8 @@
                             <td>KWD {{ number_format($collection->amount, 3) }}</td>
                             <td>{{ $collection->collection_date }}</td>
                             <td>{{ $collection->unit->name ?? 'N/A' }}</td>
-                            <td>{{ $collection->term ?? 'N/A' }}</td>
                             <td>{{ $collection->type ?? 'N/A' }}</td>
+                            <td>{{ $collection->term ?? 'N/A' }}</td>
                             <td><span class="badge bg-{{ $collection->collection_status === 'pending' ? 'warning' : ($collection->collection_status === 'received' ? 'info' : 'success') }}">{{ ucfirst($collection->collection_status ?? 'pending') }}</span></td>
                             <td>{{ $collection->enteredBy->name ?? 'N/A' }}</td>
                             <td>

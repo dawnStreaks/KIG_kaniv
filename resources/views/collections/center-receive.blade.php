@@ -39,6 +39,8 @@
                                 <th>Unit</th>
                                 <th>Area</th>
                                 <th>Mekhala</th>
+                                <th>Type</th>
+                                <th>Term</th>
                                 <th>Entered By</th>
                                 <th>Status</th>
                                 <th>Actions</th>
@@ -93,6 +95,8 @@
                                     <td>{{ $collection->unit->name ?? 'N/A' }}</td>
                                     <td>{{ $collection->unit->area->name ?? 'N/A' }}</td>
                                     <td>{{ $collection->unit->area->mekhala->name ?? 'N/A' }}</td>
+                                    <td>{{ $collection->type ?? 'N/A' }}</td>
+                                    <td>{{ $collection->term ?? 'N/A' }}</td>
                                     <td>{{ $collection->enteredBy->name ?? 'N/A' }}</td>
                                     <td>
                                         @if($collection->collection_status === 'forwarded')
@@ -117,7 +121,7 @@
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="8" class="text-center">No collections available for center receiving</td>
+                                    <td colspan="10" class="text-center">No collections available for center receiving</td>
                                 </tr>
                             @endforelse
                         </tbody>
