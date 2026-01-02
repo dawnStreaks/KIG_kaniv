@@ -77,6 +77,11 @@ class User extends Authenticatable
         return $this->hasMany(Collection::class, 'entered_by');
     }
 
+    public function enteredCollections()
+    {
+        return $this->hasMany(Collection::class, 'entered_by');
+    }
+
     public function expenses()
     {
         return $this->hasMany(Expense::class, 'entered_by');
