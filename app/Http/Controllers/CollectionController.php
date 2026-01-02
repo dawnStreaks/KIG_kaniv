@@ -418,7 +418,7 @@ class CollectionController extends Controller
             $q->whereIn('collection_status', ['forwarded', 'center_received']);
         })->pluck('name', 'name')->sort();
         
-        $users = \App\Models\User::whereHas('enteredCollections', function($q) {
+        $users = \App\Models\User::whereHas('collections', function($q) {
             $q->whereIn('collection_status', ['forwarded', 'center_received']);
         })->pluck('name', 'name')->sort();
         
