@@ -20,6 +20,13 @@ class ExpenseController extends Controller
             $query->where('entered_by', auth()->id());
         }
         
+        // Filter by center users for center login
+        if (auth()->user()->isCenterUser()) {
+            $query->whereHas('enteredBy', function($q) {
+                $q->where('user_type', 'center');
+            });
+        }
+        
         if ($request->filled('type')) {
             $query->where('type', $request->type);
         }

@@ -22,14 +22,57 @@ class ApplicationController extends Controller
             });
         }
         
-        // Apply area filter
+        // Apply filters
+        if ($request->filled('id')) {
+            $query->where('id', 'like', '%' . $request->id . '%');
+        }
+        
+        if ($request->filled('name')) {
+            $query->where('name', 'like', '%' . $request->name . '%');
+        }
+        
+        if ($request->filled('passport')) {
+            $query->where('passport_no', 'like', '%' . $request->passport . '%');
+        }
+        
+        if ($request->filled('civil_id')) {
+            $query->where('civil_id', 'like', '%' . $request->civil_id . '%');
+        }
+        
+        if ($request->filled('mobile')) {
+            $query->where('mobile_number', 'like', '%' . $request->mobile . '%');
+        }
+        
+        if ($request->filled('category')) {
+            $query->where('category', $request->category);
+        }
+        
+        if ($request->filled('application_type')) {
+            $query->whereHas('applicationType', function($q) use ($request) {
+                $q->where('name', $request->application_type);
+            });
+        }
+        
         if ($request->filled('area_id')) {
             $query->where('area_id', $request->area_id);
         }
         
-        // Apply unit filter
         if ($request->filled('unit_id')) {
             $query->where('unit_id', $request->unit_id);
+        }
+        
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        }
+        
+        if ($request->filled('amount')) {
+            $query->where('approved_amount', 'like', '%' . $request->amount . '%');
+        }
+        
+        if ($request->filled('submitter')) {
+            $query->whereHas('submitter', function($q) use ($request) {
+                $q->where('name', 'like', '%' . $request->submitter . '%');
+            });
         }
         
         $applications = $query->latest()->paginate(10)->appends($request->query());

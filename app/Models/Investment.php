@@ -32,6 +32,6 @@ class Investment extends Model
 
     public function getBalanceAttribute()
     {
-        return ($this->amount + $this->income_generated) - ($this->returned_amount ?? 0);
+        return $this->amount - ($this->returned_amount ?? 0);
     }
 }

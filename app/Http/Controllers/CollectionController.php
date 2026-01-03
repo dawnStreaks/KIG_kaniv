@@ -67,8 +67,8 @@ class CollectionController extends Controller
             $query->where('collection_status', $request->status);
         }
         
-        $collections = $query->latest()->paginate(10)->appends($request->query());
         $totalAmount = $query->sum('amount');
+        $collections = $query->latest()->paginate(10)->appends($request->query());
         
         // Get all unique values for dropdowns (across all pages)
         $allUnits = Collection::with('unit')
@@ -326,7 +326,7 @@ class CollectionController extends Controller
         return Excel::download(new CollectionsExport($request), 'collections.xlsx');
     }
 
-    public function receiveCollections()
+    public function receiveCollections(Request $request)
     {
         if (!auth()->user()->isMekhalaUser()) {
             abort(403, 'Only mekhala users can access this page');
@@ -337,7 +337,48 @@ class CollectionController extends Controller
                 $q->where('mekhala_id', auth()->user()->mekhala_id);
             });
 
-        $collections = $query->latest()->paginate(10);
+        // Apply filters
+        if ($request->filled('amount')) {
+            $query->where('amount', 'like', '%' . $request->amount . '%');
+        }
+        
+        if ($request->filled('collection_date')) {
+            $query->whereDate('collection_date', $request->collection_date);
+        }
+        
+        if ($request->filled('unit')) {
+            $query->whereHas('unit', function($q) use ($request) {
+                $q->where('name', 'like', '%' . $request->unit . '%');
+            });
+        }
+        
+        if ($request->filled('term')) {
+            $query->where('term', 'like', '%' . $request->term . '%');
+        }
+        
+        if ($request->filled('type')) {
+            $query->where('type', 'like', '%' . $request->type . '%');
+        }
+        
+        if ($request->filled('date_from')) {
+            $query->whereDate('collection_date', '>=', $request->date_from);
+        }
+        
+        if ($request->filled('date_to')) {
+            $query->whereDate('collection_date', '<=', $request->date_to);
+        }
+        
+        if ($request->filled('user')) {
+            $query->whereHas('enteredBy', function($q) use ($request) {
+                $q->where('name', 'like', '%' . $request->user . '%');
+            });
+        }
+        
+        if ($request->filled('status')) {
+            $query->where('collection_status', $request->status);
+        }
+
+        $collections = $query->latest()->paginate(10)->appends($request->query());
         return view('collections.receive', compact('collections'));
     }
 

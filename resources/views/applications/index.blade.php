@@ -168,6 +168,12 @@
                 input.addEventListener('change', function() {
                     form.submit();
                 });
+                
+                input.addEventListener('keyup', function(e) {
+                    if (e.key === 'Enter') {
+                        form.submit();
+                    }
+                });
             });
         });
         
