@@ -6,11 +6,16 @@
         <div class="col-12">
             <div class="card">
                 <div class="card-header d-flex justify-content-between align-items-center">
-                    <h3>Mekhala Report - {{ $year }}</h3>
-                    <form method="GET" class="d-flex">
-                        <select name="year" class="form-select me-2" onchange="this.form.submit()">
+                    <h3>Mekhala Report - {{ $year }}/{{ $month ?? date('m') }}</h3>
+                    <form method="GET" class="d-flex gap-2">
+                        <select name="year" class="form-select" onchange="this.form.submit()">
                             @for($y = date('Y'); $y >= 2020; $y--)
                                 <option value="{{ $y }}" {{ $year == $y ? 'selected' : '' }}>{{ $y }}</option>
+                            @endfor
+                        </select>
+                        <select name="month" class="form-select" onchange="this.form.submit()">
+                            @for($i = 1; $i <= 12; $i++)
+                                <option value="{{ sprintf('%02d', $i) }}" {{ ($month ?? date('m')) == sprintf('%02d', $i) ? 'selected' : '' }}>{{ date('M', mktime(0, 0, 0, $i, 1)) }}</option>
                             @endfor
                         </select>
                     </form>

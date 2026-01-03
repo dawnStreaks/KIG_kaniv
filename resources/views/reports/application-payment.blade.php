@@ -5,8 +5,73 @@
 @section('content')
     <div>
         <div class="d-flex justify-content-between align-items-center mb-4">
-            <h2>Application Payment Report</h2>
+            <h2>Application Payment Report - {{ $currentYear ?? date('Y') }}/{{ $currentMonth ?? date('m') }}</h2>
             <button type="button" class="btn btn-secondary" onclick="clearFilters()">Clear Filters</button>
+        </div>
+
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5>Filters</h5>
+            </div>
+            <div class="card-body">
+                <form method="GET" action="{{ route('reports.application-payment') }}">
+                    <div class="row">
+                        <div class="col-md-2">
+                            <label for="year" class="form-label">Year</label>
+                            <select name="year" id="year" class="form-select">
+                                @for($i = date('Y'); $i >= 2020; $i--)
+                                    <option value="{{ $i }}" {{ ($currentYear ?? date('Y')) == $i ? 'selected' : '' }}>{{ $i }}</option>
+                                @endfor
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <label for="month" class="form-label">Month</label>
+                            <select name="month" id="month" class="form-select">
+                                @for($i = 1; $i <= 12; $i++)
+                                    <option value="{{ sprintf('%02d', $i) }}" {{ ($currentMonth ?? date('m')) == sprintf('%02d', $i) ? 'selected' : '' }}>{{ date('M', mktime(0, 0, 0, $i, 1)) }}</option>
+                                @endfor
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <label for="category" class="form-label">Category</label>
+                            <select name="category" id="category" class="form-select">
+                                <option value="">All Categories</option>
+                                <option value="medical_support" {{ request('category') == 'medical_support' ? 'selected' : '' }}>Medical Support</option>
+                                <option value="financial_support" {{ request('category') == 'financial_support' ? 'selected' : '' }}>Financial Support</option>
+                                <option value="iqama_visa_residency" {{ request('category') == 'iqama_visa_residency' ? 'selected' : '' }}>Iqama/Visa/Residency</option>
+                                <option value="ticket" {{ request('category') == 'ticket' ? 'selected' : '' }}>Ticket</option>
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <label for="date_from" class="form-label">Date From</label>
+                            <input type="date" name="date_from" id="date_from" class="form-control" value="{{ request('date_from') }}">
+                        </div>
+                        <div class="col-md-2">
+                            <label for="date_to" class="form-label">Date To</label>
+                            <input type="date" name="date_to" id="date_to" class="form-control" value="{{ request('date_to') }}">
+                        </div>
+                        <div class="col-md-2 d-flex align-items-end">
+                            <button type="submit" class="btn btn-primary me-2">Filter</button>
+                            <a href="{{ route('reports.application-payment') }}" class="btn btn-secondary">Clear</a>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <div class="card mb-4">
+            <div class="card-body">
+                <div class="row text-center">
+                    <div class="col-md-6">
+                        <h5>Total Applications ({{ $currentYear ?? date('Y') }}/{{ $currentMonth ?? date('m') }})</h5>
+                        <h3 class="text-primary">{{ $applications->count() }}</h3>
+                    </div>
+                    <div class="col-md-6">
+                        <h5>Total Amount</h5>
+                        <h3 class="text-success">KWD {{ number_format($totalAmount, 3) }}</h3>
+                    </div>
+                </div>
+            </div>
         </div>
 
         <div class="card">

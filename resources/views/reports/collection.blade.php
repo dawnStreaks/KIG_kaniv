@@ -5,7 +5,7 @@
 @section('content')
     <div>
         <div class="d-flex justify-content-between align-items-center mb-4">
-            <h2>Collection Report - {{ date('Y') }}</h2>
+            <h2>Collection Report - {{ $currentYear ?? date('Y') }}/{{ $currentMonth ?? date('m') }}</h2>
             <button type="button" class="btn btn-secondary" onclick="clearFilters()">Clear Filters</button>
         </div>
         
@@ -13,7 +13,7 @@
             <div class="card-body">
                 <div class="row text-center">
                     <div class="col-md-4">
-                        <h5>Total Collections ({{ date('Y') }})</h5>
+                        <h5>Total Collections ({{ $currentYear ?? date('Y') }}/{{ $currentMonth ?? date('m') }})</h5>
                         <h3 class="text-primary" id="yearlyTotal">KWD {{ number_format($totalAmount ?? $collections->sum('amount'), 3) }}</h3>
                     </div>
                     <div class="col-md-4">
@@ -35,6 +35,22 @@
             <div class="card-body">
                 <form method="GET" action="{{ route('reports.collection') }}">
                     <div class="row">
+                        <div class="col-md-1">
+                            <label for="year" class="form-label">Year</label>
+                            <select name="year" id="year" class="form-select">
+                                @for($i = date('Y'); $i >= 2020; $i--)
+                                    <option value="{{ $i }}" {{ ($currentYear ?? date('Y')) == $i ? 'selected' : '' }}>{{ $i }}</option>
+                                @endfor
+                            </select>
+                        </div>
+                        <div class="col-md-1">
+                            <label for="month" class="form-label">Month</label>
+                            <select name="month" id="month" class="form-select">
+                                @for($i = 1; $i <= 12; $i++)
+                                    <option value="{{ sprintf('%02d', $i) }}" {{ ($currentMonth ?? date('m')) == sprintf('%02d', $i) ? 'selected' : '' }}>{{ date('M', mktime(0, 0, 0, $i, 1)) }}</option>
+                                @endfor
+                            </select>
+                        </div>
                         <div class="col-md-2">
                             <label for="area_id" class="form-label">Area</label>
                             <select name="area_id" id="area_id" class="form-select">

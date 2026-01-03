@@ -523,11 +523,17 @@ class CollectionController extends Controller
             $total = $units->sum(function($unit) {
                 return $unit->collections->sum('amount');
             });
+            // Only count units that have collections matching the filters
+            $unitsWithCollections = $units->filter(function($unit) {
+                return $unit->collections->sum('amount') > 0;
+            });
             return [
                 'type' => $unitType,
                 'total' => $total,
-                'count' => $units->count()
+                'count' => $unitsWithCollections->count()
             ];
+        })->filter(function($item) {
+            return $item['total'] > 0; // Only show unit types with collections
         })->values();
         
         // Get filter options

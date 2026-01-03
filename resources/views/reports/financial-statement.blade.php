@@ -5,8 +5,22 @@
 @section('content')
     <div>
         <div class="d-flex justify-content-between align-items-center mb-3">
-            <h2>{{ $reportType ?? 'Financial' }} Statement</h2>
-            <a href="{{ route('reports.export-financial') }}" class="btn btn-success">Export</a>
+            <h2>{{ $reportType ?? 'Financial' }} Statement - {{ $currentYear ?? date('Y') }}/{{ $currentMonth ?? date('m') }}</h2>
+            <div class="d-flex gap-2">
+                <form method="GET" class="d-flex gap-2">
+                    <select name="year" class="form-select form-select-sm" onchange="this.form.submit()">
+                        @for($i = date('Y'); $i >= 2020; $i--)
+                            <option value="{{ $i }}" {{ ($currentYear ?? date('Y')) == $i ? 'selected' : '' }}>{{ $i }}</option>
+                        @endfor
+                    </select>
+                    <select name="month" class="form-select form-select-sm" onchange="this.form.submit()">
+                        @for($i = 1; $i <= 12; $i++)
+                            <option value="{{ sprintf('%02d', $i) }}" {{ ($currentMonth ?? date('m')) == sprintf('%02d', $i) ? 'selected' : '' }}>{{ date('M', mktime(0, 0, 0, $i, 1)) }}</option>
+                        @endfor
+                    </select>
+                </form>
+                <a href="{{ route('reports.export-financial') }}" class="btn btn-success btn-sm">Export</a>
+            </div>
         </div>
 
         <div class="row">

@@ -73,9 +73,16 @@
                                 </tr>
                                 @empty
                                 <tr>
-                                    <td colspan="3" class="text-center text-muted">No data available</td>
+                                    <td colspan="3" class="text-center text-muted">No data available for selected filters</td>
                                 </tr>
                                 @endforelse
+                                @if($data->isNotEmpty())
+                                <tr class="table-secondary">
+                                    <td><strong>Total</strong></td>
+                                    <td><strong>{{ $data->sum('count') }}</strong></td>
+                                    <td><strong>KWD {{ number_format($data->sum('total'), 3) }}</strong></td>
+                                </tr>
+                                @endif
                             </tbody>
                         </table>
                     </div>

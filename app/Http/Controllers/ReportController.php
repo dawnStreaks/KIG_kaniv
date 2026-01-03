@@ -278,9 +278,13 @@ class ReportController extends Controller
 
     public function collectionReport(Request $request)
     {
+        $currentYear = $request->get('year', date('Y'));
+        $currentMonth = $request->get('month', date('m'));
         $user = auth()->user();
         
-        $query = Collection::with(['unit.area.mekhala', 'enteredBy']);
+        $query = Collection::with(['unit.area.mekhala', 'enteredBy'])
+            ->whereYear('collection_date', $currentYear)
+            ->whereMonth('collection_date', $currentMonth);
         
         // Filter by user's mekhala if they are a mekhala user
         if ($user->isMekhalaUser()) {
@@ -366,14 +370,19 @@ class ReportController extends Controller
                 })->toArray();
         }
         
-        return view('reports.collection', compact('collections', 'totalAmount', 'mekhalaData', 'collectionsByArea', 'areas', 'terms', 'types'));
+        return view('reports.collection', compact('collections', 'totalAmount', 'mekhalaData', 'collectionsByArea', 'areas', 'terms', 'types', 'currentYear', 'currentMonth'));
     }
 
     public function applicationPaymentReport(Request $request)
     {
+        $currentYear = $request->get('year', date('Y'));
+        $currentMonth = $request->get('month', date('m'));
         $user = auth()->user();
         
-        $query = Application::with(['submitter', 'reviewer'])->where('status', 'paid');
+        $query = Application::with(['submitter', 'reviewer'])
+            ->where('status', 'paid')
+            ->whereYear('approved_date', $currentYear)
+            ->whereMonth('approved_date', $currentMonth);
         
         // Filter by user's mekhala if they are a mekhala user
         if ($user->isMekhalaUser()) {
@@ -397,25 +406,30 @@ class ReportController extends Controller
         $applications = $query->latest('approved_date')->get();
         $totalAmount = $applications->sum('approved_amount');
         
-        return view('reports.application-payment', compact('applications', 'totalAmount'));
+        return view('reports.application-payment', compact('applications', 'totalAmount', 'currentYear', 'currentMonth'));
     }
 
     public function mekhalaReport(Request $request)
     {
         $year = $request->get('year', date('Y'));
+        $month = $request->get('month', date('m'));
         
-        $data = \App\Models\Mekhala::with(['areas.units'])->get()->map(function($mekhala) use ($year) {
+        $data = \App\Models\Mekhala::with(['areas.units'])->get()->map(function($mekhala) use ($year, $month) {
             $collections = Collection::whereYear('collection_date', $year)
+                ->whereMonth('collection_date', $month)
                 ->whereHas('unit.area', function($q) use ($mekhala) {
                     $q->where('mekhala_id', $mekhala->id);
                 })->sum('amount');
                 
-            $applications = Application::where('status', 'paid')->whereYear('approved_date', $year)
+            $applications = Application::where('status', 'paid')
+                ->whereYear('approved_date', $year)
+                ->whereMonth('approved_date', $month)
                 ->whereHas('submitter.area', function($q) use ($mekhala) {
                     $q->where('mekhala_id', $mekhala->id);
                 })->sum('approved_amount');
                 
             $expenses = Expense::whereYear('expense_date', $year)
+                ->whereMonth('expense_date', $month)
                 ->whereHas('enteredBy', function($q) use ($mekhala) {
                     $q->where('mekhala_id', $mekhala->id);
                 })->sum('amount');
@@ -432,7 +446,7 @@ class ReportController extends Controller
             ];
         });
         
-        return view('reports.mekhala', compact('data', 'year'));
+        return view('reports.mekhala', compact('data', 'year', 'month'));
     }
 
     public function mekhalaReportDrillDown(Request $request)
@@ -486,8 +500,8 @@ class ReportController extends Controller
 
     public function centerFinancial(Request $request)
     {
-        $currentYear = date('Y');
-        $currentMonth = date('m');
+        $currentYear = $request->get('year', date('Y'));
+        $currentMonth = $request->get('month', date('m'));
         
         // Collections Summary (only center received collections)
         $yearlyCollections = Collection::centerReceived()->whereYear('collection_date', $currentYear)->sum('amount');
@@ -596,14 +610,14 @@ class ReportController extends Controller
             'yearlyCollections', 'monthlyCollections', 'yearlyExpenses', 'monthlyExpenses',
             'yearlyApplications', 'monthlyApplications', 'yearlyInvestments', 'monthlyInvestments',
             'yearlyIncome', 'monthlyIncome', 'yearlyReturned', 'monthlyReturned', 'reportType', 'mekhalaName',
-            'groupedTransactions', 'areaSummary'
+            'groupedTransactions', 'areaSummary', 'currentYear', 'currentMonth'
         ));
     }
 
     private function getMekhalaFinancialStatement(Request $request, $type)
     {
-        $currentYear = date('Y');
-        $currentMonth = date('m');
+        $currentYear = $request->get('year', date('Y'));
+        $currentMonth = $request->get('month', date('m'));
         
         // Get mekhala IDs (based on database: 1=East, 2=West)
         $mekhalaIds = [];
@@ -856,7 +870,7 @@ class ReportController extends Controller
             'yearlyCollections', 'monthlyCollections', 'yearlyExpenses', 'monthlyExpenses',
             'yearlyApplications', 'monthlyApplications', 'yearlyInvestments', 'monthlyInvestments',
             'yearlyIncome', 'monthlyIncome', 'yearlyReturned', 'monthlyReturned', 'transactions', 'reportType', 'mekhalaName',
-            'areaSummary', 'groupedTransactions'
+            'areaSummary', 'groupedTransactions', 'currentYear', 'currentMonth'
         ));
     }
 
