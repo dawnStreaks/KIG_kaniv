@@ -540,12 +540,16 @@ class ReportController extends Controller
         $monthlyReturned = Investment::whereMonth('investment_date', $currentMonth)
                                    ->whereYear('investment_date', $currentYear)->sum('returned_amount');
         
-        // Get detailed transactions
-        $collections = Collection::centerReceived()->with('unit.area')->orderBy('collection_date')->get();
-        $expenses = Expense::whereHas('enteredBy', function($q) {
+        // Get detailed transactions filtered by year and month
+        $collectionsQuery = Collection::centerReceived()->with('unit.area')->whereYear('collection_date', $currentYear)->whereMonth('collection_date', $currentMonth);
+        $expensesQuery = Expense::whereHas('enteredBy', function($q) {
             $q->where('user_type', 'center');
-        })->orderBy('expense_date')->get();
-        $applications = Application::where('status', 'paid')->orderBy('approved_date')->get();
+        })->whereYear('expense_date', $currentYear)->whereMonth('expense_date', $currentMonth);
+        $applicationsQuery = Application::where('status', 'paid')->whereYear('approved_date', $currentYear)->whereMonth('approved_date', $currentMonth);
+        
+        $collections = $collectionsQuery->orderBy('collection_date')->get();
+        $expenses = $expensesQuery->orderBy('expense_date')->get();
+        $applications = $applicationsQuery->orderBy('approved_date')->get();
         
         // Group transactions by area
         $transactionsByArea = collect();
@@ -610,7 +614,7 @@ class ReportController extends Controller
             'yearlyCollections', 'monthlyCollections', 'yearlyExpenses', 'monthlyExpenses',
             'yearlyApplications', 'monthlyApplications', 'yearlyInvestments', 'monthlyInvestments',
             'yearlyIncome', 'monthlyIncome', 'yearlyReturned', 'monthlyReturned', 'reportType', 'mekhalaName',
-            'groupedTransactions', 'areaSummary', 'currentYear', 'currentMonth'
+            'groupedTransactions', 'areaSummary', 'yearlyForwarded', 'monthlyForwarded', 'currentYear', 'currentMonth'
         ));
     }
 
