@@ -226,12 +226,12 @@
                 .then(response => response.json())
                 .then(data => {
                     const logoMap = {
-                        'KIG': 'KIG_logo_sm.jpeg',
+                        'KIG': 'kig_logo_sm.jpeg',
                         'YI': 'yi logo.png',
                         'IWA': 'iwa_logo-01.png'
                     };
                     
-                    let titleHtml = `<img src="/storage/logos/${logoMap[unitType]}" alt="${unitType} Logo" style="height: 30px; margin-right: 10px;">`;
+                    let titleHtml = `<img src="/logos/${logoMap[unitType]}" alt="${unitType} Logo" style="height: 30px; margin-right: 10px;">`;
                     titleHtml += `${unitType} Units - {{ $year }}`;
                     if (term || collectionType) {
                         titleHtml += ` (${term ? 'Term: ' + term : ''}${term && collectionType ? ', ' : ''}${collectionType ? 'Type: ' + collectionType : ''})`;
