@@ -129,7 +129,7 @@ class User extends Authenticatable
 
     public function canAddInvestments()
     {
-        return $this->isAdmin() || $this->isTreasurer();
+        return $this->isTreasurer() || $this->isCenterUser();
     }
 
     public function getMekhalaAreasQuery()
