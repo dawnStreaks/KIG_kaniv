@@ -112,6 +112,7 @@ Route::middleware('auth')->group(function () {
     Route::patch('/collections/{collection}/mark-received', [CollectionController::class, 'markAsReceived'])->name('collections.mark-received');
     Route::get('/collections/center-receive', [CollectionController::class, 'centerReceiveCollections'])->name('collections.center-receive');
     Route::patch('/collections/{collection}/mark-center-received', [CollectionController::class, 'markAsCenterReceived'])->name('collections.mark-center-received');
+    Route::patch('/collections/{collection}/reverse-center-received', [CollectionController::class, 'reverseCenterReceived'])->name('collections.reverse-center-received');
     Route::patch('/collections/{collection}/forward-to-center', [CollectionController::class, 'forwardToCenter'])->name('collections.forward-to-center');
     Route::post('/collections/bulk-receive', [CollectionController::class, 'bulkReceive'])->name('collections.bulk-receive');
     Route::resource('collections', CollectionController::class);
@@ -139,7 +140,8 @@ Route::middleware('auth')->group(function () {
     // Report routes
     Route::middleware('mekhala')->prefix('reports')->name('reports.')->group(function () {
         Route::get('/financial-statement', [ReportController::class, 'financialStatement'])->name('financial');
-        Route::get('/center-financial', [ReportController::class, 'financialStatement'])->name('center-financial');
+        Route::get('/area-summary', [ReportController::class, 'areaSummary'])->name('area-summary');
+        Route::get('/center-financial', [ReportController::class, 'centerFinancialStatement'])->name('center-financial');
         Route::get('/east-mekhala-financial', [ReportController::class, 'eastMekhalaFinancial'])->name('east-financial');
         Route::get('/west-mekhala-financial', [ReportController::class, 'westMekhalaFinancial'])->name('west-financial');
         Route::get('/combined-financial', [ReportController::class, 'combinedFinancial'])->name('combined-financial');

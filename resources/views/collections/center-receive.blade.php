@@ -116,6 +116,14 @@
                                                     Center Receive
                                                 </button>
                                             </form>
+                                        @elseif($collection->collection_status === 'center_received')
+                                            <form method="POST" action="{{ route('collections.reverse-center-received', $collection) }}" class="d-inline">
+                                                @csrf
+                                                @method('PATCH')
+                                                <button type="submit" class="btn btn-sm btn-warning" onclick="return confirm('Reverse center received status? This will return the collection to mekhala as payable.')">
+                                                    Reverse
+                                                </button>
+                                            </form>
                                         @else
                                             <span class="text-muted">-</span>
                                         @endif

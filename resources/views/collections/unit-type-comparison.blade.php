@@ -32,7 +32,25 @@
             <div class="col-md-8">
                 <div class="card">
                     <div class="card-header">
-                        <h5>Unit Type Comparison - {{ $year }}</h5>
+                        <h5>Unit Type Comparison - {{ $year }}
+                            @if($term || $type)
+                                <small class="text-muted">
+                                    ({{ $term ? 'Term: ' . $term : '' }}{{ $term && $type ? ', ' : '' }}{{ $type ? 'Type: ' . $type : '' }})
+                                </small>
+                            @endif
+                        </h5>
+                        <div class="row mt-2">
+                            @foreach($data as $item)
+                                <div class="col-md-4 text-center">
+                                    <div class="badge bg-{{ $item['type'] == 'KIG' ? 'primary' : ($item['type'] == 'YI' ? 'success' : 'info') }} p-2">
+                                        <strong>{{ $item['type'] }}</strong>
+                                        @if($term || $type)
+                                            <br><small>{{ $term ? $term : 'All Terms' }}{{ $term && $type ? ' | ' : '' }}{{ $type ? $type : ($term ? '' : 'All Types') }}</small>
+                                        @endif
+                                    </div>
+                                </div>
+                            @endforeach
+                        </div>
                     </div>
                     <div class="card-body">
                         <canvas id="comparisonChart" width="400" height="200"></canvas>
@@ -207,7 +225,18 @@
             fetch(url)
                 .then(response => response.json())
                 .then(data => {
-                    document.getElementById('drillDownTitle').textContent = `${unitType} Units - {{ $year }}`;
+                    const logoMap = {
+                        'KIG': 'KIG_logo_sm.jpeg',
+                        'YI': 'yi logo.png',
+                        'IWA': 'iwa_logo-01.png'
+                    };
+                    
+                    let titleHtml = `<img src="/storage/logos/${logoMap[unitType]}" alt="${unitType} Logo" style="height: 30px; margin-right: 10px;">`;
+                    titleHtml += `${unitType} Units - {{ $year }}`;
+                    if (term || collectionType) {
+                        titleHtml += ` (${term ? 'Term: ' + term : ''}${term && collectionType ? ', ' : ''}${collectionType ? 'Type: ' + collectionType : ''})`;
+                    }
+                    document.getElementById('drillDownTitle').innerHTML = titleHtml;
                     
                     // Destroy existing drill-down chart if it exists
                     if (drillDownChartInstance) {

@@ -118,7 +118,7 @@
             if (userType === 'center') {
                 roleField.style.display = 'block';
                 roleSelect.innerHTML = '<option value="admin">Admin</option>';
-                roleSelect.value = 'admin';
+                roleSelect.value = currentRole || 'admin';
             } else if (userType === 'mekhala') {
                 roleField.style.display = 'block';
                 mekhalaField.style.display = 'block';
@@ -127,6 +127,7 @@
             } else if (userType === 'area') {
                 areaField.style.display = 'block';
                 mekhalaField.style.display = 'block';
+                roleSelect.value = '';
             }
         }
         

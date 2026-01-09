@@ -12,6 +12,67 @@
             </div>
         </div>
 
+        <div class="card mb-3">
+            <div class="card-header">
+                <h5>Filters</h5>
+            </div>
+            <div class="card-body">
+                <form method="GET" action="{{ route('collections.receive') }}">
+                    <div class="row">
+                        <div class="col-md-2">
+                            <label for="unit" class="form-label">Unit</label>
+                            <select name="unit" id="unit" class="form-select form-select-sm">
+                                <option value="">All Units</option>
+                                @foreach($units as $unit)
+                                    <option value="{{ $unit }}" {{ request('unit') == $unit ? 'selected' : '' }}>{{ $unit }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <label for="area" class="form-label">Area</label>
+                            <select name="area" id="area" class="form-select form-select-sm">
+                                <option value="">All Areas</option>
+                                @foreach($areas as $area)
+                                    <option value="{{ $area }}" {{ request('area') == $area ? 'selected' : '' }}>{{ $area }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <label for="type" class="form-label">Type</label>
+                            <select name="type" id="type" class="form-select form-select-sm">
+                                <option value="">All Types</option>
+                                @foreach($types as $type)
+                                    <option value="{{ $type }}" {{ request('type') == $type ? 'selected' : '' }}>{{ $type }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <label for="term" class="form-label">Term</label>
+                            <select name="term" id="term" class="form-select form-select-sm">
+                                <option value="">All Terms</option>
+                                @foreach($terms as $term)
+                                    <option value="{{ $term }}" {{ request('term') == $term ? 'selected' : '' }}>{{ $term }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <label for="status" class="form-label">Status</label>
+                            <select name="status" id="status" class="form-select form-select-sm">
+                                <option value="">All Status</option>
+                                <option value="payable" {{ request('status') == 'payable' ? 'selected' : '' }}>Payable</option>
+                                <option value="received" {{ request('status') == 'received' ? 'selected' : '' }}>Received</option>
+                                <option value="forwarded" {{ request('status') == 'forwarded' ? 'selected' : '' }}>Forwarded</option>
+                            </select>
+                        </div>
+                        <div class="col-md-2 d-flex align-items-end">
+                            <button type="submit" class="btn btn-primary btn-sm me-2">Filter</button>
+                            <a href="{{ route('collections.receive') }}" class="btn btn-secondary btn-sm">Clear</a>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+
         <div class="card">
             <div class="card-body">
                 <table class="table" id="receiveCollectionsTable">
@@ -27,18 +88,6 @@
                             <th>Status</th>
                             <th>Entered By</th>
                             <th>Actions</th>
-                        </tr>
-                        <tr>
-                            <th></th>
-                            <th><input type="text" class="form-control form-control-sm filter-input" placeholder="Filter Unit" data-column="1"></th>
-                            <th><input type="text" class="form-control form-control-sm filter-input" placeholder="Filter Area" data-column="2"></th>
-                            <th><input type="text" class="form-control form-control-sm filter-input" placeholder="Filter Amount" data-column="3"></th>
-                            <th><input type="date" class="form-control form-control-sm filter-input" data-column="4"></th>
-                            <th><input type="text" class="form-control form-control-sm filter-input" placeholder="Filter Type" data-column="5"></th>
-                            <th><input type="text" class="form-control form-control-sm filter-input" placeholder="Filter Term" data-column="6"></th>
-                            <th><select class="form-control form-control-sm filter-input" data-column="7"><option value="">All Status</option><option value="payable">Payable</option><option value="received">Mekhala Received</option><option value="forwarded">Forwarded</option><option value="center_received">Center Received</option></select></th>
-                            <th><input type="text" class="form-control form-control-sm filter-input" placeholder="Filter User" data-column="8"></th>
-                            <th></th>
                         </tr>
                     </thead>
                     <tbody>

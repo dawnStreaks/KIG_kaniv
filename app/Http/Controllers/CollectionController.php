@@ -379,7 +379,24 @@ class CollectionController extends Controller
         }
 
         $collections = $query->latest()->paginate(10)->appends($request->query());
-        return view('collections.receive', compact('collections'));
+        
+        // Get dropdown options for mekhala users
+        $units = \App\Models\Unit::whereHas('area', function($q) {
+            $q->where('mekhala_id', auth()->user()->mekhala_id);
+        })->pluck('name', 'name')->sort();
+        
+        $areas = \App\Models\Area::where('mekhala_id', auth()->user()->mekhala_id)
+            ->pluck('name', 'name')->sort();
+        
+        $types = \App\Models\Collection::whereHas('unit.area', function($q) {
+            $q->where('mekhala_id', auth()->user()->mekhala_id);
+        })->pluck('type')->unique()->filter()->sort()->values();
+        
+        $terms = \App\Models\Collection::whereHas('unit.area', function($q) {
+            $q->where('mekhala_id', auth()->user()->mekhala_id);
+        })->pluck('term')->unique()->filter()->sort()->values();
+        
+        return view('collections.receive', compact('collections', 'units', 'areas', 'types', 'terms'));
     }
 
     public function markAsReceived(Collection $collection)
@@ -484,6 +501,20 @@ class CollectionController extends Controller
 
         $collection->update(['collection_status' => 'center_received']);
         return back()->with('success', 'Collection marked as center received');
+    }
+
+    public function reverseCenterReceived(Collection $collection)
+    {
+        if (!auth()->user()->isCenterUser()) {
+            abort(403, 'Only center users can reverse center received collections');
+        }
+
+        if ($collection->collection_status !== 'center_received') {
+            abort(403, 'Collection must be center received to reverse');
+        }
+
+        $collection->update(['collection_status' => 'payable']);
+        return back()->with('success', 'Collection returned to mekhala as payable');
     }
 
     public function forwardToCenter(Collection $collection)
