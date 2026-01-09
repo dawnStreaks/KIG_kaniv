@@ -12,8 +12,14 @@ class InvestmentController extends Controller
     {
         $query = Investment::with(['creator']);
         
-        // Filter by user's mekhala if they are a mekhala user
-        if (auth()->user()->isMekhalaUser()) {
+        // Filter by user type and role
+        if (auth()->user()->isCenterUser()) {
+            // Center users see only investments created by center users
+            $query->whereHas('creator', function($q) {
+                $q->where('user_type', 'center');
+            });
+        } elseif (auth()->user()->isMekhalaUser()) {
+            // Mekhala users see only investments from their mekhala
             $query->whereHas('creator', function($q) {
                 $q->where('mekhala_id', auth()->user()->mekhala_id);
             });
@@ -32,9 +38,11 @@ class InvestmentController extends Controller
         $user = auth()->user();
         $currentYear = date('Y');
         
-        // Calculate net balance based on mekhala
+        // Calculate net balance based on user type
         $collectionsQuery = Collection::received()->whereYear('collection_date', $currentYear);
-        if ($user->isMekhalaUser()) {
+        if ($user->isCenterUser()) {
+            $collectionsQuery = Collection::centerReceived()->whereYear('collection_date', $currentYear);
+        } elseif ($user->isMekhalaUser()) {
             $collectionsQuery->whereHas('unit.area', function($q) use ($user) {
                 $q->where('mekhala_id', $user->mekhala_id);
             });
@@ -42,7 +50,11 @@ class InvestmentController extends Controller
         $yearlyCollections = $collectionsQuery->sum('amount');
         
         $expensesQuery = \App\Models\Expense::whereYear('expense_date', $currentYear);
-        if ($user->isMekhalaUser()) {
+        if ($user->isCenterUser()) {
+            $expensesQuery->whereHas('enteredBy', function($q) {
+                $q->where('user_type', 'center');
+            });
+        } elseif ($user->isMekhalaUser()) {
             $expensesQuery->whereHas('enteredBy', function($q) use ($user) {
                 $q->where('mekhala_id', $user->mekhala_id);
             });
@@ -50,15 +62,24 @@ class InvestmentController extends Controller
         $yearlyExpenses = $expensesQuery->sum('amount');
         
         $applicationsQuery = \App\Models\Application::where('status', 'paid')->whereYear('approved_date', $currentYear);
-        if ($user->isMekhalaUser()) {
+        if ($user->isCenterUser()) {
+            // Center users don't have applications, set to 0
+            $yearlyApplications = 0;
+        } elseif ($user->isMekhalaUser()) {
             $applicationsQuery->whereHas('submitter', function($q) use ($user) {
                 $q->where('mekhala_id', $user->mekhala_id);
             });
+            $yearlyApplications = $applicationsQuery->sum('approved_amount');
+        } else {
+            $yearlyApplications = $applicationsQuery->sum('approved_amount');
         }
-        $yearlyApplications = $applicationsQuery->sum('approved_amount');
         
         $investmentsQuery = Investment::whereYear('investment_date', $currentYear);
-        if ($user->isMekhalaUser()) {
+        if ($user->isCenterUser()) {
+            $investmentsQuery->whereHas('creator', function($q) {
+                $q->where('user_type', 'center');
+            });
+        } elseif ($user->isMekhalaUser()) {
             $investmentsQuery->whereHas('creator', function($q) use ($user) {
                 $q->where('mekhala_id', $user->mekhala_id);
             });
@@ -66,7 +87,11 @@ class InvestmentController extends Controller
         $yearlyInvestments = $investmentsQuery->sum('amount');
         
         $returnedQuery = Investment::whereYear('investment_date', $currentYear);
-        if ($user->isMekhalaUser()) {
+        if ($user->isCenterUser()) {
+            $returnedQuery->whereHas('creator', function($q) {
+                $q->where('user_type', 'center');
+            });
+        } elseif ($user->isMekhalaUser()) {
             $returnedQuery->whereHas('creator', function($q) use ($user) {
                 $q->where('mekhala_id', $user->mekhala_id);
             });
