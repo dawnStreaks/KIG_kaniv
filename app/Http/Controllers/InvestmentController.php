@@ -23,6 +23,9 @@ class InvestmentController extends Controller
             $query->whereHas('creator', function($q) {
                 $q->where('mekhala_id', auth()->user()->mekhala_id);
             });
+        } elseif (auth()->user()->user_type === 'admin' && !auth()->user()->isCenterUser()) {
+            // Only pure admin users (not center users) see all investments
+            // Center users with admin role are handled above
         }
         
         $investments = $query->latest()->paginate(10);
@@ -129,6 +132,15 @@ class InvestmentController extends Controller
             abort(403, 'Access denied.');
         }
         
+        // Check if user can access this investment
+        if (auth()->user()->isCenterUser() && $investment->creator->user_type !== 'center') {
+            abort(403, 'Access denied.');
+        }
+        
+        if (auth()->user()->isMekhalaUser() && $investment->creator->mekhala_id !== auth()->user()->mekhala_id) {
+            abort(403, 'Access denied.');
+        }
+        
         $request->validate(['income' => 'required|numeric|min:0']);
         
         $investment->update([
@@ -139,11 +151,18 @@ class InvestmentController extends Controller
         return redirect()->route('investments.index')->with('success', 'Income added successfully');
     }
 
-
-
     public function returnCapital(Request $request, Investment $investment)
     {
         if (!auth()->user()->canAddInvestments()) {
+            abort(403, 'Access denied.');
+        }
+        
+        // Check if user can access this investment
+        if (auth()->user()->isCenterUser() && $investment->creator->user_type !== 'center') {
+            abort(403, 'Access denied.');
+        }
+        
+        if (auth()->user()->isMekhalaUser() && $investment->creator->mekhala_id !== auth()->user()->mekhala_id) {
             abort(403, 'Access denied.');
         }
         

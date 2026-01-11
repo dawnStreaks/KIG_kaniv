@@ -768,7 +768,7 @@ class ReportController extends Controller
         $yearlyInvestmentsQuery = Investment::whereYear('investment_date', $currentYear);
         if (!empty($mekhalaIds)) {
             $yearlyInvestmentsQuery->whereHas('creator', function($q) use ($mekhalaIds) {
-                $q->whereIn('mekhala_id', $mekhalaIds);
+                $q->whereIn('mekhala_id', $mekhalaIds)->where('user_type', '!=', 'center');
             });
         }
         $yearlyInvestments = $yearlyInvestmentsQuery->sum('amount');
@@ -777,7 +777,7 @@ class ReportController extends Controller
                                            ->whereYear('investment_date', $currentYear);
         if (!empty($mekhalaIds)) {
             $monthlyInvestmentsQuery->whereHas('creator', function($q) use ($mekhalaIds) {
-                $q->whereIn('mekhala_id', $mekhalaIds);
+                $q->whereIn('mekhala_id', $mekhalaIds)->where('user_type', '!=', 'center');
             });
         }
         $monthlyInvestments = $monthlyInvestmentsQuery->sum('amount');
@@ -785,7 +785,7 @@ class ReportController extends Controller
         $yearlyIncomeQuery = Investment::whereYear('investment_date', $currentYear);
         if (!empty($mekhalaIds)) {
             $yearlyIncomeQuery->whereHas('creator', function($q) use ($mekhalaIds) {
-                $q->whereIn('mekhala_id', $mekhalaIds);
+                $q->whereIn('mekhala_id', $mekhalaIds)->where('user_type', '!=', 'center');
             });
         }
         $yearlyIncome = $yearlyIncomeQuery->sum('income_generated');
@@ -794,7 +794,7 @@ class ReportController extends Controller
                                       ->whereYear('investment_date', $currentYear);
         if (!empty($mekhalaIds)) {
             $monthlyIncomeQuery->whereHas('creator', function($q) use ($mekhalaIds) {
-                $q->whereIn('mekhala_id', $mekhalaIds);
+                $q->whereIn('mekhala_id', $mekhalaIds)->where('user_type', '!=', 'center');
             });
         }
         $monthlyIncome = $monthlyIncomeQuery->sum('income_generated');
@@ -802,7 +802,7 @@ class ReportController extends Controller
         $yearlyReturnedQuery = Investment::whereYear('investment_date', $currentYear);
         if (!empty($mekhalaIds)) {
             $yearlyReturnedQuery->whereHas('creator', function($q) use ($mekhalaIds) {
-                $q->whereIn('mekhala_id', $mekhalaIds);
+                $q->whereIn('mekhala_id', $mekhalaIds)->where('user_type', '!=', 'center');
             });
         }
         $yearlyReturned = $yearlyReturnedQuery->sum('returned_amount');
@@ -811,7 +811,7 @@ class ReportController extends Controller
                                          ->whereYear('investment_date', $currentYear);
         if (!empty($mekhalaIds)) {
             $monthlyReturnedQuery->whereHas('creator', function($q) use ($mekhalaIds) {
-                $q->whereIn('mekhala_id', $mekhalaIds);
+                $q->whereIn('mekhala_id', $mekhalaIds)->where('user_type', '!=', 'center');
             });
         }
         $monthlyReturned = $monthlyReturnedQuery->sum('returned_amount');
