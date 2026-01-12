@@ -542,79 +542,43 @@ class ReportController extends Controller
                                          ->whereYear('approved_date', $currentYear)->sum('approved_amount');
         
         // Investment Summary (filtered by user role)
-        $yearlyInvestmentsQuery = Investment::whereYear('investment_date', $currentYear);
-        if (auth()->user()->isMekhalaUser()) {
-            $yearlyInvestmentsQuery->whereHas('creator', function($q) {
-                $q->where('mekhala_id', auth()->user()->mekhala_id);
-            });
-        } elseif (auth()->user()->isCenterUser()) {
-            $yearlyInvestmentsQuery->whereHas('creator', function($q) {
+        $yearlyInvestmentsQuery = Investment::whereYear('investment_date', $currentYear)
+            ->whereHas('creator', function($q) {
                 $q->where('user_type', 'center');
             });
-        }
         $yearlyInvestments = $yearlyInvestmentsQuery->sum('amount');
         
         $monthlyInvestmentsQuery = Investment::whereMonth('investment_date', $currentMonth)
-                                           ->whereYear('investment_date', $currentYear);
-        if (auth()->user()->isMekhalaUser()) {
-            $monthlyInvestmentsQuery->whereHas('creator', function($q) {
-                $q->where('mekhala_id', auth()->user()->mekhala_id);
-            });
-        } elseif (auth()->user()->isCenterUser()) {
-            $monthlyInvestmentsQuery->whereHas('creator', function($q) {
-                $q->where('user_type', 'center');
-            });
-        }
+                                           ->whereYear('investment_date', $currentYear)
+                                           ->whereHas('creator', function($q) {
+                                               $q->where('user_type', 'center');
+                                           });
         $monthlyInvestments = $monthlyInvestmentsQuery->sum('amount');
         
-        $yearlyIncomeQuery = Investment::whereYear('investment_date', $currentYear);
-        if (auth()->user()->isMekhalaUser()) {
-            $yearlyIncomeQuery->whereHas('creator', function($q) {
-                $q->where('mekhala_id', auth()->user()->mekhala_id);
-            });
-        } elseif (auth()->user()->isCenterUser()) {
-            $yearlyIncomeQuery->whereHas('creator', function($q) {
+        $yearlyIncomeQuery = Investment::whereYear('investment_date', $currentYear)
+            ->whereHas('creator', function($q) {
                 $q->where('user_type', 'center');
             });
-        }
         $yearlyIncome = $yearlyIncomeQuery->sum('income_generated');
         
         $monthlyIncomeQuery = Investment::whereMonth('investment_date', $currentMonth)
-                                      ->whereYear('investment_date', $currentYear);
-        if (auth()->user()->isMekhalaUser()) {
-            $monthlyIncomeQuery->whereHas('creator', function($q) {
-                $q->where('mekhala_id', auth()->user()->mekhala_id);
-            });
-        } elseif (auth()->user()->isCenterUser()) {
-            $monthlyIncomeQuery->whereHas('creator', function($q) {
-                $q->where('user_type', 'center');
-            });
-        }
+                                      ->whereYear('investment_date', $currentYear)
+                                      ->whereHas('creator', function($q) {
+                                          $q->where('user_type', 'center');
+                                      });
         $monthlyIncome = $monthlyIncomeQuery->sum('income_generated');
         
-        $yearlyReturnedQuery = Investment::whereYear('investment_date', $currentYear);
-        if (auth()->user()->isMekhalaUser()) {
-            $yearlyReturnedQuery->whereHas('creator', function($q) {
-                $q->where('mekhala_id', auth()->user()->mekhala_id);
-            });
-        } elseif (auth()->user()->isCenterUser()) {
-            $yearlyReturnedQuery->whereHas('creator', function($q) {
+        $yearlyReturnedQuery = Investment::whereYear('investment_date', $currentYear)
+            ->whereHas('creator', function($q) {
                 $q->where('user_type', 'center');
             });
-        }
         $yearlyReturned = $yearlyReturnedQuery->sum('returned_amount');
         
         $monthlyReturnedQuery = Investment::whereMonth('investment_date', $currentMonth)
-                                         ->whereYear('investment_date', $currentYear);
-        if (auth()->user()->isMekhalaUser()) {
-            $monthlyReturnedQuery->whereHas('creator', function($q) {
-                $q->where('mekhala_id', auth()->user()->mekhala_id);
-            });
-        } elseif (auth()->user()->isCenterUser()) {
-            $monthlyReturnedQuery->whereHas('creator', function($q) {
-                $q->where('user_type', 'center');
-            });
-        }
+                                         ->whereYear('investment_date', $currentYear)
+                                         ->whereHas('creator', function($q) {
+                                             $q->where('user_type', 'center');
+                                         });
         $monthlyReturned = $monthlyReturnedQuery->sum('returned_amount');
         
         // Get detailed transactions filtered by year and month
