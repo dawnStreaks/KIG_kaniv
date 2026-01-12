@@ -19,9 +19,10 @@ class InvestmentController extends Controller
                 $q->where('user_type', 'center');
             });
         } elseif (auth()->user()->isMekhalaUser()) {
-            // Mekhala users see only investments from their mekhala
+            // Mekhala users see only investments from their mekhala, excluding center investments
             $query->whereHas('creator', function($q) {
-                $q->where('mekhala_id', auth()->user()->mekhala_id);
+                $q->where('mekhala_id', auth()->user()->mekhala_id)
+                  ->where('user_type', '!=', 'center');
             });
         } elseif (auth()->user()->user_type === 'admin' && !auth()->user()->isCenterUser()) {
             // Only pure admin users (not center users) see all investments
@@ -137,7 +138,7 @@ class InvestmentController extends Controller
             abort(403, 'Access denied.');
         }
         
-        if (auth()->user()->isMekhalaUser() && $investment->creator->mekhala_id !== auth()->user()->mekhala_id) {
+        if (auth()->user()->isMekhalaUser() && ($investment->creator->mekhala_id !== auth()->user()->mekhala_id || $investment->creator->user_type === 'center')) {
             abort(403, 'Access denied.');
         }
         
@@ -162,7 +163,7 @@ class InvestmentController extends Controller
             abort(403, 'Access denied.');
         }
         
-        if (auth()->user()->isMekhalaUser() && $investment->creator->mekhala_id !== auth()->user()->mekhala_id) {
+        if (auth()->user()->isMekhalaUser() && ($investment->creator->mekhala_id !== auth()->user()->mekhala_id || $investment->creator->user_type === 'center')) {
             abort(403, 'Access denied.');
         }
         
