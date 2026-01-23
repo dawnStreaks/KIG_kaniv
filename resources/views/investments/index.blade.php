@@ -110,12 +110,12 @@
 
     <script>
         function addIncome(investmentId) {
-            document.getElementById('addIncomeForm').action = `/investments/${investmentId}/add-income`;
+            document.getElementById('addIncomeForm').action = '{{ url("/investments") }}/' + investmentId + '/add-income';
             new bootstrap.Modal(document.getElementById('addIncomeModal')).show();
         }
 
         function returnCapital(investmentId) {
-            document.getElementById('returnCapitalForm').action = `/investments/${investmentId}/return-capital`;
+            document.getElementById('returnCapitalForm').action = '{{ url("/investments") }}/' + investmentId + '/return-capital';
             new bootstrap.Modal(document.getElementById('returnCapitalModal')).show();
         }
     </script>

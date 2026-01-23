@@ -374,6 +374,12 @@ class CollectionController extends Controller
             });
         }
         
+        if ($request->filled('area')) {
+            $query->whereHas('unit.area', function($q) use ($request) {
+                $q->where('name', 'like', '%' . $request->area . '%');
+            });
+        }
+        
         if ($request->filled('status')) {
             $query->where('collection_status', $request->status);
         }
