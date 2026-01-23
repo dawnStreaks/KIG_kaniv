@@ -187,16 +187,26 @@
                 
                 if (areaId) {
                     fetch(`/api/areas/${areaId}/units`)
-                        .then(response => response.json())
-                        .then(units => {
-                            units.forEach(unit => {
-                                const option = document.createElement('option');
-                                option.value = unit.id;
-                                option.textContent = unit.name;
-                                unitSelect.appendChild(option);
-                            });
+                        .then(response => {
+                            if (!response.ok) {
+                                throw new Error('Network response was not ok');
+                            }
+                            return response.json();
                         })
-                        .catch(error => console.error('Error fetching units:', error));
+                        .then(units => {
+                            if (Array.isArray(units)) {
+                                units.forEach(unit => {
+                                    const option = document.createElement('option');
+                                    option.value = unit.id;
+                                    option.textContent = unit.name;
+                                    unitSelect.appendChild(option);
+                                });
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Error fetching units:', error);
+                            unitSelect.innerHTML = '<option value="">Error loading units</option>';
+                        });
                 }
             });
             

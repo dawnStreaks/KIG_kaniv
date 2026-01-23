@@ -98,7 +98,16 @@ class ApplicationController extends Controller
     public function create()
     {
         $applicationTypes = \App\Models\ApplicationType::active()->get();
-        $areas = \App\Models\Area::all();
+        
+        // Filter areas based on user type
+        if (auth()->user()->isAreaUser()) {
+            $areas = \App\Models\Area::where('id', auth()->user()->area_id)->get();
+        } elseif (auth()->user()->isMekhalaUser()) {
+            $areas = \App\Models\Area::where('mekhala_id', auth()->user()->mekhala_id)->get();
+        } else {
+            $areas = \App\Models\Area::all();
+        }
+        
         return view('applications.create', compact('applicationTypes', 'areas'));
     }
 

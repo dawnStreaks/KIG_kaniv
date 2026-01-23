@@ -1059,9 +1059,8 @@ class ReportController extends Controller
 
     public function areaSummary(Request $request)
     {
-        $currentYear = $request->get('year', date('Y'));
-        $dateFrom = $request->get('date_from', $currentYear . '-01-01');
-        $dateTo = $request->get('date_to', $currentYear . '-12-31');
+        $dateFrom = $request->get('date_from', date('Y') . '-01-01');
+        $dateTo = $request->get('date_to', date('Y') . '-12-31');
         $user = auth()->user();
         
         // Filter collections for area summary
@@ -1078,7 +1077,7 @@ class ReportController extends Controller
         $filteredCollections = $filteredCollections->get();
         
         // Get expenses and applications for detailed transactions
-        $expensesDetailQuery = Expense::orderBy('expense_date');
+        $expensesDetailQuery = Expense::whereBetween('expense_date', [$dateFrom, $dateTo])->orderBy('expense_date');
         if ($user->isMekhalaUser()) {
             $expensesDetailQuery->whereHas('enteredBy', function($q) use ($user) {
                 $q->where('mekhala_id', $user->mekhala_id);
@@ -1086,7 +1085,9 @@ class ReportController extends Controller
         }
         $expenses = $expensesDetailQuery->get();
         
-        $applicationsDetailQuery = Application::where('status', 'paid')->orderBy('approved_date');
+        $applicationsDetailQuery = Application::where('status', 'paid')
+            ->whereBetween('approved_date', [$dateFrom, $dateTo])
+            ->orderBy('approved_date');
         if ($user->isMekhalaUser()) {
             $applicationsDetailQuery->whereHas('submitter', function($q) use ($user) {
                 $q->where('mekhala_id', $user->mekhala_id);
@@ -1103,8 +1104,6 @@ class ReportController extends Controller
                 'area' => $areaName,
                 'date' => $collection->collection_date,
                 'type' => 'Collection',
-                'unit_name' => $collection->unit->name ?? 'N/A',
-                'term' => $collection->term ?? 'N/A',
                 'description' => 'Collection from ' . ($collection->unit->name ?? 'N/A'),
                 'collection' => $collection->amount,
                 'expense' => 0,
@@ -1117,8 +1116,6 @@ class ReportController extends Controller
                 'area' => $areaName,
                 'date' => $expense->expense_date,
                 'type' => 'Expense',
-                'unit_name' => '-',
-                'term' => '-',
                 'description' => $expense->particulars,
                 'collection' => 0,
                 'expense' => $expense->amount,
@@ -1131,8 +1128,6 @@ class ReportController extends Controller
                 'area' => $areaName,
                 'date' => $application->approved_date,
                 'type' => 'Application Payment',
-                'unit_name' => '-',
-                'term' => '-',
                 'description' => 'Payment to ' . $application->name . ' (' . ucfirst($application->category) . ')',
                 'collection' => 0,
                 'expense' => $application->approved_amount,
@@ -1156,12 +1151,8 @@ class ReportController extends Controller
             ];
         });
         
-        // Get filter options
-        $types = \App\Models\Collection::pluck('type')->unique()->filter()->sort()->values();
-        $terms = \App\Models\Collection::pluck('term')->unique()->filter()->sort()->values();
-        
         return view('reports.area-summary', compact(
-            'groupedTransactions', 'areaSummary', 'currentYear', 'dateFrom', 'dateTo'
+            'groupedTransactions', 'areaSummary', 'dateFrom', 'dateTo'
         ));
     }
 

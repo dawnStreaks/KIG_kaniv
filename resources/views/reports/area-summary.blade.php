@@ -12,37 +12,23 @@
         <div class="card">
             <div class="card-header">
                 <h5>Area Summary with Detailed Transactions</h5>
-                <small class="text-muted">Showing data for {{ date('F Y', mktime(0, 0, 0, $currentMonth ?? date('m'), 1, $currentYear ?? date('Y'))) }}</small>
+                <small class="text-muted">Showing data from {{ $dateFrom ?? date('Y') . '-01-01' }} to {{ $dateTo ?? date('Y') . '-12-31' }}</small>
             </div>
             <div class="card-body">
                 <!-- Filter Form -->
                 <form method="GET" class="mb-3">
                     <div class="row g-2">
-                        <div class="col-md-4">
-                            <select name="year" class="form-select form-select-sm">
-                                @for($i = date('Y'); $i >= 2020; $i--)
-                                    <option value="{{ $i }}" {{ ($currentYear ?? date('Y')) == $i ? 'selected' : '' }}>{{ $i }}</option>
-                                @endfor
-                            </select>
+                        <div class="col-md-3">
+                            <label class="form-label form-label-sm">From Date</label>
+                            <input type="date" name="date_from" class="form-control form-control-sm" value="{{ $dateFrom ?? date('Y') . '-01-01' }}">
                         </div>
                         <div class="col-md-3">
-                            <select name="type" class="form-select form-select-sm">
-                                <option value="">All Types</option>
-                                @foreach($types ?? [] as $typeOption)
-                                    <option value="{{ $typeOption }}" {{ ($type ?? '') == $typeOption ? 'selected' : '' }}>{{ $typeOption }}</option>
-                                @endforeach
-                            </select>
-                        </div>
-                        <div class="col-md-3">
-                            <select name="term" class="form-select form-select-sm">
-                                <option value="">All Terms</option>
-                                @foreach($terms ?? [] as $termOption)
-                                    <option value="{{ $termOption }}" {{ ($term ?? '') == $termOption ? 'selected' : '' }}>{{ $termOption }}</option>
-                                @endforeach
-                            </select>
+                            <label class="form-label form-label-sm">To Date</label>
+                            <input type="date" name="date_to" class="form-control form-control-sm" value="{{ $dateTo ?? date('Y') . '-12-31' }}">
                         </div>
                         <div class="col-md-2">
-                            <button type="submit" class="btn btn-primary btn-sm">Filter</button>
+                            <label class="form-label form-label-sm">&nbsp;</label>
+                            <button type="submit" class="btn btn-primary btn-sm d-block w-100">Filter</button>
                         </div>
                     </div>
                 </form>
