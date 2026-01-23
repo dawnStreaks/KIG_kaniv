@@ -159,7 +159,7 @@ function initMainChart() {
 }
 
 function drillDown(mekhalaId, mekhalaName, type) {
-    fetch(`/reports/mekhala/drill-down?mekhala_id=${mekhalaId}&year=${year}&type=${type}`)
+    fetch(`{{ url('/reports/mekhala/drill-down') }}?mekhala_id=${mekhalaId}&year=${year}&type=${type}`)
         .then(response => response.json())
         .then(data => {
             document.getElementById('drillDownTitle').textContent = `${mekhalaName} - ${type.charAt(0).toUpperCase() + type.slice(1)} by Area - ${year}`;

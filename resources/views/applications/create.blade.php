@@ -186,7 +186,7 @@
                 unitSelect.innerHTML = '<option value="">Select Unit</option>';
                 
                 if (areaId) {
-                    fetch(`/api/areas/${areaId}/units`)
+                    fetch(`{{ url('/api/areas') }}/${areaId}/units`)
                         .then(response => {
                             if (!response.ok) {
                                 throw new Error('Network response was not ok');

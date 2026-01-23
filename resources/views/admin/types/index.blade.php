@@ -78,7 +78,7 @@
         function saveType(id) {
             const newValue = document.getElementById('edit-type-' + id).value;
             
-            fetch(`/admin/types/${id}`, {
+            fetch(`{{ url('/admin/types') }}/${id}`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
@@ -106,7 +106,7 @@
             const checkbox = document.getElementById('status-' + id);
             const label = checkbox.nextElementSibling;
             
-            fetch(`/admin/types/${id}/toggle-status`, {
+            fetch(`{{ url('/admin/types') }}/${id}/toggle-status`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

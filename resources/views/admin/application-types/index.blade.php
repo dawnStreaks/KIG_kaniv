@@ -91,7 +91,7 @@
                     const row = this.closest('tr');
                     const newName = row.querySelector('.edit-input').value;
                     
-                    fetch(`/admin/application-types/${id}`, {
+                    fetch(`{{ url('/admin/application-types') }}/${id}`, {
                         method: 'PUT',
                         headers: {
                             'Content-Type': 'application/json',
@@ -115,7 +115,7 @@
                     const isActive = this.checked;
                     const label = this.nextElementSibling;
                     
-                    fetch(`/admin/application-types/${id}/toggle-status`, {
+                    fetch(`{{ url('/admin/application-types') }}/${id}/toggle-status`, {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',

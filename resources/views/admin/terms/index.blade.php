@@ -78,7 +78,7 @@
         function saveTerm(index) {
             const newValue = document.getElementById('edit-term-' + index).value;
             
-            fetch(`/admin/terms/${index}`, {
+            fetch(`{{ url('/admin/terms') }}/${index}`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
@@ -106,7 +106,7 @@
             const checkbox = document.getElementById('status-' + id);
             const label = checkbox.nextElementSibling;
             
-            fetch(`/admin/terms/${id}/toggle-status`, {
+            fetch(`{{ url('/admin/terms') }}/${id}/toggle-status`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
