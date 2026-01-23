@@ -218,7 +218,7 @@
             const term = '{{ $term ?? '' }}';
             const collectionType = '{{ $type ?? '' }}';
             
-            let url = `/collections/unit-type-drill-down?type=${unitType}&year={{ $year }}`;
+            let url = '{{ url("/collections/unit-type-drill-down") }}?type=' + unitType + '&year={{ $year }}';
             if (term) url += `&term=${encodeURIComponent(term)}`;
             if (collectionType) url += `&collection_type=${encodeURIComponent(collectionType)}`;
             
@@ -231,7 +231,7 @@
                         'IWA': 'iwa_logo-01.png'
                     };
                     
-                    let titleHtml = `<img src="/logos/${logoMap[unitType]}" alt="${unitType} Logo" style="height: 30px; margin-right: 10px;">`;
+                    let titleHtml = '<img src="{{ url("/storage/logos") }}/' + logoMap[unitType] + '" alt="' + unitType + ' Logo" style="height: 30px; margin-right: 10px;">';
                     titleHtml += `${unitType} Units - {{ $year }}`;
                     if (term || collectionType) {
                         titleHtml += ` (${term ? 'Term: ' + term : ''}${term && collectionType ? ', ' : ''}${collectionType ? 'Type: ' + collectionType : ''})`;

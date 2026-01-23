@@ -1060,32 +1060,19 @@ class ReportController extends Controller
     public function areaSummary(Request $request)
     {
         $currentYear = $request->get('year', date('Y'));
-        $currentMonth = $request->get('month');
-        $type = $request->get('type');
-        $term = $request->get('term');
+        $dateFrom = $request->get('date_from', $currentYear . '-01-01');
+        $dateTo = $request->get('date_to', $currentYear . '-12-31');
         $user = auth()->user();
         
         // Filter collections for area summary
         $filteredCollections = Collection::received()
             ->with('unit.area')
-            ->whereYear('collection_date', $currentYear);
-            
-        if ($currentMonth) {
-            $filteredCollections->whereMonth('collection_date', $currentMonth);
-        }
+            ->whereBetween('collection_date', [$dateFrom, $dateTo]);
             
         if ($user->isMekhalaUser()) {
             $filteredCollections->whereHas('unit.area', function($q) use ($user) {
                 $q->where('mekhala_id', $user->mekhala_id);
             });
-        }
-        
-        if ($type) {
-            $filteredCollections->where('type', $type);
-        }
-        
-        if ($term) {
-            $filteredCollections->where('term', $term);
         }
         
         $filteredCollections = $filteredCollections->get();
@@ -1116,6 +1103,8 @@ class ReportController extends Controller
                 'area' => $areaName,
                 'date' => $collection->collection_date,
                 'type' => 'Collection',
+                'unit_name' => $collection->unit->name ?? 'N/A',
+                'term' => $collection->term ?? 'N/A',
                 'description' => 'Collection from ' . ($collection->unit->name ?? 'N/A'),
                 'collection' => $collection->amount,
                 'expense' => 0,
@@ -1128,6 +1117,8 @@ class ReportController extends Controller
                 'area' => $areaName,
                 'date' => $expense->expense_date,
                 'type' => 'Expense',
+                'unit_name' => '-',
+                'term' => '-',
                 'description' => $expense->particulars,
                 'collection' => 0,
                 'expense' => $expense->amount,
@@ -1140,6 +1131,8 @@ class ReportController extends Controller
                 'area' => $areaName,
                 'date' => $application->approved_date,
                 'type' => 'Application Payment',
+                'unit_name' => '-',
+                'term' => '-',
                 'description' => 'Payment to ' . $application->name . ' (' . ucfirst($application->category) . ')',
                 'collection' => 0,
                 'expense' => $application->approved_amount,
@@ -1168,7 +1161,7 @@ class ReportController extends Controller
         $terms = \App\Models\Collection::pluck('term')->unique()->filter()->sort()->values();
         
         return view('reports.area-summary', compact(
-            'groupedTransactions', 'areaSummary', 'types', 'terms', 'currentYear', 'currentMonth', 'type', 'term'
+            'groupedTransactions', 'areaSummary', 'currentYear', 'dateFrom', 'dateTo'
         ));
     }
 

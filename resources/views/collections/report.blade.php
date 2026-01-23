@@ -149,7 +149,7 @@ function drillDown(areaId, areaName) {
     const dateTo = '{{ request('date_to', $year . '-12-31') }}';
     const term = '{{ request('term') }}';
     const type = '{{ request('type') }}';
-    let url = `/collections/report/drill-down?area_id=${areaId}&date_from=${dateFrom}&date_to=${dateTo}`;
+    let url = '{{ url("/collections/report/drill-down") }}?area_id=' + areaId + '&date_from=' + dateFrom + '&date_to=' + dateTo;
     if (term) url += `&term=${term}`;
     if (type) url += `&type=${type}`;
     fetch(url)
