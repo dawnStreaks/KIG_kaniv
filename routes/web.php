@@ -156,13 +156,9 @@ Route::middleware('auth')->group(function () {
     });
     
     // API routes for dynamic dropdowns
-    Route::get('/api/areas/{area}/units', function($areaId) {
-        try {
-            $units = \App\Models\Unit::where('area_id', $areaId)->active()->get(['id', 'name']);
-            return response()->json($units);
-        } catch (\Exception $e) {
-            return response()->json(['error' => $e->getMessage()], 500);
-        }
+    Route::get('/api/areas/{area}/units', function($area) {
+        $units = \App\Models\Unit::where('area_id', $area)->active()->get(['id', 'name']);
+        return response()->json($units);
     });
 });
 
