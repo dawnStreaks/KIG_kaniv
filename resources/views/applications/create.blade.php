@@ -108,11 +108,17 @@
                 return;
             }
             
+            const csrfToken = document.querySelector('meta[name="csrf-token"]');
+            if (!csrfToken) {
+                console.error('CSRF token not found');
+                return;
+            }
+            
             fetch('{{ route('applications.validate-field') }}', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                    'X-CSRF-TOKEN': csrfToken.getAttribute('content')
                 },
                 body: JSON.stringify({
                     field: field,
@@ -126,7 +132,8 @@
                 } else {
                     showSuccess(inputElement);
                 }
-            });
+            })
+            .catch(error => console.error('Validation error:', error));
         }
         
         function showError(inputElement, message) {
@@ -188,7 +195,8 @@
                                 option.textContent = unit.name;
                                 unitSelect.appendChild(option);
                             });
-                        });
+                        })
+                        .catch(error => console.error('Error fetching units:', error));
                 }
             });
             
