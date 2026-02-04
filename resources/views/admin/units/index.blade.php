@@ -22,31 +22,7 @@
 
     <div class="card">
         <div class="card-body">
-            <form method="GET" class="mb-3">
-                <div class="row">
-                    <div class="col-md-3">
-                        <input type="text" name="name" class="form-control" placeholder="Filter by name" value="{{ request('name') }}">
-                    </div>
-                    <div class="col-md-3">
-                        <input type="text" name="area" class="form-control" placeholder="Filter by area" value="{{ request('area') }}">
-                    </div>
-                    <div class="col-md-2">
-                        <input type="text" name="mekhala" class="form-control" placeholder="Filter by mekhala" value="{{ request('mekhala') }}">
-                    </div>
-                    <div class="col-md-2">
-                        <select name="status" class="form-control">
-                            <option value="">All Status</option>
-                            <option value="active" {{ request('status') === 'active' ? 'selected' : '' }}>Active</option>
-                            <option value="inactive" {{ request('status') === 'inactive' ? 'selected' : '' }}>Inactive</option>
-                        </select>
-                    </div>
-                    <div class="col-md-2">
-                        <button type="submit" class="btn btn-primary">Filter</button>
-                        <a href="{{ route('admin.units.index') }}" class="btn btn-secondary">Clear</a>
-                    </div>
-                </div>
-            </form>
-            
+            <form method="GET" id="filterForm">
             <table class="table">
                 <thead>
                     <tr>
@@ -57,6 +33,44 @@
                         <th>Status</th>
                         <th>Created At</th>
                         <th>Actions</th>
+                    </tr>
+                </thead>
+                <thead>
+                    <tr>
+                        <th><input type="text" name="name" class="form-control form-control-sm" placeholder="Filter" value="{{ request('name') }}"></th>
+                        <th>
+                            <select name="area" class="form-control form-control-sm">
+                                <option value="">All Areas</option>
+                                @foreach($allAreas as $area)
+                                    <option value="{{ $area->id }}" {{ request('area') == $area->id ? 'selected' : '' }}>{{ $area->name }}</option>
+                                @endforeach
+                            </select>
+                        </th>
+                        <th>
+                            <select name="mekhala" class="form-control form-control-sm">
+                                <option value="">All Mekhalas</option>
+                                @foreach($allMekhalas as $mekhala)
+                                    <option value="{{ $mekhala->id }}" {{ request('mekhala') == $mekhala->id ? 'selected' : '' }}>{{ $mekhala->name }}</option>
+                                @endforeach
+                            </select>
+                        </th>
+                        <th>
+                            <select name="type" class="form-control form-control-sm">
+                                <option value="">All Types</option>
+                                @foreach($allTypes as $type)
+                                    <option value="{{ $type }}" {{ request('type') == $type ? 'selected' : '' }}>{{ $type }}</option>
+                                @endforeach
+                            </select>
+                        </th>
+                        <th>
+                            <select name="status" class="form-control form-control-sm">
+                                <option value="">All Status</option>
+                                <option value="active" {{ request('status') === 'active' ? 'selected' : '' }}>Active</option>
+                                <option value="inactive" {{ request('status') === 'inactive' ? 'selected' : '' }}>Inactive</option>
+                            </select>
+                        </th>
+                        <th></th>
+                        <th></th>
                     </tr>
                 </thead>
                 <tbody>
@@ -84,7 +98,7 @@
                     @endforeach
                 </tbody>
             </table>
-            
+            </form>
         </div>
         
         <div class="d-flex justify-content-center">
@@ -92,5 +106,17 @@
         </div>
     </div>
     
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const form = document.getElementById('filterForm');
+            const inputs = form.querySelectorAll('input, select');
+            
+            inputs.forEach(input => {
+                input.addEventListener('change', function() {
+                    form.submit();
+                });
+            });
+        });
+    </script>
 
 @endsection

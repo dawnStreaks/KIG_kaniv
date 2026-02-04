@@ -200,15 +200,17 @@ class AdminController extends Controller
         }
         
         if ($request->filled('area')) {
-            $query->whereHas('area', function($q) use ($request) {
-                $q->where('name', 'like', '%' . $request->area . '%');
-            });
+            $query->where('area_id', $request->area);
         }
         
         if ($request->filled('mekhala')) {
-            $query->whereHas('area.mekhala', function($q) use ($request) {
-                $q->where('name', 'like', '%' . $request->mekhala . '%');
+            $query->whereHas('area', function($q) use ($request) {
+                $q->where('mekhala_id', $request->mekhala);
             });
+        }
+        
+        if ($request->filled('type')) {
+            $query->where('type', $request->type);
         }
         
         if ($request->filled('status')) {
@@ -216,7 +218,13 @@ class AdminController extends Controller
         }
         
         $units = $query->orderBy('created_at', 'desc')->paginate(10)->appends($request->query());
-        return view('admin.units.index', compact('units'));
+        
+        // Get dropdown options
+        $allAreas = Area::orderBy('name')->get();
+        $allMekhalas = Mekhala::orderBy('name')->get();
+        $allTypes = ['IWA', 'YI', 'KIG'];
+        
+        return view('admin.units.index', compact('units', 'allAreas', 'allMekhalas', 'allTypes'));
     }
 
     public function createUnit()

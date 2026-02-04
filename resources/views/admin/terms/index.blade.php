@@ -11,17 +11,28 @@
         <div class="col-md-8">
             <div class="card">
                 <div class="card-body">
-                    <table class="table">
+                    <table class="table" id="termsTable">
                         <thead>
                             <tr>
                                 <th>Term Name</th>
                                 <th>Status</th>
                                 <th>Actions</th>
                             </tr>
+                            <tr>
+                                <th><input type="text" class="form-control form-control-sm" id="filterName" placeholder="Filter by name"></th>
+                                <th>
+                                    <select class="form-select form-select-sm" id="filterStatus">
+                                        <option value="">All</option>
+                                        <option value="active">Active</option>
+                                        <option value="inactive">Inactive</option>
+                                    </select>
+                                </th>
+                                <th></th>
+                            </tr>
                         </thead>
                         <tbody>
                             @foreach($terms as $term)
-                            <tr>
+                            <tr class="term-row">
                                 <td>
                                     <span class="term-name" id="term-{{ $term->id }}">{{ $term->name }}</span>
                                     <input type="text" class="form-control form-control-sm d-none" id="edit-term-{{ $term->id }}" value="{{ $term->name }}">
@@ -68,6 +79,33 @@
     </div>
 
     <script>
+        // Filter functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            const filterName = document.getElementById('filterName');
+            const filterStatus = document.getElementById('filterStatus');
+            
+            function filterTable() {
+                const nameValue = filterName.value.toLowerCase();
+                const statusValue = filterStatus.value;
+                const rows = document.querySelectorAll('.term-row');
+                
+                rows.forEach(row => {
+                    const name = row.querySelector('.term-name').textContent.toLowerCase();
+                    const statusLabel = row.querySelector('.form-check-label').textContent.toLowerCase();
+                    
+                    const nameMatch = name.includes(nameValue);
+                    const statusMatch = !statusValue || 
+                        (statusValue === 'active' && statusLabel === 'active') ||
+                        (statusValue === 'inactive' && statusLabel === 'inactive');
+                    
+                    row.style.display = nameMatch && statusMatch ? '' : 'none';
+                });
+            }
+            
+            filterName.addEventListener('keyup', filterTable);
+            filterStatus.addEventListener('change', filterTable);
+        });
+        
         function editTerm(index) {
             document.getElementById('term-' + index).classList.add('d-none');
             document.getElementById('edit-term-' + index).classList.remove('d-none');

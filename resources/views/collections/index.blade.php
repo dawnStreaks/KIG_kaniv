@@ -69,6 +69,15 @@
                             <td>{{ $collection->enteredBy->name ?? 'N/A' }}</td>
                             <td>
                                 <a href="{{ route('collections.edit', $collection->id) }}" class="btn btn-sm btn-warning">Edit</a>
+                                @if(auth()->user()->isAdminUser())
+                                    <form method="POST" action="{{ route('collections.destroy', $collection) }}" class="d-inline">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Are you sure you want to delete this collection?')">
+                                            Delete
+                                        </button>
+                                    </form>
+                                @endif
                                 @if(auth()->user()->isCenterUser() && $collection->collection_status === 'forwarded')
                                     <form method="POST" action="{{ route('collections.mark-center-received', $collection) }}" class="d-inline">
                                         @csrf
