@@ -24,7 +24,20 @@
         </div>
 
         <div class="row">
-            <div class="col-md-6">
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-header">
+                        <h5>Opening Balance</h5>
+                    </div>
+                    <div class="card-body">
+                        <h3 class="text-center {{ ($openingBalance ?? 0) >= 0 ? 'text-success' : 'text-danger' }}">
+                            KWD {{ number_format($openingBalance ?? 0, 3) }}
+                        </h3>
+                        <p class="text-center text-muted small mb-0">Balance from previous months</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
                 <div class="card">
                     <div class="card-header">
                         <h5>Collections Summary</h5>
@@ -43,7 +56,7 @@
                     </div>
                 </div>
             </div>
-            <div class="col-md-6">
+            <div class="col-md-4">
                 <div class="card">
                     <div class="card-header">
                         <h5>Expenses Summary</h5>
