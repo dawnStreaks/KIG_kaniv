@@ -69,7 +69,7 @@
                             <td>{{ $collection->enteredBy->name ?? 'N/A' }}</td>
                             <td>
                                 <a href="{{ route('collections.edit', $collection->id) }}" class="btn btn-sm btn-warning">Edit</a>
-                                @if(auth()->user()->isAdminUser())
+                                @if(auth()->user()->isAdmin())
                                     <form method="POST" action="{{ route('collections.destroy', $collection) }}" class="d-inline">
                                         @csrf
                                         @method('DELETE')
