@@ -19,15 +19,9 @@ class ReportController extends Controller
         $term = $request->get('term');
         $user = auth()->user();
         
-        // Calculate opening balance (previous month's net balance)
-        $openingBalanceQuery = function($query) use ($currentYear, $currentMonth) {
-            $query->where(function($q) use ($currentYear, $currentMonth) {
-                $q->where('created_at', '<', "$currentYear-$currentMonth-01");
-            });
-        };
-        
+        // Calculate opening balance (all data before current year)
         $prevCollections = Collection::where('collection_status', 'received')
-            ->where('collection_date', '<', "$currentYear-$currentMonth-01");
+            ->whereYear('collection_date', '<', $currentYear);
         if ($user->isMekhalaUser()) {
             $prevCollections->whereHas('unit.area', function($q) use ($user) {
                 $q->where('mekhala_id', $user->mekhala_id);
@@ -35,7 +29,7 @@ class ReportController extends Controller
         }
         $prevCollectionsTotal = $prevCollections->sum('amount');
         
-        $prevExpenses = Expense::where('expense_date', '<', "$currentYear-$currentMonth-01");
+        $prevExpenses = Expense::whereYear('expense_date', '<', $currentYear);
         if ($user->isMekhalaUser()) {
             $prevExpenses->whereHas('enteredBy', function($q) use ($user) {
                 $q->where('mekhala_id', $user->mekhala_id);
@@ -44,7 +38,7 @@ class ReportController extends Controller
         $prevExpensesTotal = $prevExpenses->sum('amount');
         
         $prevApplications = Application::where('status', 'paid')
-            ->where('approved_date', '<', "$currentYear-$currentMonth-01");
+            ->whereYear('approved_date', '<', $currentYear);
         if ($user->isMekhalaUser()) {
             $prevApplications->whereHas('submitter', function($q) use ($user) {
                 $q->where('mekhala_id', $user->mekhala_id);
@@ -52,20 +46,20 @@ class ReportController extends Controller
         }
         $prevApplicationsTotal = $prevApplications->sum('approved_amount');
         
-        $prevInvestments = Investment::where('investment_date', '<', "$currentYear-$currentMonth-01");
+        $prevInvestments = Investment::whereYear('investment_date', '<', $currentYear);
         if ($user->isMekhalaUser()) {
             $prevInvestments->whereHas('creator', function($q) use ($user) {
                 $q->where('mekhala_id', $user->mekhala_id);
             });
         }
         $prevInvestmentsTotal = $prevInvestments->sum('amount');
-        $prevIncomeTotal = Investment::where('investment_date', '<', "$currentYear-$currentMonth-01")
+        $prevIncomeTotal = Investment::whereYear('investment_date', '<', $currentYear)
             ->when($user->isMekhalaUser(), function($q) use ($user) {
                 $q->whereHas('creator', function($q2) use ($user) {
                     $q2->where('mekhala_id', $user->mekhala_id);
                 });
             })->sum('income_generated');
-        $prevReturnedTotal = Investment::where('investment_date', '<', "$currentYear-$currentMonth-01")
+        $prevReturnedTotal = Investment::whereYear('investment_date', '<', $currentYear)
             ->when($user->isMekhalaUser(), function($q) use ($user) {
                 $q->whereHas('creator', function($q2) use ($user) {
                     $q2->where('mekhala_id', $user->mekhala_id);
