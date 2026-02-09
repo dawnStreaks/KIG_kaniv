@@ -882,6 +882,57 @@ class ReportController extends Controller
         }
         $monthlyReturned = $monthlyReturnedQuery->sum('returned_amount');
         
+        // Opening Balance
+        $openingCollections = Collection::received()->whereYear('collection_date', '<', $currentYear)
+            ->when(!empty($mekhalaIds), function($q) use ($mekhalaIds) {
+                $q->whereHas('unit.area', function($subQ) use ($mekhalaIds) {
+                    $subQ->whereIn('mekhala_id', $mekhalaIds);
+                });
+            })
+            ->sum('amount');
+            
+        $openingExpenses = Expense::whereYear('expense_date', '<', $currentYear)
+            ->when(!empty($mekhalaIds), function($q) use ($mekhalaIds) {
+                $q->whereHas('enteredBy', function($subQ) use ($mekhalaIds) {
+                    $subQ->whereIn('mekhala_id', $mekhalaIds);
+                });
+            })
+            ->sum('amount');
+            
+        $openingApplications = Application::where('status', 'paid')->whereYear('approved_date', '<', $currentYear)
+            ->when(!empty($mekhalaIds), function($q) use ($mekhalaIds) {
+                $q->whereHas('submitter', function($subQ) use ($mekhalaIds) {
+                    $subQ->whereIn('mekhala_id', $mekhalaIds);
+                });
+            })
+            ->sum('approved_amount');
+            
+        $openingInvestments = Investment::whereYear('investment_date', '<', $currentYear)
+            ->when(!empty($mekhalaIds), function($q) use ($mekhalaIds) {
+                $q->whereHas('creator', function($subQ) use ($mekhalaIds) {
+                    $subQ->whereIn('mekhala_id', $mekhalaIds)->where('user_type', '!=', 'center');
+                });
+            })
+            ->sum('amount');
+            
+        $openingReturned = Investment::whereYear('investment_date', '<', $currentYear)
+            ->when(!empty($mekhalaIds), function($q) use ($mekhalaIds) {
+                $q->whereHas('creator', function($subQ) use ($mekhalaIds) {
+                    $subQ->whereIn('mekhala_id', $mekhalaIds)->where('user_type', '!=', 'center');
+                });
+            })
+            ->sum('returned_amount');
+            
+        $openingIncome = Investment::whereYear('investment_date', '<', $currentYear)
+            ->when(!empty($mekhalaIds), function($q) use ($mekhalaIds) {
+                $q->whereHas('creator', function($subQ) use ($mekhalaIds) {
+                    $subQ->whereIn('mekhala_id', $mekhalaIds)->where('user_type', '!=', 'center');
+                });
+            })
+            ->sum('income_generated');
+            
+        $openingBalance = $openingCollections + $openingIncome - $openingExpenses - $openingApplications - ($openingInvestments - $openingReturned);
+        
         // Get detailed transactions
         $collectionsDetailQuery = Collection::received()->with('unit')->orderBy('collection_date');
         if (!empty($mekhalaIds)) {
@@ -1017,7 +1068,7 @@ class ReportController extends Controller
             'yearlyCollections', 'monthlyCollections', 'yearlyExpenses', 'monthlyExpenses',
             'yearlyApplications', 'monthlyApplications', 'yearlyInvestments', 'monthlyInvestments',
             'yearlyIncome', 'monthlyIncome', 'yearlyReturned', 'monthlyReturned', 'transactions', 'reportType', 'mekhalaName',
-            'areaSummary', 'groupedTransactions', 'currentYear', 'currentMonth'
+            'areaSummary', 'groupedTransactions', 'currentYear', 'currentMonth', 'openingBalance'
         ));
     }
 
