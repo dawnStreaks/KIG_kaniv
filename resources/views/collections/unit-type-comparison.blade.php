@@ -231,7 +231,7 @@
                         'IWA': 'iwa_logo-01.png'
                     };
                     
-                    let titleHtml = '<img src="{{ url("/storage/logos") }}/' + logoMap[unitType] + '" alt="' + unitType + ' Logo" style="height: 30px; margin-right: 10px;">';
+                    let titleHtml = '<img src="{{ url("/logos") }}/' + logoMap[unitType] + '" alt="' + unitType + ' Logo" style="height: 30px; margin-right: 10px;">';
                     titleHtml += `${unitType} Units - {{ $year }}`;
                     if (term || collectionType) {
                         titleHtml += ` (${term ? 'Term: ' + term : ''}${term && collectionType ? ', ' : ''}${collectionType ? 'Type: ' + collectionType : ''})`;
