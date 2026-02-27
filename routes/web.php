@@ -80,6 +80,11 @@ Route::middleware('auth')->group(function () {
         Route::get('/areas/export', [AdminController::class, 'exportAreas'])->name('areas.export');
         Route::get('/mekhalas/export', [AdminController::class, 'exportMekhalas'])->name('mekhalas.export');
         Route::get('/units/export', [AdminController::class, 'exportUnits'])->name('units.export');
+        
+        // Opening Balance
+        Route::get('/opening-balance', [AdminController::class, 'openingBalance'])->name('opening-balance');
+        Route::post('/opening-balance', [AdminController::class, 'storeOpeningBalance'])->name('opening-balance.store');
+        Route::delete('/opening-balance/{openingBalance}', [AdminController::class, 'destroyOpeningBalance'])->name('opening-balance.destroy');
     });
     
     // Application routes

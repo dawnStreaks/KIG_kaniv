@@ -8,6 +8,7 @@ use App\Models\Mekhala;
 use App\Models\Unit;
 use App\Models\CollectionTerm;
 use App\Models\CollectionType;
+use App\Models\OpeningBalance;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use App\Exports\UsersExport;
@@ -399,5 +400,34 @@ class AdminController extends Controller
         $applicationType = \App\Models\ApplicationType::findOrFail($id);
         $applicationType->update(['is_active' => $request->is_active]);
         return response()->json(['success' => true]);
+    }
+    
+    public function openingBalance()
+    {
+        $mekhalas = Mekhala::all();
+        $openingBalances = OpeningBalance::with('mekhala')->orderBy('year', 'desc')->get();
+        return view('admin.opening-balance', compact('mekhalas', 'openingBalances'));
+    }
+    
+    public function storeOpeningBalance(Request $request)
+    {
+        $request->validate([
+            'year' => 'required|integer',
+            'mekhala_id' => 'nullable|exists:mekhalas,id',
+            'amount' => 'required|numeric'
+        ]);
+        
+        OpeningBalance::updateOrCreate(
+            ['year' => $request->year, 'mekhala_id' => $request->mekhala_id],
+            ['amount' => $request->amount]
+        );
+        
+        return redirect()->route('admin.opening-balance')->with('success', 'Opening balance saved successfully');
+    }
+    
+    public function destroyOpeningBalance(OpeningBalance $openingBalance)
+    {
+        $openingBalance->delete();
+        return redirect()->route('admin.opening-balance')->with('success', 'Opening balance deleted successfully');
     }
 }
