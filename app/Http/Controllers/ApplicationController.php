@@ -126,7 +126,8 @@ class ApplicationController extends Controller
             'description' => 'nullable|string',
         ]);
 
-        $validated['front_page_photo'] = $request->file('front_page_photo')->store('applications', 'public');
+        $yearMonth = now()->format('Y/m');
+        $validated['front_page_photo'] = $request->file('front_page_photo')->store("applications/{$yearMonth}", 'public');
         $validated['submitted_by'] = auth()->id();
         $validated['status'] = 'pending';
 
@@ -171,7 +172,8 @@ class ApplicationController extends Controller
 
         if ($request->hasFile('front_page_photo')) {
             Storage::disk('public')->delete($application->front_page_photo);
-            $validated['front_page_photo'] = $request->file('front_page_photo')->store('applications', 'public');
+            $yearMonth = now()->format('Y/m');
+            $validated['front_page_photo'] = $request->file('front_page_photo')->store("applications/{$yearMonth}", 'public');
         }
 
         $application->update($validated);

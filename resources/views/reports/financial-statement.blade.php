@@ -8,6 +8,8 @@
             <h2>{{ $reportType ?? 'Financial' }} Statement - {{ $currentYear ?? date('Y') }}/{{ $currentMonth ?? date('m') }}</h2>
             <div class="d-flex gap-2">
                 <form method="GET" class="d-flex gap-2">
+                    <input type="date" name="date_from" class="form-control form-control-sm" value="{{ $dateFrom ?? '' }}" placeholder="From">
+                    <input type="date" name="date_to" class="form-control form-control-sm" value="{{ $dateTo ?? '' }}" placeholder="To">
                     <select name="year" class="form-select form-select-sm" onchange="this.form.submit()">
                         @for($i = date('Y'); $i >= 2020; $i--)
                             <option value="{{ $i }}" {{ ($currentYear ?? date('Y')) == $i ? 'selected' : '' }}>{{ $i }}</option>
@@ -18,6 +20,7 @@
                             <option value="{{ sprintf('%02d', $i) }}" {{ ($currentMonth ?? date('m')) == sprintf('%02d', $i) ? 'selected' : '' }}>{{ date('M', mktime(0, 0, 0, $i, 1)) }}</option>
                         @endfor
                     </select>
+                    <button type="submit" class="btn btn-primary btn-sm">Filter</button>
                 </form>
                 <a href="{{ route('reports.export-financial') }}" class="btn btn-success btn-sm">Export</a>
             </div>

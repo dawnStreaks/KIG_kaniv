@@ -107,8 +107,21 @@ class CollectionController extends Controller
                 });
             })
             ->pluck('type')->unique()->filter()->sort()->values();
+            
+        $allUsers = Collection::with('enteredBy')
+            ->when(auth()->user()->isAreaUser(), function($q) {
+                $q->whereHas('unit', function($subQ) {
+                    $subQ->where('area_id', auth()->user()->area_id);
+                });
+            })
+            ->when(auth()->user()->isMekhalaUser(), function($q) {
+                $q->whereHas('unit.area', function($subQ) {
+                    $subQ->where('mekhala_id', auth()->user()->mekhala_id);
+                });
+            })
+            ->get()->pluck('enteredBy.name')->unique()->filter()->sort()->values();
         
-        return view('collections.index', compact('collections', 'totalAmount', 'allUnits', 'allTerms', 'allTypes'));
+        return view('collections.index', compact('collections', 'totalAmount', 'allUnits', 'allTerms', 'allTypes', 'allUsers'));
     }
 
     public function create()

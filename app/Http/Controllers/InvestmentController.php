@@ -24,10 +24,8 @@ class InvestmentController extends Controller
                 $q->where('mekhala_id', auth()->user()->mekhala_id)
                   ->where('user_type', '!=', 'center');
             });
-        } elseif (auth()->user()->user_type === 'admin' && !auth()->user()->isCenterUser()) {
-            // Only pure admin users (not center users) see all investments
-            // Center users with admin role are handled above
         }
+        // Admin users see all investments (no filter applied)
         
         $investments = $query->latest()->paginate(10);
         return view('investments.index', compact('investments'));

@@ -404,16 +404,16 @@ class AdminController extends Controller
     
     public function openingBalance()
     {
-        $mekhalas = Mekhala::all();
-        $openingBalances = OpeningBalance::with('mekhala')->orderBy('year', 'desc')->get();
-        return view('admin.opening-balance', compact('mekhalas', 'openingBalances'));
+        $eastBalances = OpeningBalance::where('mekhala_id', 1)->orderBy('year', 'desc')->get();
+        $westBalances = OpeningBalance::where('mekhala_id', 2)->orderBy('year', 'desc')->get();
+        return view('admin.opening-balance', compact('eastBalances', 'westBalances'));
     }
     
     public function storeOpeningBalance(Request $request)
     {
         $request->validate([
             'year' => 'required|integer',
-            'mekhala_id' => 'nullable|exists:mekhalas,id',
+            'mekhala_id' => 'required|exists:mekhalas,id',
             'amount' => 'required|numeric'
         ]);
         

@@ -52,7 +52,7 @@
                             <th><select class="form-control form-control-sm" name="type"><option value="">All Types</option>@foreach($allTypes as $type)<option value="{{ $type }}" {{ request('type') == $type ? 'selected' : '' }}>{{ $type }}</option>@endforeach</select></th>
                             <th><select class="form-control form-control-sm" name="term"><option value="">All Terms</option>@foreach($allTerms as $term)<option value="{{ $term }}" {{ request('term') == $term ? 'selected' : '' }}>{{ $term }}</option>@endforeach</select></th>
                             <th><select class="form-control form-control-sm" name="status"><option value="">All Status</option><option value="pending" {{ request('status') == 'pending' ? 'selected' : '' }}>Pending</option><option value="received" {{ request('status') == 'received' ? 'selected' : '' }}>Received</option><option value="center_received" {{ request('status') == 'center_received' ? 'selected' : '' }}>Center Received</option></select></th>
-                            <th><input type="text" class="form-control form-control-sm" name="user" placeholder="Filter User" value="{{ request('user') }}"></th>
+                            <th><select class="form-control form-control-sm" name="user"><option value="">All Users</option>@foreach($allUsers as $user)<option value="{{ $user }}" {{ request('user') == $user ? 'selected' : '' }}>{{ $user }}</option>@endforeach</select></th>
                             <th></th>
                         </tr>
                     </thead>

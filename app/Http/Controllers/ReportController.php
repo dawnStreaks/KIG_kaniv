@@ -15,6 +15,8 @@ class ReportController extends Controller
     {
         $currentYear = $request->get('year', date('Y'));
         $currentMonth = $request->get('month', date('m'));
+        $dateFrom = $request->get('date_from');
+        $dateTo = $request->get('date_to');
         $type = $request->get('type');
         $term = $request->get('term');
         $user = auth()->user();
@@ -74,7 +76,7 @@ class ReportController extends Controller
             $mekhalaName = $user->mekhala->name;
         }
         
-        // Opening Balance (all data before current year)
+        // Opening Balance (all data before current year or date range)
         $manualOpeningBalance = \App\Models\OpeningBalance::where('year', $currentYear)
             ->when($user->isMekhalaUser(), function($q) use ($user) {
                 $q->where('mekhala_id', $user->mekhala_id);
@@ -84,11 +86,13 @@ class ReportController extends Controller
             })
             ->value('amount');
             
-        if ($manualOpeningBalance !== null) {
+        if ($manualOpeningBalance !== null && !$dateFrom) {
             $openingBalance = $manualOpeningBalance;
         } else {
+            $openingDateCondition = $dateFrom ? $dateFrom : $currentYear . '-01-01';
+            
             $openingCollections = Collection::where('collection_status', 'received')
-                ->whereYear('collection_date', '<', $currentYear)
+                ->where('collection_date', '<', $openingDateCondition)
                 ->when($user->isMekhalaUser(), function($q) use ($user) {
                     $q->whereHas('unit.area', function($subQ) use ($user) {
                         $subQ->where('mekhala_id', $user->mekhala_id);
@@ -96,7 +100,7 @@ class ReportController extends Controller
                 })
                 ->sum('amount');
                 
-            $openingExpenses = Expense::whereYear('expense_date', '<', $currentYear)
+            $openingExpenses = Expense::where('expense_date', '<', $openingDateCondition)
                 ->when($user->isMekhalaUser(), function($q) use ($user) {
                     $q->whereHas('enteredBy', function($subQ) use ($user) {
                         $subQ->where('mekhala_id', $user->mekhala_id);
@@ -105,7 +109,7 @@ class ReportController extends Controller
                 ->sum('amount');
                 
             $openingApplications = Application::where('status', 'paid')
-                ->whereYear('approved_date', '<', $currentYear)
+                ->where('approved_date', '<', $openingDateCondition)
                 ->when($user->isMekhalaUser(), function($q) use ($user) {
                     $q->whereHas('submitter', function($subQ) use ($user) {
                         $subQ->where('mekhala_id', $user->mekhala_id);
@@ -113,7 +117,7 @@ class ReportController extends Controller
                 })
                 ->sum('approved_amount');
                 
-            $openingInvestments = Investment::whereYear('investment_date', '<', $currentYear)
+            $openingInvestments = Investment::where('investment_date', '<', $openingDateCondition)
                 ->when($user->isMekhalaUser(), function($q) use ($user) {
                     $q->whereHas('creator', function($subQ) use ($user) {
                         $subQ->where('mekhala_id', $user->mekhala_id);
@@ -121,7 +125,7 @@ class ReportController extends Controller
                 })
                 ->sum('amount');
                 
-            $openingReturned = Investment::whereYear('investment_date', '<', $currentYear)
+            $openingReturned = Investment::where('investment_date', '<', $openingDateCondition)
                 ->when($user->isMekhalaUser(), function($q) use ($user) {
                     $q->whereHas('creator', function($subQ) use ($user) {
                         $subQ->where('mekhala_id', $user->mekhala_id);
@@ -129,7 +133,7 @@ class ReportController extends Controller
                 })
                 ->sum('returned_amount');
                 
-            $openingIncome = Investment::whereYear('investment_date', '<', $currentYear)
+            $openingIncome = Investment::where('investment_date', '<', $openingDateCondition)
                 ->when($user->isMekhalaUser(), function($q) use ($user) {
                     $q->whereHas('creator', function($subQ) use ($user) {
                         $subQ->where('mekhala_id', $user->mekhala_id);
@@ -141,7 +145,12 @@ class ReportController extends Controller
         }
         
         // Collections Summary (only received collections, not forwarded)
-        $collectionsQuery = Collection::where('collection_status', 'received')->whereYear('collection_date', $currentYear);
+        $collectionsQuery = Collection::where('collection_status', 'received');
+        if ($dateFrom && $dateTo) {
+            $collectionsQuery->whereBetween('collection_date', [$dateFrom, $dateTo]);
+        } else {
+            $collectionsQuery->whereYear('collection_date', $currentYear);
+        }
         if ($user->isMekhalaUser()) {
             $collectionsQuery->whereHas('unit.area', function($q) use ($user) {
                 $q->where('mekhala_id', $user->mekhala_id);
@@ -387,7 +396,7 @@ class ReportController extends Controller
             'yearlyCollections', 'monthlyCollections', 'yearlyExpenses', 'monthlyExpenses',
             'yearlyApplications', 'monthlyApplications', 'yearlyInvestments', 'monthlyInvestments',
             'yearlyIncome', 'monthlyIncome', 'yearlyReturned', 'monthlyReturned', 'groupedTransactions', 'areaSummary', 'mekhalaName',
-            'yearlyForwarded', 'monthlyForwarded', 'types', 'terms', 'currentYear', 'currentMonth', 'type', 'term', 'openingBalance', 'openingBalance'
+            'yearlyForwarded', 'monthlyForwarded', 'types', 'terms', 'currentYear', 'currentMonth', 'type', 'term', 'openingBalance', 'dateFrom', 'dateTo'
         ));
     }
 
@@ -896,17 +905,20 @@ class ReportController extends Controller
         $monthlyReturned = $monthlyReturnedQuery->sum('returned_amount');
         
         // Opening Balance
-        $manualOpeningBalance = \App\Models\OpeningBalance::where('year', $currentYear)
-            ->when(!empty($mekhalaIds), function($q) use ($mekhalaIds) {
-                $q->whereIn('mekhala_id', $mekhalaIds);
-            })
-            ->when(empty($mekhalaIds), function($q) {
-                $q->whereNull('mekhala_id');
-            })
+        $openingBalanceEast = \App\Models\OpeningBalance::where('year', $currentYear)
+            ->where('mekhala_id', 1)
             ->value('amount');
             
-        if ($manualOpeningBalance !== null) {
-            $openingBalance = $manualOpeningBalance;
+        $openingBalanceWest = \App\Models\OpeningBalance::where('year', $currentYear)
+            ->where('mekhala_id', 2)
+            ->value('amount');
+            
+        if ($type === 'east' && $openingBalanceEast !== null) {
+            $openingBalance = $openingBalanceEast;
+        } elseif ($type === 'west' && $openingBalanceWest !== null) {
+            $openingBalance = $openingBalanceWest;
+        } elseif ($type === 'combined' && $openingBalanceEast !== null && $openingBalanceWest !== null) {
+            $openingBalance = $openingBalanceEast + $openingBalanceWest;
         } else {
             $openingCollections = Collection::received()->whereYear('collection_date', '<', $currentYear)
                 ->when(!empty($mekhalaIds), function($q) use ($mekhalaIds) {
