@@ -11,393 +11,190 @@ use Maatwebsite\Excel\Facades\Excel;
 
 class ReportController extends Controller
 {
+    private function getFinancialData(Request $request, $scopeFilter = null)
+    {
+        $dateFrom = $request->get('date_from', date('Y-m-01'));
+        $dateTo = $request->get('date_to', date('Y-m-d'));
+
+        // Build scope closures based on filter type
+        $collectionScope = function($query) use ($scopeFilter) {
+            if ($scopeFilter === 'center') {
+                // no extra filter needed, handled by collection_status
+            } elseif (is_array($scopeFilter)) {
+                $query->whereHas('unit.area', function($q) use ($scopeFilter) {
+                    $q->whereIn('mekhala_id', $scopeFilter);
+                });
+            } elseif ($scopeFilter === 'mekhala') {
+                $query->whereHas('unit.area', function($q) {
+                    $q->where('mekhala_id', auth()->user()->mekhala_id);
+                });
+            }
+        };
+
+        $userScope = function($query, $relation = 'enteredBy') use ($scopeFilter) {
+            if ($scopeFilter === 'center') {
+                $query->whereHas($relation, function($q) {
+                    $q->where('user_type', 'center');
+                });
+            } elseif (is_array($scopeFilter)) {
+                $query->whereHas($relation, function($q) use ($scopeFilter) {
+                    $q->whereIn('mekhala_id', $scopeFilter);
+                });
+            } elseif ($scopeFilter === 'mekhala') {
+                $query->whereHas($relation, function($q) {
+                    $q->where('mekhala_id', auth()->user()->mekhala_id);
+                });
+            }
+        };
+
+        $investmentScope = function($query) use ($scopeFilter) {
+            if ($scopeFilter === 'center') {
+                $query->whereHas('creator', function($q) {
+                    $q->where('user_type', 'center');
+                });
+            } elseif (is_array($scopeFilter)) {
+                $query->whereHas('creator', function($q) use ($scopeFilter) {
+                    $q->whereIn('mekhala_id', $scopeFilter)->where('user_type', '!=', 'center');
+                });
+            } elseif ($scopeFilter === 'mekhala') {
+                $query->whereHas('creator', function($q) {
+                    $q->where('mekhala_id', auth()->user()->mekhala_id);
+                });
+            }
+        };
+
+        // Opening Balance (everything before dateFrom)
+        $obCollections = Collection::where('collection_status', $scopeFilter === 'center' ? 'center_received' : 'received')
+            ->where('collection_date', '<', $dateFrom);
+        $collectionScope($obCollections);
+        $obCollectionsTotal = $obCollections->sum('amount');
+
+        $obExpenses = Expense::where('expense_date', '<', $dateFrom);
+        $userScope($obExpenses, 'enteredBy');
+        $obExpensesTotal = $obExpenses->sum('amount');
+
+        $obApplications = Application::where('status', 'paid')->where('approved_date', '<', $dateFrom);
+        $userScope($obApplications, 'submitter');
+        $obApplicationsTotal = $obApplications->sum('approved_amount');
+
+        $obInvestments = Investment::where('investment_date', '<', $dateFrom);
+        $investmentScope($obInvestments);
+        $obInvestmentsTotal = $obInvestments->sum('amount');
+
+        $obIncome = Investment::where('investment_date', '<', $dateFrom);
+        $investmentScope($obIncome);
+        $obIncomeTotal = $obIncome->sum('income_generated');
+
+        $obReturned = Investment::where('investment_date', '<', $dateFrom);
+        $investmentScope($obReturned);
+        $obReturnedTotal = $obReturned->sum('returned_amount');
+
+        $openingBalance = $obCollectionsTotal + $obIncomeTotal - $obExpensesTotal - $obApplicationsTotal - ($obInvestmentsTotal - $obReturnedTotal);
+
+        // Period totals (between dateFrom and dateTo)
+        $collectionsQ = Collection::where('collection_status', $scopeFilter === 'center' ? 'center_received' : 'received')
+            ->whereBetween('collection_date', [$dateFrom, $dateTo]);
+        $collectionScope($collectionsQ);
+        $totalCollections = $collectionsQ->sum('amount');
+
+        $forwardedQ = Collection::where('collection_status', 'forwarded')
+            ->whereBetween('collection_date', [$dateFrom, $dateTo]);
+        $collectionScope($forwardedQ);
+        $totalForwarded = $forwardedQ->sum('amount');
+
+        $expensesQ = Expense::whereBetween('expense_date', [$dateFrom, $dateTo]);
+        $userScope($expensesQ, 'enteredBy');
+        $totalExpenses = $expensesQ->sum('amount');
+
+        $applicationsQ = Application::where('status', 'paid')
+            ->whereBetween('approved_date', [$dateFrom, $dateTo]);
+        $userScope($applicationsQ, 'submitter');
+        $totalApplications = $applicationsQ->sum('approved_amount');
+
+        $investmentsQ = Investment::whereBetween('investment_date', [$dateFrom, $dateTo]);
+        $investmentScope($investmentsQ);
+        $totalInvestments = $investmentsQ->sum('amount');
+
+        $incomeQ = Investment::whereBetween('investment_date', [$dateFrom, $dateTo]);
+        $investmentScope($incomeQ);
+        $totalIncome = $incomeQ->sum('income_generated');
+
+        $returnedQ = Investment::whereBetween('investment_date', [$dateFrom, $dateTo]);
+        $investmentScope($returnedQ);
+        $totalReturned = $returnedQ->sum('returned_amount');
+
+        return compact(
+            'dateFrom', 'dateTo', 'openingBalance',
+            'totalCollections', 'totalForwarded', 'totalExpenses',
+            'totalApplications', 'totalInvestments', 'totalIncome', 'totalReturned'
+        );
+    }
+
     public function financialStatement(Request $request)
     {
-        $currentYear = $request->get('year', date('Y'));
-        $currentMonth = $request->get('month', date('m'));
-        $dateFrom = $request->get('date_from');
-        $dateTo = $request->get('date_to');
-        $type = $request->get('type');
-        $term = $request->get('term');
         $user = auth()->user();
-        
-        // Calculate opening balance (all data before current year)
-        $prevCollections = Collection::where('collection_status', 'received')
-            ->whereYear('collection_date', '<', $currentYear);
-        if ($user->isMekhalaUser()) {
-            $prevCollections->whereHas('unit.area', function($q) use ($user) {
-                $q->where('mekhala_id', $user->mekhala_id);
-            });
-        }
-        $prevCollectionsTotal = $prevCollections->sum('amount');
-        
-        $prevExpenses = Expense::whereYear('expense_date', '<', $currentYear);
-        if ($user->isMekhalaUser()) {
-            $prevExpenses->whereHas('enteredBy', function($q) use ($user) {
-                $q->where('mekhala_id', $user->mekhala_id);
-            });
-        }
-        $prevExpensesTotal = $prevExpenses->sum('amount');
-        
-        $prevApplications = Application::where('status', 'paid')
-            ->whereYear('approved_date', '<', $currentYear);
-        if ($user->isMekhalaUser()) {
-            $prevApplications->whereHas('submitter', function($q) use ($user) {
-                $q->where('mekhala_id', $user->mekhala_id);
-            });
-        }
-        $prevApplicationsTotal = $prevApplications->sum('approved_amount');
-        
-        $prevInvestments = Investment::whereYear('investment_date', '<', $currentYear);
-        if ($user->isMekhalaUser()) {
-            $prevInvestments->whereHas('creator', function($q) use ($user) {
-                $q->where('mekhala_id', $user->mekhala_id);
-            });
-        }
-        $prevInvestmentsTotal = $prevInvestments->sum('amount');
-        $prevIncomeTotal = Investment::whereYear('investment_date', '<', $currentYear)
-            ->when($user->isMekhalaUser(), function($q) use ($user) {
-                $q->whereHas('creator', function($q2) use ($user) {
-                    $q2->where('mekhala_id', $user->mekhala_id);
-                });
-            })->sum('income_generated');
-        $prevReturnedTotal = Investment::whereYear('investment_date', '<', $currentYear)
-            ->when($user->isMekhalaUser(), function($q) use ($user) {
-                $q->whereHas('creator', function($q2) use ($user) {
-                    $q2->where('mekhala_id', $user->mekhala_id);
-                });
-            })->sum('returned_amount');
-        
-        $openingBalance = $prevCollectionsTotal + $prevIncomeTotal - $prevExpensesTotal - $prevApplicationsTotal - ($prevInvestmentsTotal - $prevReturnedTotal);
-        
-        // Get mekhala name for title
+        $scopeFilter = $user->isMekhalaUser() ? 'mekhala' : null;
+
+        $data = $this->getFinancialData($request, $scopeFilter);
+
         $mekhalaName = null;
         if ($user->isMekhalaUser() && $user->mekhala) {
             $mekhalaName = $user->mekhala->name;
         }
-        
-        // Opening Balance (all data before current year or date range)
-        $manualOpeningBalance = \App\Models\OpeningBalance::where('year', $currentYear)
-            ->when($user->isMekhalaUser(), function($q) use ($user) {
-                $q->where('mekhala_id', $user->mekhala_id);
-            })
-            ->when(!$user->isMekhalaUser(), function($q) {
-                $q->whereNull('mekhala_id');
-            })
-            ->value('amount');
-            
-        if ($manualOpeningBalance !== null && !$dateFrom) {
-            $openingBalance = $manualOpeningBalance;
-        } else {
-            $openingDateCondition = $dateFrom ? $dateFrom : $currentYear . '-01-01';
-            
-            $openingCollections = Collection::where('collection_status', 'received')
-                ->where('collection_date', '<', $openingDateCondition)
-                ->when($user->isMekhalaUser(), function($q) use ($user) {
-                    $q->whereHas('unit.area', function($subQ) use ($user) {
-                        $subQ->where('mekhala_id', $user->mekhala_id);
-                    });
-                })
-                ->sum('amount');
-                
-            $openingExpenses = Expense::where('expense_date', '<', $openingDateCondition)
-                ->when($user->isMekhalaUser(), function($q) use ($user) {
-                    $q->whereHas('enteredBy', function($subQ) use ($user) {
-                        $subQ->where('mekhala_id', $user->mekhala_id);
-                    });
-                })
-                ->sum('amount');
-                
-            $openingApplications = Application::where('status', 'paid')
-                ->where('approved_date', '<', $openingDateCondition)
-                ->when($user->isMekhalaUser(), function($q) use ($user) {
-                    $q->whereHas('submitter', function($subQ) use ($user) {
-                        $subQ->where('mekhala_id', $user->mekhala_id);
-                    });
-                })
-                ->sum('approved_amount');
-                
-            $openingInvestments = Investment::where('investment_date', '<', $openingDateCondition)
-                ->when($user->isMekhalaUser(), function($q) use ($user) {
-                    $q->whereHas('creator', function($subQ) use ($user) {
-                        $subQ->where('mekhala_id', $user->mekhala_id);
-                    });
-                })
-                ->sum('amount');
-                
-            $openingReturned = Investment::where('investment_date', '<', $openingDateCondition)
-                ->when($user->isMekhalaUser(), function($q) use ($user) {
-                    $q->whereHas('creator', function($subQ) use ($user) {
-                        $subQ->where('mekhala_id', $user->mekhala_id);
-                    });
-                })
-                ->sum('returned_amount');
-                
-            $openingIncome = Investment::where('investment_date', '<', $openingDateCondition)
-                ->when($user->isMekhalaUser(), function($q) use ($user) {
-                    $q->whereHas('creator', function($subQ) use ($user) {
-                        $subQ->where('mekhala_id', $user->mekhala_id);
-                    });
-                })
-                ->sum('income_generated');
-                
-            $openingBalance = $openingCollections + $openingIncome - $openingExpenses - $openingApplications - ($openingInvestments - $openingReturned);
-        }
-        
-        // Collections Summary (only received collections, not forwarded)
-        $collectionsQuery = Collection::where('collection_status', 'received');
-        if ($dateFrom && $dateTo) {
-            $collectionsQuery->whereBetween('collection_date', [$dateFrom, $dateTo]);
-        } else {
-            $collectionsQuery->whereYear('collection_date', $currentYear);
-        }
-        if ($user->isMekhalaUser()) {
-            $collectionsQuery->whereHas('unit.area', function($q) use ($user) {
-                $q->where('mekhala_id', $user->mekhala_id);
-            });
-        }
-        $yearlyCollections = $collectionsQuery->sum('amount');
-        
-        $monthlyCollectionsQuery = Collection::where('collection_status', 'received')->whereMonth('collection_date', $currentMonth)
-                                      ->whereYear('collection_date', $currentYear);
-        if ($user->isMekhalaUser()) {
-            $monthlyCollectionsQuery->whereHas('unit.area', function($q) use ($user) {
-                $q->where('mekhala_id', $user->mekhala_id);
-            });
-        }
-        $monthlyCollections = $monthlyCollectionsQuery->sum('amount');
-        
-        // Forwarded Collections Summary
-        $forwardedQuery = Collection::where('collection_status', 'forwarded')->whereYear('collection_date', $currentYear);
-        if ($user->isMekhalaUser()) {
-            $forwardedQuery->whereHas('unit.area', function($q) use ($user) {
-                $q->where('mekhala_id', $user->mekhala_id);
-            });
-        }
-        $yearlyForwarded = $forwardedQuery->sum('amount');
-        
-        $monthlyForwardedQuery = Collection::where('collection_status', 'forwarded')->whereMonth('collection_date', $currentMonth)
-                                      ->whereYear('collection_date', $currentYear);
-        if ($user->isMekhalaUser()) {
-            $monthlyForwardedQuery->whereHas('unit.area', function($q) use ($user) {
-                $q->where('mekhala_id', $user->mekhala_id);
-            });
-        }
-        $monthlyForwarded = $monthlyForwardedQuery->sum('amount');
-        
-        // Expenses Summary
-        $expensesQuery = Expense::whereYear('expense_date', $currentYear);
-        if ($user->isMekhalaUser()) {
-            $expensesQuery->whereHas('enteredBy', function($q) use ($user) {
-                $q->where('mekhala_id', $user->mekhala_id);
-            });
-        }
-        $yearlyExpenses = $expensesQuery->sum('amount');
-        
-        $monthlyExpensesQuery = Expense::whereMonth('expense_date', $currentMonth)
-                                 ->whereYear('expense_date', $currentYear);
-        if ($user->isMekhalaUser()) {
-            $monthlyExpensesQuery->whereHas('enteredBy', function($q) use ($user) {
-                $q->where('mekhala_id', $user->mekhala_id);
-            });
-        }
-        $monthlyExpenses = $monthlyExpensesQuery->sum('amount');
-        
-        // Applications Summary (only paid applications)
-        $applicationsQuery = Application::where('status', 'paid')->whereYear('approved_date', $currentYear);
-        if ($user->isMekhalaUser()) {
-            $applicationsQuery->whereHas('submitter', function($q) use ($user) {
-                $q->where('mekhala_id', $user->mekhala_id);
-            });
-        }
-        $yearlyApplications = $applicationsQuery->sum('approved_amount');
-        
-        $monthlyApplicationsQuery = Application::where('status', 'paid')->whereMonth('approved_date', $currentMonth)
-                                         ->whereYear('approved_date', $currentYear);
-        if ($user->isMekhalaUser()) {
-            $monthlyApplicationsQuery->whereHas('submitter', function($q) use ($user) {
-                $q->where('mekhala_id', $user->mekhala_id);
-            });
-        }
-        $monthlyApplications = $monthlyApplicationsQuery->sum('approved_amount');
-        
-        // Investment Summary
-        $yearlyInvestmentsQuery = Investment::whereYear('investment_date', $currentYear);
-        if ($user->isMekhalaUser()) {
-            $yearlyInvestmentsQuery->whereHas('creator', function($q) use ($user) {
-                $q->where('mekhala_id', $user->mekhala_id);
-            });
-        }
-        $yearlyInvestments = $yearlyInvestmentsQuery->sum('amount');
-        
-        $monthlyInvestmentsQuery = Investment::whereMonth('investment_date', $currentMonth)
-                                           ->whereYear('investment_date', $currentYear);
-        if ($user->isMekhalaUser()) {
-            $monthlyInvestmentsQuery->whereHas('creator', function($q) use ($user) {
-                $q->where('mekhala_id', $user->mekhala_id);
-            });
-        }
-        $monthlyInvestments = $monthlyInvestmentsQuery->sum('amount');
-        
-        $yearlyIncomeQuery = Investment::whereYear('investment_date', $currentYear);
-        if ($user->isMekhalaUser()) {
-            $yearlyIncomeQuery->whereHas('creator', function($q) use ($user) {
-                $q->where('mekhala_id', $user->mekhala_id);
-            });
-        }
-        $yearlyIncome = $yearlyIncomeQuery->sum('income_generated');
-        
-        $monthlyIncomeQuery = Investment::whereMonth('investment_date', $currentMonth)
-                                      ->whereYear('investment_date', $currentYear);
-        if ($user->isMekhalaUser()) {
-            $monthlyIncomeQuery->whereHas('creator', function($q) use ($user) {
-                $q->where('mekhala_id', $user->mekhala_id);
-            });
-        }
-        $monthlyIncome = $monthlyIncomeQuery->sum('income_generated');
-        
-        $yearlyReturnedQuery = Investment::whereYear('investment_date', $currentYear);
-        if ($user->isMekhalaUser()) {
-            $yearlyReturnedQuery->whereHas('creator', function($q) use ($user) {
-                $q->where('mekhala_id', $user->mekhala_id);
-            });
-        }
-        $yearlyReturned = $yearlyReturnedQuery->sum('returned_amount');
-        
-        $monthlyReturnedQuery = Investment::whereMonth('investment_date', $currentMonth)
-                                         ->whereYear('investment_date', $currentYear);
-        if ($user->isMekhalaUser()) {
-            $monthlyReturnedQuery->whereHas('creator', function($q) use ($user) {
-                $q->where('mekhala_id', $user->mekhala_id);
-            });
-        }
-        $monthlyReturned = $monthlyReturnedQuery->sum('returned_amount');
-        
-        // Get detailed transactions (only received collections)
-        $collectionsDetailQuery = Collection::received()->with('unit')->orderBy('collection_date');
-        if ($user->isMekhalaUser()) {
-            $collectionsDetailQuery->whereHas('unit.area', function($q) use ($user) {
-                $q->where('mekhala_id', $user->mekhala_id);
-            });
-        }
-        $collections = $collectionsDetailQuery->get();
-        
-        $expensesDetailQuery = Expense::orderBy('expense_date');
-        if ($user->isMekhalaUser()) {
-            $expensesDetailQuery->whereHas('enteredBy', function($q) use ($user) {
-                $q->where('mekhala_id', $user->mekhala_id);
-            });
-        }
-        $expenses = $expensesDetailQuery->get();
-        
-        $applicationsDetailQuery = Application::where('status', 'paid')->orderBy('approved_date');
-        if ($user->isMekhalaUser()) {
-            $applicationsDetailQuery->whereHas('submitter', function($q) use ($user) {
-                $q->where('mekhala_id', $user->mekhala_id);
-            });
-        }
-        $applications = $applicationsDetailQuery->get();
-        
-        // Combine and sort transactions by date
-        $transactions = collect();
-        
-        foreach ($collections as $collection) {
-            $transactions->push([
-                'date' => $collection->collection_date,
-                'type' => 'Collection',
-                'description' => 'Collection from ' . ($collection->unit->name ?? 'N/A'),
-                'collection' => $collection->amount,
-                'expense' => 0,
-            ]);
-        }
-        
-        foreach ($expenses as $expense) {
-            $transactions->push([
-                'date' => $expense->expense_date,
-                'type' => 'Expense',
-                'description' => $expense->particulars,
-                'collection' => 0,
-                'expense' => $expense->amount,
-            ]);
-        }
-        
-        foreach ($applications as $application) {
-            $transactions->push([
-                'date' => $application->approved_date,
-                'type' => 'Application Payment',
-                'description' => 'Payment to ' . $application->name . ' (' . ucfirst($application->category) . ')',
-                'collection' => 0,
-                'expense' => $application->approved_amount,
-            ]);
-        }
-        
-        // Group transactions by area
-        $transactionsByArea = collect();
-        
-        // Group transactions by area (filtered by current month/year and filters)
-        $transactionsByArea = collect();
-        
-        // Filter collections for area summary (current month/year only)
-        $filteredCollections = Collection::received()
-            ->with('unit.area')
-            ->whereMonth('collection_date', $currentMonth)
-            ->whereYear('collection_date', $currentYear);
-            
-        if ($user->isMekhalaUser()) {
-            $filteredCollections->whereHas('unit.area', function($q) use ($user) {
-                $q->where('mekhala_id', $user->mekhala_id);
-            });
-        }
-        
-        if ($type) {
-            $filteredCollections->where('type', $type);
-        }
-        
-        if ($term) {
-            $filteredCollections->where('term', $term);
-        }
-        
-        $filteredCollections = $filteredCollections->get();
-        
-        foreach ($filteredCollections as $collection) {
-            $areaName = $collection->unit->area->name ?? 'Unknown Area';
-            $transactionsByArea->push([
-                'area' => $areaName,
-                'date' => $collection->collection_date,
-                'type' => 'Collection',
-                'description' => 'Collection from ' . ($collection->unit->name ?? 'N/A'),
-                'collection' => $collection->amount,
-                'expense' => 0,
-            ]);
-        }
-        
-        // Group by area and sort within each area by date
-        $groupedTransactions = $transactionsByArea->groupBy('area')->map(function($areaTransactions) {
-            return $areaTransactions->sortBy('date');
-        });
-        
-        // Calculate area totals
-        $areaSummary = $groupedTransactions->map(function($areaTransactions, $areaName) {
-            $totalCollections = $areaTransactions->sum('collection');
-            $totalExpenses = $areaTransactions->sum('expense');
-            return [
-                'area' => $areaName,
-                'collections' => $totalCollections,
-                'expenses' => $totalExpenses,
-                'balance' => $totalCollections - $totalExpenses
-            ];
-        });
-        
-        // Get filter options
-        $types = \App\Models\Collection::pluck('type')->unique()->filter()->sort()->values();
-        $terms = \App\Models\Collection::pluck('term')->unique()->filter()->sort()->values();
-        
-        return view('reports.financial-statement', compact(
-            'yearlyCollections', 'monthlyCollections', 'yearlyExpenses', 'monthlyExpenses',
-            'yearlyApplications', 'monthlyApplications', 'yearlyInvestments', 'monthlyInvestments',
-            'yearlyIncome', 'monthlyIncome', 'yearlyReturned', 'monthlyReturned', 'groupedTransactions', 'areaSummary', 'mekhalaName',
-            'yearlyForwarded', 'monthlyForwarded', 'types', 'terms', 'currentYear', 'currentMonth', 'type', 'term', 'openingBalance', 'dateFrom', 'dateTo'
-        ));
+
+        return view('reports.financial-statement', array_merge($data, [
+            'mekhalaName' => $mekhalaName,
+        ]));
+    }
+
+    public function centerFinancial(Request $request)
+    {
+        $data = $this->getFinancialData($request, 'center');
+
+        return view('reports.financial-statement', array_merge($data, [
+            'reportType' => 'Center',
+            'mekhalaName' => 'Center Office',
+        ]));
+    }
+
+    public function eastMekhalaFinancial(Request $request)
+    {
+        return $this->getMekhalaFinancialStatement($request, 'east');
+    }
+
+    public function westMekhalaFinancial(Request $request)
+    {
+        return $this->getMekhalaFinancialStatement($request, 'west');
+    }
+
+    public function combinedFinancial(Request $request)
+    {
+        return $this->getMekhalaFinancialStatement($request, 'combined');
+    }
+
+    private function getMekhalaFinancialStatement(Request $request, $type)
+    {
+        $mekhalaIds = match($type) {
+            'east' => [1],
+            'west' => [2],
+            'combined' => [1, 2],
+            default => [],
+        };
+
+        $data = $this->getFinancialData($request, $mekhalaIds);
+
+        $reportType = $type === 'combined' ? 'Combined' : ucfirst($type) . ' Mekhala';
+        $mekhalaName = $type !== 'combined' ? ucfirst($type) . ' Mekhala' : null;
+
+        return view('reports.financial-statement', array_merge($data, [
+            'reportType' => $reportType,
+            'mekhalaName' => $mekhalaName,
+        ]));
+    }
+
+    public function centerFinancialStatement(Request $request)
+    {
+        return $this->centerFinancial($request);
     }
 
     public function collectionReport(Request $request)
@@ -408,7 +205,6 @@ class ReportController extends Controller
         
         $query = Collection::with(['unit.area.mekhala', 'enteredBy']);
         
-        // Apply date filters - if date_from/date_to are provided, use them instead of year/month
         if ($request->filled('date_from') || $request->filled('date_to')) {
             if ($request->filled('date_from')) {
                 $query->where('collection_date', '>=', $request->date_from);
@@ -417,12 +213,10 @@ class ReportController extends Controller
                 $query->where('collection_date', '<=', $request->date_to);
             }
         } else {
-            // Only apply year/month if date_from/date_to are not provided
             $query->whereYear('collection_date', $currentYear)
                   ->whereMonth('collection_date', $currentMonth);
         }
         
-        // Filter by user's mekhala if they are a mekhala user
         if ($user->isMekhalaUser()) {
             $query->whereHas('unit.area', function($q) use ($user) {
                 $q->where('mekhala_id', $user->mekhala_id);
@@ -443,27 +237,16 @@ class ReportController extends Controller
             $query->where('type', $request->type);
         }
         
-        if ($request->filled('date_from')) {
-            $query->where('collection_date', '>=', $request->date_from);
-        }
-        
-        if ($request->filled('date_to')) {
-            $query->where('collection_date', '<=', $request->date_to);
-        }
-        
         $collections = $query->latest('collection_date')->get();
         $totalAmount = $collections->sum('amount');
         
-        // Get areas for filter dropdown
         $areas = \App\Models\Area::when($user->isMekhalaUser(), function($q) use ($user) {
             $q->where('mekhala_id', $user->mekhala_id);
         })->get();
         
-        // Get terms and types for filters
         $terms = \App\Models\CollectionTerm::all();
         $types = \App\Models\CollectionType::all();
         
-        // Group collections by area, term, and type
         $collectionsByArea = $collections->groupBy(function($collection) {
             return $collection->unit->area->name ?? 'Unknown Area';
         })->map(function($areaCollections, $areaName) {
@@ -487,7 +270,6 @@ class ReportController extends Controller
             ];
         });
         
-        // Get mekhala-wise data for center users
         $mekhalaData = [];
         if ($user->isCenterUser()) {
             $mekhalaData = \App\Models\Mekhala::with('areas.units.collections')
@@ -520,7 +302,6 @@ class ReportController extends Controller
             ->whereYear('approved_date', $currentYear)
             ->whereMonth('approved_date', $currentMonth);
         
-        // Filter by user's mekhala if they are a mekhala user
         if ($user->isMekhalaUser()) {
             $query->whereHas('submitter', function($q) use ($user) {
                 $q->where('mekhala_id', $user->mekhala_id);
@@ -619,497 +400,6 @@ class ReportController extends Controller
         return response()->json($data);
     }
 
-    public function eastMekhalaFinancial(Request $request)
-    {
-        return $this->getMekhalaFinancialStatement($request, 'east');
-    }
-
-    public function westMekhalaFinancial(Request $request)
-    {
-        return $this->getMekhalaFinancialStatement($request, 'west');
-    }
-
-    public function combinedFinancial(Request $request)
-    {
-        return $this->getMekhalaFinancialStatement($request, 'combined');
-    }
-
-    public function centerFinancial(Request $request)
-    {
-        $currentYear = $request->get('year', date('Y'));
-        $currentMonth = $request->get('month', date('m'));
-        
-        // Collections Summary (only center received collections)
-        $yearlyCollections = Collection::centerReceived()->whereYear('collection_date', $currentYear)->sum('amount');
-        $monthlyCollections = Collection::centerReceived()->whereMonth('collection_date', $currentMonth)
-                                      ->whereYear('collection_date', $currentYear)->sum('amount');
-        
-        // Forwarded Collections Summary (collections with 'forwarded' status)
-        $yearlyForwarded = Collection::where('collection_status', 'forwarded')->whereYear('collection_date', $currentYear)->sum('amount');
-        $monthlyForwarded = Collection::where('collection_status', 'forwarded')->whereMonth('collection_date', $currentMonth)
-                                      ->whereYear('collection_date', $currentYear)->sum('amount');
-        
-        // Center expenses (expenses by center users)
-        $yearlyExpenses = Expense::whereYear('expense_date', $currentYear)
-            ->whereHas('enteredBy', function($q) {
-                $q->where('user_type', 'center');
-            })->sum('amount');
-        $monthlyExpenses = Expense::whereMonth('expense_date', $currentMonth)
-                                 ->whereYear('expense_date', $currentYear)
-                                 ->whereHas('enteredBy', function($q) {
-                                     $q->where('user_type', 'center');
-                                 })->sum('amount');
-        
-        // Applications Summary (only paid applications)
-        $yearlyApplications = Application::where('status', 'paid')->whereYear('approved_date', $currentYear)->sum('approved_amount');
-        $monthlyApplications = Application::where('status', 'paid')->whereMonth('approved_date', $currentMonth)
-                                         ->whereYear('approved_date', $currentYear)->sum('approved_amount');
-        
-        // Investment Summary (filtered by user role)
-        $yearlyInvestmentsQuery = Investment::whereYear('investment_date', $currentYear)
-            ->whereHas('creator', function($q) {
-                $q->where('user_type', 'center');
-            });
-        $yearlyInvestments = $yearlyInvestmentsQuery->sum('amount');
-        
-        $monthlyInvestmentsQuery = Investment::whereMonth('investment_date', $currentMonth)
-                                           ->whereYear('investment_date', $currentYear)
-                                           ->whereHas('creator', function($q) {
-                                               $q->where('user_type', 'center');
-                                           });
-        $monthlyInvestments = $monthlyInvestmentsQuery->sum('amount');
-        
-        $yearlyIncomeQuery = Investment::whereYear('investment_date', $currentYear)
-            ->whereHas('creator', function($q) {
-                $q->where('user_type', 'center');
-            });
-        $yearlyIncome = $yearlyIncomeQuery->sum('income_generated');
-        
-        $monthlyIncomeQuery = Investment::whereMonth('investment_date', $currentMonth)
-                                      ->whereYear('investment_date', $currentYear)
-                                      ->whereHas('creator', function($q) {
-                                          $q->where('user_type', 'center');
-                                      });
-        $monthlyIncome = $monthlyIncomeQuery->sum('income_generated');
-        
-        $yearlyReturnedQuery = Investment::whereYear('investment_date', $currentYear)
-            ->whereHas('creator', function($q) {
-                $q->where('user_type', 'center');
-            });
-        $yearlyReturned = $yearlyReturnedQuery->sum('returned_amount');
-        
-        $monthlyReturnedQuery = Investment::whereMonth('investment_date', $currentMonth)
-                                         ->whereYear('investment_date', $currentYear)
-                                         ->whereHas('creator', function($q) {
-                                             $q->where('user_type', 'center');
-                                         });
-        $monthlyReturned = $monthlyReturnedQuery->sum('returned_amount');
-        
-        // Get detailed transactions filtered by year and month
-        $collectionsQuery = Collection::centerReceived()->with('unit.area')->whereYear('collection_date', $currentYear)->whereMonth('collection_date', $currentMonth);
-        $expensesQuery = Expense::whereHas('enteredBy', function($q) {
-            $q->where('user_type', 'center');
-        })->whereYear('expense_date', $currentYear)->whereMonth('expense_date', $currentMonth);
-        $applicationsQuery = Application::where('status', 'paid')->whereYear('approved_date', $currentYear)->whereMonth('approved_date', $currentMonth);
-        
-        $collections = $collectionsQuery->orderBy('collection_date')->get();
-        $expenses = $expensesQuery->orderBy('expense_date')->get();
-        $applications = $applicationsQuery->orderBy('approved_date')->get();
-        
-        // Group transactions by area
-        $transactionsByArea = collect();
-        
-        foreach ($collections as $collection) {
-            $areaName = 'Center'; // All center-received collections go under Center
-            $transactionsByArea->push([
-                'area' => $areaName,
-                'date' => $collection->collection_date,
-                'type' => 'Collection',
-                'description' => 'Collection from ' . ($collection->unit->name ?? 'N/A') . ' (' . ($collection->unit->area->name ?? 'Unknown Area') . ')',
-                'collection' => $collection->amount,
-                'expense' => 0,
-            ]);
-        }
-        
-        foreach ($expenses as $expense) {
-            $areaName = 'Center';
-            $transactionsByArea->push([
-                'area' => $areaName,
-                'date' => $expense->expense_date,
-                'type' => 'Expense',
-                'description' => $expense->particulars,
-                'collection' => 0,
-                'expense' => $expense->amount,
-            ]);
-        }
-        
-        foreach ($applications as $application) {
-            $areaName = 'Center';
-            $transactionsByArea->push([
-                'area' => $areaName,
-                'date' => $application->approved_date,
-                'type' => 'Application Payment',
-                'description' => 'Payment to ' . $application->name . ' (' . ucfirst($application->category) . ')',
-                'collection' => 0,
-                'expense' => $application->approved_amount,
-            ]);
-        }
-        
-        // Group by area and sort within each area by date
-        $groupedTransactions = $transactionsByArea->groupBy('area')->map(function($areaTransactions) {
-            return $areaTransactions->sortBy('date');
-        });
-        
-        // Calculate area totals
-        $areaSummary = $groupedTransactions->map(function($areaTransactions, $areaName) {
-            $totalCollections = $areaTransactions->sum('collection');
-            $totalExpenses = $areaTransactions->sum('expense');
-            return [
-                'area' => $areaName,
-                'collections' => $totalCollections,
-                'expenses' => $totalExpenses,
-                'balance' => $totalCollections - $totalExpenses
-            ];
-        });
-        
-        $reportType = 'Center';
-        $mekhalaName = 'Center Office';
-        
-        return view('reports.financial-statement', compact(
-            'yearlyCollections', 'monthlyCollections', 'yearlyExpenses', 'monthlyExpenses',
-            'yearlyApplications', 'monthlyApplications', 'yearlyInvestments', 'monthlyInvestments',
-            'yearlyIncome', 'monthlyIncome', 'yearlyReturned', 'monthlyReturned', 'reportType', 'mekhalaName',
-            'groupedTransactions', 'areaSummary', 'yearlyForwarded', 'monthlyForwarded', 'currentYear', 'currentMonth'
-        ));
-    }
-
-    private function getMekhalaFinancialStatement(Request $request, $type)
-    {
-        $currentYear = $request->get('year', date('Y'));
-        $currentMonth = $request->get('month', date('m'));
-        
-        // Get mekhala IDs (based on database: 1=East, 2=West)
-        $mekhalaIds = [];
-        if ($type === 'east') {
-            $mekhalaIds = [1]; // East Mekhala
-        } elseif ($type === 'west') {
-            $mekhalaIds = [2]; // West Mekhala
-        } elseif ($type === 'combined') {
-            $mekhalaIds = [1, 2]; // Both East and West
-        }
-        
-        // Collections Summary
-        $collectionsQuery = Collection::received()->whereYear('collection_date', $currentYear);
-        if (!empty($mekhalaIds)) {
-            $collectionsQuery->whereHas('unit.area', function($q) use ($mekhalaIds) {
-                $q->whereIn('mekhala_id', $mekhalaIds);
-            });
-        }
-        $yearlyCollections = $collectionsQuery->sum('amount');
-        
-        $monthlyCollectionsQuery = Collection::received()->whereMonth('collection_date', $currentMonth)
-                                      ->whereYear('collection_date', $currentYear);
-        if (!empty($mekhalaIds)) {
-            $monthlyCollectionsQuery->whereHas('unit.area', function($q) use ($mekhalaIds) {
-                $q->whereIn('mekhala_id', $mekhalaIds);
-            });
-        }
-        $monthlyCollections = $monthlyCollectionsQuery->sum('amount');
-        
-        // Expenses Summary
-        $expensesQuery = Expense::whereYear('expense_date', $currentYear);
-        if (!empty($mekhalaIds)) {
-            $expensesQuery->whereHas('enteredBy', function($q) use ($mekhalaIds) {
-                $q->whereIn('mekhala_id', $mekhalaIds);
-            });
-        }
-        $yearlyExpenses = $expensesQuery->sum('amount');
-        
-        $monthlyExpensesQuery = Expense::whereMonth('expense_date', $currentMonth)
-                                 ->whereYear('expense_date', $currentYear);
-        if (!empty($mekhalaIds)) {
-            $monthlyExpensesQuery->whereHas('enteredBy', function($q) use ($mekhalaIds) {
-                $q->whereIn('mekhala_id', $mekhalaIds);
-            });
-        }
-        $monthlyExpenses = $monthlyExpensesQuery->sum('amount');
-        
-        // Applications Summary (only paid applications)
-        $applicationsQuery = Application::where('status', 'paid')->whereYear('approved_date', $currentYear);
-        if (!empty($mekhalaIds)) {
-            $applicationsQuery->whereHas('submitter', function($q) use ($mekhalaIds) {
-                $q->whereIn('mekhala_id', $mekhalaIds);
-            });
-        }
-        $yearlyApplications = $applicationsQuery->sum('approved_amount');
-        
-        $monthlyApplicationsQuery = Application::where('status', 'paid')->whereMonth('approved_date', $currentMonth)
-                                         ->whereYear('approved_date', $currentYear);
-        if (!empty($mekhalaIds)) {
-            $monthlyApplicationsQuery->whereHas('submitter', function($q) use ($mekhalaIds) {
-                $q->whereIn('mekhala_id', $mekhalaIds);
-            });
-        }
-        $monthlyApplications = $monthlyApplicationsQuery->sum('approved_amount');
-        
-        // Investment Summary
-        $yearlyInvestmentsQuery = Investment::whereYear('investment_date', $currentYear);
-        if (!empty($mekhalaIds)) {
-            $yearlyInvestmentsQuery->whereHas('creator', function($q) use ($mekhalaIds) {
-                $q->whereIn('mekhala_id', $mekhalaIds)->where('user_type', '!=', 'center');
-            });
-        }
-        $yearlyInvestments = $yearlyInvestmentsQuery->sum('amount');
-        
-        $monthlyInvestmentsQuery = Investment::whereMonth('investment_date', $currentMonth)
-                                           ->whereYear('investment_date', $currentYear);
-        if (!empty($mekhalaIds)) {
-            $monthlyInvestmentsQuery->whereHas('creator', function($q) use ($mekhalaIds) {
-                $q->whereIn('mekhala_id', $mekhalaIds)->where('user_type', '!=', 'center');
-            });
-        }
-        $monthlyInvestments = $monthlyInvestmentsQuery->sum('amount');
-        
-        $yearlyIncomeQuery = Investment::whereYear('investment_date', $currentYear);
-        if (!empty($mekhalaIds)) {
-            $yearlyIncomeQuery->whereHas('creator', function($q) use ($mekhalaIds) {
-                $q->whereIn('mekhala_id', $mekhalaIds)->where('user_type', '!=', 'center');
-            });
-        }
-        $yearlyIncome = $yearlyIncomeQuery->sum('income_generated');
-        
-        $monthlyIncomeQuery = Investment::whereMonth('investment_date', $currentMonth)
-                                      ->whereYear('investment_date', $currentYear);
-        if (!empty($mekhalaIds)) {
-            $monthlyIncomeQuery->whereHas('creator', function($q) use ($mekhalaIds) {
-                $q->whereIn('mekhala_id', $mekhalaIds)->where('user_type', '!=', 'center');
-            });
-        }
-        $monthlyIncome = $monthlyIncomeQuery->sum('income_generated');
-        
-        $yearlyReturnedQuery = Investment::whereYear('investment_date', $currentYear);
-        if (!empty($mekhalaIds)) {
-            $yearlyReturnedQuery->whereHas('creator', function($q) use ($mekhalaIds) {
-                $q->whereIn('mekhala_id', $mekhalaIds)->where('user_type', '!=', 'center');
-            });
-        }
-        $yearlyReturned = $yearlyReturnedQuery->sum('returned_amount');
-        
-        $monthlyReturnedQuery = Investment::whereMonth('investment_date', $currentMonth)
-                                         ->whereYear('investment_date', $currentYear);
-        if (!empty($mekhalaIds)) {
-            $monthlyReturnedQuery->whereHas('creator', function($q) use ($mekhalaIds) {
-                $q->whereIn('mekhala_id', $mekhalaIds)->where('user_type', '!=', 'center');
-            });
-        }
-        $monthlyReturned = $monthlyReturnedQuery->sum('returned_amount');
-        
-        // Opening Balance
-        $openingBalanceEast = \App\Models\OpeningBalance::where('year', $currentYear)
-            ->where('mekhala_id', 1)
-            ->value('amount');
-            
-        $openingBalanceWest = \App\Models\OpeningBalance::where('year', $currentYear)
-            ->where('mekhala_id', 2)
-            ->value('amount');
-            
-        if ($type === 'east' && $openingBalanceEast !== null) {
-            $openingBalance = $openingBalanceEast;
-        } elseif ($type === 'west' && $openingBalanceWest !== null) {
-            $openingBalance = $openingBalanceWest;
-        } elseif ($type === 'combined' && $openingBalanceEast !== null && $openingBalanceWest !== null) {
-            $openingBalance = $openingBalanceEast + $openingBalanceWest;
-        } else {
-            $openingCollections = Collection::received()->whereYear('collection_date', '<', $currentYear)
-                ->when(!empty($mekhalaIds), function($q) use ($mekhalaIds) {
-                    $q->whereHas('unit.area', function($subQ) use ($mekhalaIds) {
-                        $subQ->whereIn('mekhala_id', $mekhalaIds);
-                    });
-                })
-                ->sum('amount');
-                
-            $openingExpenses = Expense::whereYear('expense_date', '<', $currentYear)
-                ->when(!empty($mekhalaIds), function($q) use ($mekhalaIds) {
-                    $q->whereHas('enteredBy', function($subQ) use ($mekhalaIds) {
-                        $subQ->whereIn('mekhala_id', $mekhalaIds);
-                    });
-                })
-                ->sum('amount');
-                
-            $openingApplications = Application::where('status', 'paid')->whereYear('approved_date', '<', $currentYear)
-                ->when(!empty($mekhalaIds), function($q) use ($mekhalaIds) {
-                    $q->whereHas('submitter', function($subQ) use ($mekhalaIds) {
-                        $subQ->whereIn('mekhala_id', $mekhalaIds);
-                    });
-                })
-                ->sum('approved_amount');
-                
-            $openingInvestments = Investment::whereYear('investment_date', '<', $currentYear)
-                ->when(!empty($mekhalaIds), function($q) use ($mekhalaIds) {
-                    $q->whereHas('creator', function($subQ) use ($mekhalaIds) {
-                        $subQ->whereIn('mekhala_id', $mekhalaIds)->where('user_type', '!=', 'center');
-                    });
-                })
-                ->sum('amount');
-                
-            $openingReturned = Investment::whereYear('investment_date', '<', $currentYear)
-                ->when(!empty($mekhalaIds), function($q) use ($mekhalaIds) {
-                    $q->whereHas('creator', function($subQ) use ($mekhalaIds) {
-                        $subQ->whereIn('mekhala_id', $mekhalaIds)->where('user_type', '!=', 'center');
-                    });
-                })
-                ->sum('returned_amount');
-                
-            $openingIncome = Investment::whereYear('investment_date', '<', $currentYear)
-                ->when(!empty($mekhalaIds), function($q) use ($mekhalaIds) {
-                    $q->whereHas('creator', function($subQ) use ($mekhalaIds) {
-                        $subQ->whereIn('mekhala_id', $mekhalaIds)->where('user_type', '!=', 'center');
-                    });
-                })
-                ->sum('income_generated');
-                
-            $openingBalance = $openingCollections + $openingIncome - $openingExpenses - $openingApplications - ($openingInvestments - $openingReturned);
-        }
-        
-        // Get detailed transactions
-        $collectionsDetailQuery = Collection::received()->with('unit')->orderBy('collection_date');
-        if (!empty($mekhalaIds)) {
-            $collectionsDetailQuery->whereHas('unit.area', function($q) use ($mekhalaIds) {
-                $q->whereIn('mekhala_id', $mekhalaIds);
-            });
-        }
-        $collections = $collectionsDetailQuery->get();
-        
-        $expensesDetailQuery = Expense::orderBy('expense_date');
-        if (!empty($mekhalaIds)) {
-            $expensesDetailQuery->whereHas('enteredBy', function($q) use ($mekhalaIds) {
-                $q->whereIn('mekhala_id', $mekhalaIds);
-            });
-        }
-        $expenses = $expensesDetailQuery->get();
-        
-        $applicationsDetailQuery = Application::where('status', 'paid')->orderBy('approved_date');
-        if (!empty($mekhalaIds)) {
-            $applicationsDetailQuery->whereHas('submitter', function($q) use ($mekhalaIds) {
-                $q->whereIn('mekhala_id', $mekhalaIds);
-            });
-        }
-        $applications = $applicationsDetailQuery->get();
-        
-        // Combine and sort transactions by date
-        $transactions = collect();
-        
-        foreach ($collections as $collection) {
-            $transactions->push([
-                'date' => $collection->collection_date,
-                'type' => 'Collection',
-                'description' => 'Collection from ' . ($collection->unit->name ?? 'N/A'),
-                'collection' => $collection->amount,
-                'expense' => 0,
-            ]);
-        }
-        
-        foreach ($expenses as $expense) {
-            $transactions->push([
-                'date' => $expense->expense_date,
-                'type' => 'Expense',
-                'description' => $expense->particulars,
-                'collection' => 0,
-                'expense' => $expense->amount,
-            ]);
-        }
-        
-        foreach ($applications as $application) {
-            $transactions->push([
-                'date' => $application->approved_date,
-                'type' => 'Application Payment',
-                'description' => 'Payment to ' . $application->name . ' (' . ucfirst($application->category) . ')',
-                'collection' => 0,
-                'expense' => $application->approved_amount,
-            ]);
-        }
-        
-        $transactions = $transactions->sortBy('date');
-        
-        // Calculate cumulative balance
-        $balance = 0;
-        $transactions = $transactions->map(function ($transaction) use (&$balance) {
-            $balance += $transaction['collection'] - $transaction['expense'];
-            $transaction['balance'] = $balance;
-            return $transaction;
-        });
-        
-        $reportType = ucfirst($type) . ' Mekhala';
-        if ($type === 'combined') {
-            $reportType = 'Combined';
-        }
-        
-        $mekhalaName = $type !== 'combined' ? ucfirst($type) . ' Mekhala' : null;
-        
-        // Group transactions by area
-        $transactionsByArea = collect();
-        
-        foreach ($collections as $collection) {
-            $areaName = $collection->unit->area->name ?? 'Unknown Area';
-            $transactionsByArea->push([
-                'area' => $areaName,
-                'date' => $collection->collection_date,
-                'type' => 'Collection',
-                'description' => 'Collection from ' . ($collection->unit->name ?? 'N/A'),
-                'collection' => $collection->amount,
-                'expense' => 0,
-            ]);
-        }
-        
-        foreach ($expenses as $expense) {
-            $areaName = $expense->enteredBy->area->name ?? 'General';
-            $transactionsByArea->push([
-                'area' => $areaName,
-                'date' => $expense->expense_date,
-                'type' => 'Expense',
-                'description' => $expense->particulars,
-                'collection' => 0,
-                'expense' => $expense->amount,
-            ]);
-        }
-        
-        foreach ($applications as $application) {
-            $areaName = $application->area->name ?? 'Unknown Area';
-            $transactionsByArea->push([
-                'area' => $areaName,
-                'date' => $application->approved_date,
-                'type' => 'Application Payment',
-                'description' => 'Payment to ' . $application->name . ' (' . ucfirst($application->category) . ')',
-                'collection' => 0,
-                'expense' => $application->approved_amount,
-            ]);
-        }
-        
-        // Group by area and sort within each area by date
-        $groupedTransactions = $transactionsByArea->groupBy('area')->map(function($areaTransactions) {
-            return $areaTransactions->sortBy('date');
-        });
-        
-        // Calculate area totals
-        $areaSummary = $groupedTransactions->map(function($areaTransactions, $areaName) {
-            $totalCollections = $areaTransactions->sum('collection');
-            $totalExpenses = $areaTransactions->sum('expense');
-            return [
-                'area' => $areaName,
-                'collections' => $totalCollections,
-                'expenses' => $totalExpenses,
-                'balance' => $totalCollections - $totalExpenses
-            ];
-        });
-        
-        return view('reports.financial-statement', compact(
-            'yearlyCollections', 'monthlyCollections', 'yearlyExpenses', 'monthlyExpenses',
-            'yearlyApplications', 'monthlyApplications', 'yearlyInvestments', 'monthlyInvestments',
-            'yearlyIncome', 'monthlyIncome', 'yearlyReturned', 'monthlyReturned', 'transactions', 'reportType', 'mekhalaName',
-            'areaSummary', 'groupedTransactions', 'currentYear', 'currentMonth', 'openingBalance'
-        ));
-    }
-
     public function collectionMekhalaDrillDown(Request $request)
     {
         $mekhalaId = $request->get('mekhala_id');
@@ -1172,89 +462,12 @@ class ReportController extends Controller
         return view('reports.comparison', compact('data', 'year'));
     }
 
-    public function centerFinancialStatement(Request $request)
-    {
-        $currentYear = date('Y');
-        $currentMonth = date('m');
-        
-        // Center Collections (only center_received collections)
-        $yearlyCollections = Collection::where('collection_status', 'center_received')
-            ->whereYear('collection_date', $currentYear)
-            ->sum('amount');
-            
-        $monthlyCollections = Collection::where('collection_status', 'center_received')
-            ->whereMonth('collection_date', $currentMonth)
-            ->whereYear('collection_date', $currentYear)
-            ->sum('amount');
-        
-        // Center Expenses (only expenses entered by center users)
-        $yearlyExpenses = Expense::whereHas('enteredBy', function($q) {
-            $q->where('user_type', 'center');
-        })->whereYear('expense_date', $currentYear)->sum('amount');
-        
-        $monthlyExpenses = Expense::whereHas('enteredBy', function($q) {
-            $q->where('user_type', 'center');
-        })->whereMonth('expense_date', $currentMonth)
-          ->whereYear('expense_date', $currentYear)
-          ->sum('amount');
-        
-        // Center Investments (only investments made by center users)
-        $yearlyInvestments = Investment::whereHas('creator', function($q) {
-            $q->where('user_type', 'center');
-        })->whereYear('investment_date', $currentYear)->sum('amount');
-        
-        $monthlyInvestments = Investment::whereHas('creator', function($q) {
-            $q->where('user_type', 'center');
-        })->whereMonth('investment_date', $currentMonth)
-          ->whereYear('investment_date', $currentYear)
-          ->sum('amount');
-        
-        $yearlyIncome = Investment::whereHas('creator', function($q) {
-            $q->where('user_type', 'center');
-        })->whereYear('investment_date', $currentYear)->sum('income_generated');
-        
-        $monthlyIncome = Investment::whereHas('creator', function($q) {
-            $q->where('user_type', 'center');
-        })->whereMonth('investment_date', $currentMonth)
-          ->whereYear('investment_date', $currentYear)
-          ->sum('income_generated');
-        
-        $yearlyReturned = Investment::whereHas('creator', function($q) {
-            $q->where('user_type', 'center');
-        })->whereYear('investment_date', $currentYear)->sum('returned_amount');
-        
-        $monthlyReturned = Investment::whereHas('creator', function($q) {
-            $q->where('user_type', 'center');
-        })->whereMonth('investment_date', $currentMonth)
-          ->whereYear('investment_date', $currentYear)
-          ->sum('returned_amount');
-        
-        // No applications for center
-        $yearlyApplications = 0;
-        $monthlyApplications = 0;
-        
-        $reportType = 'Center';
-        $mekhalaName = 'Center';
-        
-        // Empty collections for area summary since center doesn't have areas
-        $areaSummary = collect();
-        $groupedTransactions = collect();
-        
-        return view('reports.financial-statement', compact(
-            'yearlyCollections', 'monthlyCollections', 'yearlyExpenses', 'monthlyExpenses',
-            'yearlyApplications', 'monthlyApplications', 'yearlyInvestments', 'monthlyInvestments',
-            'yearlyIncome', 'monthlyIncome', 'yearlyReturned', 'monthlyReturned', 'reportType', 'mekhalaName',
-            'areaSummary', 'groupedTransactions'
-        ));
-    }
-
     public function areaSummary(Request $request)
     {
         $dateFrom = $request->get('date_from', date('Y') . '-01-01');
         $dateTo = $request->get('date_to', date('Y') . '-12-31');
         $user = auth()->user();
         
-        // Filter collections for area summary
         $filteredCollections = Collection::received()
             ->with('unit.area')
             ->whereBetween('collection_date', [$dateFrom, $dateTo]);
@@ -1267,7 +480,6 @@ class ReportController extends Controller
         
         $filteredCollections = $filteredCollections->get();
         
-        // Get expenses and applications for detailed transactions
         $expensesDetailQuery = Expense::whereBetween('expense_date', [$dateFrom, $dateTo])->orderBy('expense_date');
         if ($user->isMekhalaUser()) {
             $expensesDetailQuery->whereHas('enteredBy', function($q) use ($user) {
@@ -1286,7 +498,6 @@ class ReportController extends Controller
         }
         $applications = $applicationsDetailQuery->get();
         
-        // Group transactions by area
         $transactionsByArea = collect();
         
         foreach ($filteredCollections as $collection) {
@@ -1325,12 +536,10 @@ class ReportController extends Controller
             ]);
         }
         
-        // Group by area and sort within each area by date
         $groupedTransactions = $transactionsByArea->groupBy('area')->map(function($areaTransactions) {
             return $areaTransactions->sortBy('date');
         });
         
-        // Calculate area totals
         $areaSummary = $groupedTransactions->map(function($areaTransactions, $areaName) {
             $totalCollections = $areaTransactions->sum('collection');
             $totalExpenses = $areaTransactions->sum('expense');

@@ -8,7 +8,7 @@ class OpeningBalance extends Model
 {
     protected $table = 'opening_balance';
     
-    protected $fillable = ['amount', 'year', 'mekhala_id'];
+    protected $fillable = ['amount', 'year', 'month', 'mekhala_id'];
     
     public function mekhala()
     {

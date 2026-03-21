@@ -51,7 +51,7 @@
                             <th><select class="form-control form-control-sm" name="unit"><option value="">All Units</option>@foreach($allUnits as $unit)<option value="{{ $unit }}" {{ request('unit') == $unit ? 'selected' : '' }}>{{ $unit }}</option>@endforeach</select></th>
                             <th><select class="form-control form-control-sm" name="type"><option value="">All Types</option>@foreach($allTypes as $type)<option value="{{ $type }}" {{ request('type') == $type ? 'selected' : '' }}>{{ $type }}</option>@endforeach</select></th>
                             <th><select class="form-control form-control-sm" name="term"><option value="">All Terms</option>@foreach($allTerms as $term)<option value="{{ $term }}" {{ request('term') == $term ? 'selected' : '' }}>{{ $term }}</option>@endforeach</select></th>
-                            <th><select class="form-control form-control-sm" name="status"><option value="">All Status</option><option value="pending" {{ request('status') == 'pending' ? 'selected' : '' }}>Pending</option><option value="received" {{ request('status') == 'received' ? 'selected' : '' }}>Received</option><option value="center_received" {{ request('status') == 'center_received' ? 'selected' : '' }}>Center Received</option></select></th>
+                            <th><select class="form-control form-control-sm" name="status"><option value="">All Status</option><option value="payable" {{ request('status') == 'payable' ? 'selected' : '' }}>Payable</option><option value="received" {{ request('status') == 'received' ? 'selected' : '' }}>Received</option><option value="forwarded" {{ request('status') == 'forwarded' ? 'selected' : '' }}>Forwarded</option><option value="center_received" {{ request('status') == 'center_received' ? 'selected' : '' }}>Center Received</option></select></th>
                             <th><select class="form-control form-control-sm" name="user"><option value="">All Users</option>@foreach($allUsers as $user)<option value="{{ $user }}" {{ request('user') == $user ? 'selected' : '' }}>{{ $user }}</option>@endforeach</select></th>
                             <th></th>
                         </tr>
@@ -68,7 +68,9 @@
                             <td><span class="badge bg-{{ $collection->collection_status === 'pending' ? 'warning' : ($collection->collection_status === 'received' ? 'info' : 'success') }}">{{ ucfirst($collection->collection_status ?? 'pending') }}</span></td>
                             <td>{{ $collection->enteredBy->name ?? 'N/A' }}</td>
                             <td>
-                                <a href="{{ route('collections.edit', $collection->id) }}" class="btn btn-sm btn-warning">Edit</a>
+                                @if($collection->collection_status === 'payable')
+                                    <a href="{{ route('collections.edit', $collection->id) }}" class="btn btn-sm btn-warning">Edit</a>
+                                @endif
                                 @if(auth()->user()->isAdmin())
                                     <form method="POST" action="{{ route('collections.destroy', $collection) }}" class="d-inline">
                                         @csrf

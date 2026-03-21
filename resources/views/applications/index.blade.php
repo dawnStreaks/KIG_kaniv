@@ -50,7 +50,7 @@
                                 <th><select class="form-control form-control-sm" name="unit_id"><option value="">All Units</option>@foreach($units as $unit)<option value="{{ $unit->id }}" {{ request('unit_id') == $unit->id ? 'selected' : '' }}>{{ $unit->name }}</option>@endforeach</select></th>
                                 <th><select class="form-control form-control-sm" name="status"><option value="">All Status</option><option value="pending" {{ request('status') == 'pending' ? 'selected' : '' }}>Pending</option><option value="payable" {{ request('status') == 'payable' ? 'selected' : '' }}>Payable</option><option value="paid" {{ request('status') == 'paid' ? 'selected' : '' }}>Paid</option><option value="rejected" {{ request('status') == 'rejected' ? 'selected' : '' }}>Rejected</option></select></th>
                                 <th><input type="text" class="form-control form-control-sm" name="amount" placeholder="Filter Amount" value="{{ request('amount') }}"></th>
-                                <th><input type="text" class="form-control form-control-sm" name="submitter" placeholder="Filter Submitter" value="{{ request('submitter') }}"></th>
+                                <th><select class="form-control form-control-sm" name="submitter"><option value="">All Submitters</option>@foreach($submitters as $submitter)<option value="{{ $submitter->name }}" {{ request('submitter') == $submitter->name ? 'selected' : '' }}>{{ $submitter->name }}</option>@endforeach</select></th>
                                 <th></th>
                             </tr>
                         </thead>
@@ -86,7 +86,7 @@
                                     <td>{{ $application->submitter->name }}</td>
                                     <td>
                                         <a href="{{ route('applications.show', $application) }}" class="btn btn-sm btn-outline-primary">View</a>
-                                        @if($application->submitted_by == auth()->id() && $application->status == 'pending')
+                                        @if($application->status == 'pending' && ($application->submitted_by == auth()->id() || auth()->user()->isMekhalaUser()))
                                             <a href="{{ route('applications.edit', $application) }}" class="btn btn-sm btn-outline-secondary">Edit</a>
                                         @endif
                                         @if($application->status == 'pending' && auth()->user()->canApproveApplications())

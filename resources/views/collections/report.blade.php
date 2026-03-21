@@ -26,7 +26,7 @@
                         <div class="col-md-2">
                             <select name="term" class="form-select">
                                 <option value="">All Terms</option>
-                                @foreach(['monthly', 'quarterly', 'yearly'] as $term)
+                                @foreach($terms as $term)
                                     <option value="{{ $term }}" {{ request('term') == $term ? 'selected' : '' }}>{{ ucfirst($term) }}</option>
                                 @endforeach
                             </select>
@@ -34,7 +34,7 @@
                         <div class="col-md-2">
                             <select name="type" class="form-select">
                                 <option value="">All Types</option>
-                                @foreach(['membership', 'donation', 'subscription'] as $type)
+                                @foreach($types as $type)
                                     <option value="{{ $type }}" {{ request('type') == $type ? 'selected' : '' }}>{{ ucfirst($type) }}</option>
                                 @endforeach
                             </select>

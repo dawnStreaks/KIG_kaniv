@@ -92,7 +92,18 @@ class ApplicationController extends Controller
             $units = \App\Models\Unit::with('area')->get();
         }
         
-        return view('applications.index', compact('applications', 'applicationTypes', 'areas', 'units'));
+        // Get submitters for dropdown
+        $submitters = \App\Models\User::whereHas('applications', function($q) {
+            if (auth()->user()->isAreaUser()) {
+                $q->where('submitted_by', auth()->id());
+            } elseif (auth()->user()->isMekhalaUser()) {
+                $q->whereHas('submitter', function($subQ) {
+                    $subQ->where('mekhala_id', auth()->user()->mekhala_id);
+                });
+            }
+        })->orderBy('name')->get();
+        
+        return view('applications.index', compact('applications', 'applicationTypes', 'areas', 'units', 'submitters'));
     }
 
     public function create()
@@ -142,6 +153,9 @@ class ApplicationController extends Controller
 
     public function edit(Application $application)
     {
+        if ($application->status !== 'pending') {
+            abort(403, 'Only pending applications can be edited');
+        }
         if ($application->submitted_by !== auth()->id() && !auth()->user()->isMekhalaUser()) {
             abort(403);
         }
@@ -153,6 +167,9 @@ class ApplicationController extends Controller
 
     public function update(Request $request, Application $application)
     {
+        if ($application->status !== 'pending') {
+            abort(403, 'Only pending applications can be edited');
+        }
         if ($application->submitted_by !== auth()->id() && !auth()->user()->isMekhalaUser()) {
             abort(403);
         }

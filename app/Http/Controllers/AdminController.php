@@ -404,8 +404,8 @@ class AdminController extends Controller
     
     public function openingBalance()
     {
-        $eastBalances = OpeningBalance::where('mekhala_id', 1)->orderBy('year', 'desc')->get();
-        $westBalances = OpeningBalance::where('mekhala_id', 2)->orderBy('year', 'desc')->get();
+        $eastBalances = OpeningBalance::where('mekhala_id', 1)->orderBy('year', 'desc')->orderBy('month', 'desc')->get();
+        $westBalances = OpeningBalance::where('mekhala_id', 2)->orderBy('year', 'desc')->orderBy('month', 'desc')->get();
         return view('admin.opening-balance', compact('eastBalances', 'westBalances'));
     }
     
@@ -413,12 +413,13 @@ class AdminController extends Controller
     {
         $request->validate([
             'year' => 'required|integer',
+            'month' => 'required|integer|min:1|max:12',
             'mekhala_id' => 'required|exists:mekhalas,id',
             'amount' => 'required|numeric'
         ]);
         
         OpeningBalance::updateOrCreate(
-            ['year' => $request->year, 'mekhala_id' => $request->mekhala_id],
+            ['year' => $request->year, 'month' => $request->month, 'mekhala_id' => $request->mekhala_id],
             ['amount' => $request->amount]
         );
         

@@ -192,6 +192,10 @@ class CollectionController extends Controller
 
     public function edit(Collection $collection)
     {
+        if ($collection->collection_status !== 'payable') {
+            abort(403, 'Only payable collections can be edited');
+        }
+        
         if (auth()->user()->isAreaUser()) {
             $units = Unit::where('area_id', auth()->user()->area_id)->active()->get();
         } elseif (auth()->user()->isMekhalaUser()) {
@@ -208,6 +212,10 @@ class CollectionController extends Controller
 
     public function update(Request $request, Collection $collection)
     {
+        if ($collection->collection_status !== 'payable') {
+            abort(403, 'Only payable collections can be edited');
+        }
+        
         $validated = $request->validate([
             'unit_id' => 'required|exists:units,id',
             'amount' => 'required|numeric|min:0',
@@ -293,7 +301,10 @@ class CollectionController extends Controller
                 ->get();
         }
         
-        return view('collections.report', compact('year', 'user', 'data', 'dateFrom', 'dateTo'));
+        $terms = CollectionTerm::active()->pluck('name');
+        $types = CollectionType::active()->pluck('name');
+        
+        return view('collections.report', compact('year', 'user', 'data', 'dateFrom', 'dateTo', 'terms', 'types'));
     }
 
     public function collectionReportDrillDown(Request $request)
