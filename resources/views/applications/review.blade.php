@@ -93,7 +93,7 @@
                         <div class="modal-body">
                             <div class="mb-3">
                                 <label for="approved_amount{{ $application->id }}" class="form-label">Approved Amount (KWD)</label>
-                                <input type="number" step="0.01" class="form-control" id="approved_amount{{ $application->id }}" name="approved_amount" required>
+                                <input type="number" step="0.001" class="form-control" id="approved_amount{{ $application->id }}" name="approved_amount" required>
                             </div>
                             <div class="mb-3">
                                 <label for="approved_date{{ $application->id }}" class="form-label">Approved Date</label>

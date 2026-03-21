@@ -302,7 +302,24 @@
                                     }
                                 }
                             }
-                        }
+                        },
+                        plugins: [{
+                            afterDraw: function(chart) {
+                                const ctx = chart.ctx;
+                                chart.data.datasets.forEach((dataset, i) => {
+                                    const meta = chart.getDatasetMeta(i);
+                                    meta.data.forEach((bar, index) => {
+                                        const data = dataset.data[index];
+                                        if (data > 0) {
+                                            ctx.fillStyle = '#000';
+                                            ctx.font = 'bold 12px Arial';
+                                            ctx.textAlign = 'center';
+                                            ctx.fillText('KWD ' + data.toLocaleString(), bar.x, bar.y - 5);
+                                        }
+                                    });
+                                });
+                            }
+                        }]
                     });
                     
                     document.getElementById('drillDownSection').style.display = 'block';

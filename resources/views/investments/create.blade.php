@@ -26,7 +26,7 @@
 
                         <div class="mb-3">
                             <label for="amount" class="form-label">Investment Amount (KWD)</label>
-                            <input type="number" step="0.01" class="form-control @error('amount') is-invalid @enderror" 
+                            <input type="number" step="0.001" class="form-control @error('amount') is-invalid @enderror" 
                                    id="amount" name="amount" value="{{ old('amount') }}" required>
                             @error('amount')
                                 <div class="invalid-feedback">{{ $message }}</div>

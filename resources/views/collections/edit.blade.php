@@ -31,7 +31,7 @@
 
                 <div class="mb-3">
                     <label for="amount" class="form-label">Amount (KWD)</label>
-                    <input type="number" step="0.01" class="form-control @error('amount') is-invalid @enderror" 
+                    <input type="number" step="0.001" class="form-control @error('amount') is-invalid @enderror" 
                            id="amount" name="amount" value="{{ old('amount', $collection->amount) }}" required>
                     @error('amount')
                         <div class="invalid-feedback">{{ $message }}</div>
@@ -41,7 +41,7 @@
                 <div class="mb-3">
                     <label for="collection_date" class="form-label">Collection Date</label>
                     <input type="date" class="form-control @error('collection_date') is-invalid @enderror" 
-                           id="collection_date" name="collection_date" value="{{ old('collection_date', $collection->collection_date) }}" required>
+                           id="collection_date" name="collection_date" value="{{ old('collection_date', \Carbon\Carbon::parse($collection->collection_date)->format('Y-m-d')) }}" required>
                     @error('collection_date')
                         <div class="invalid-feedback">{{ $message }}</div>
                     @enderror

@@ -156,7 +156,7 @@ class ApplicationController extends Controller
         if ($application->status !== 'pending') {
             abort(403, 'Only pending applications can be edited');
         }
-        if ($application->submitted_by !== auth()->id() && !auth()->user()->isMekhalaUser()) {
+        if (auth()->user()->isAreaUser() && $application->submitted_by !== auth()->id()) {
             abort(403);
         }
         $applicationTypes = \App\Models\ApplicationType::active()->get();
@@ -170,7 +170,7 @@ class ApplicationController extends Controller
         if ($application->status !== 'pending') {
             abort(403, 'Only pending applications can be edited');
         }
-        if ($application->submitted_by !== auth()->id() && !auth()->user()->isMekhalaUser()) {
+        if (auth()->user()->isAreaUser() && $application->submitted_by !== auth()->id()) {
             abort(403);
         }
 

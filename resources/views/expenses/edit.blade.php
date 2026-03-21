@@ -24,7 +24,7 @@
                             @method('PUT')
                             <div class="mb-3">
                                 <label for="amount" class="form-label">Amount</label>
-                                <input type="number" step="0.01" class="form-control" id="amount" name="amount" value="{{ old('amount', $expense->amount) }}" required>
+                                <input type="number" step="0.001" class="form-control" id="amount" name="amount" value="{{ old('amount', $expense->amount) }}" required>
                             </div>
                             <div class="mb-3">
                                 <label for="particulars" class="form-label">Particulars</label>

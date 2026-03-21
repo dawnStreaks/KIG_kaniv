@@ -266,12 +266,12 @@ class CollectionController extends Controller
             
         // Apply term filter
         if ($request->filled('term')) {
-            $query->where('term', $request->term);
+            $query->where('collections.term', $request->term);
         }
         
         // Apply type filter
         if ($request->filled('type')) {
-            $query->where('type', $request->type);
+            $query->where('collections.type', $request->type);
         }
         
         if ($user->isAreaUser()) {
@@ -322,12 +322,12 @@ class CollectionController extends Controller
             
         // Apply term filter
         if ($request->filled('term')) {
-            $query->where('term', $request->term);
+            $query->where('collections.term', $request->term);
         }
         
         // Apply type filter
         if ($request->filled('type')) {
-            $query->where('type', $request->type);
+            $query->where('collections.type', $request->type);
         }
             
         // Restrict mekhala users to their own mekhala areas only

@@ -71,7 +71,7 @@
                     <div class="modal-body">
                         <div class="mb-3">
                             <label for="income" class="form-label">Income Amount (KWD)</label>
-                            <input type="number" step="0.01" class="form-control" id="income" name="income" required>
+                            <input type="number" step="0.001" class="form-control" id="income" name="income" required>
                         </div>
                     </div>
                     <div class="modal-footer">
@@ -96,7 +96,7 @@
                     <div class="modal-body">
                         <div class="mb-3">
                             <label for="returned_amount" class="form-label">Returned Amount (KWD)</label>
-                            <input type="number" step="0.01" class="form-control" id="returned_amount" name="returned_amount" required>
+                            <input type="number" step="0.001" class="form-control" id="returned_amount" name="returned_amount" required>
                         </div>
                     </div>
                     <div class="modal-footer">
