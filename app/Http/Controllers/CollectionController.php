@@ -256,13 +256,16 @@ class CollectionController extends Controller
 
     public function collectionReport(Request $request)
     {
-        $year = $request->get('year', date('Y'));
-        $dateFrom = $request->get('date_from', $year . '-01-01');
-        $dateTo = $request->get('date_to', $year . '-12-31');
         $user = auth()->user();
         
-        $query = Collection::with(['unit.area'])
-            ->whereBetween('collection_date', [$dateFrom, $dateTo]);
+        $query = Collection::with(['unit.area']);
+        
+        if ($request->filled('date_from')) {
+            $query->where('collection_date', '>=', $request->date_from);
+        }
+        if ($request->filled('date_to')) {
+            $query->where('collection_date', '<=', $request->date_to);
+        }
             
         // Apply term filter
         if ($request->filled('term')) {
@@ -304,7 +307,7 @@ class CollectionController extends Controller
         $terms = CollectionTerm::active()->pluck('name');
         $types = CollectionType::active()->pluck('name');
         
-        return view('collections.report', compact('year', 'user', 'data', 'dateFrom', 'dateTo', 'terms', 'types'));
+        return view('collections.report', compact('user', 'data', 'terms', 'types'));
     }
 
     public function collectionReportDrillDown(Request $request)

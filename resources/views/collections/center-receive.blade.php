@@ -74,8 +74,8 @@
                                         @endforeach
                                     </select>
                                 </th>
-                                <th><select class="form-control form-control-sm" name="type"><option value="">All Types</option>@foreach($types as $type)<option value="{{ $type }}" {{ request('type') == $type ? 'selected' : '' }}>{{ $type }}</option>@endforeach</select></th>
-                                <th><select class="form-control form-control-sm" name="term"><option value="">All Terms</option>@foreach($terms as $term)<option value="{{ $term }}" {{ request('term') == $term ? 'selected' : '' }}>{{ $term }}</option>@endforeach</select></th>
+                                <th><select class="form-control form-control-sm" name="type" id="filter-type"><option value="">All Types</option>@foreach($types as $type)<option value="{{ $type }}" {{ request('type') == $type ? 'selected' : '' }}>{{ $type }}</option>@endforeach</select></th>
+                                <th><select class="form-control form-control-sm" name="term" id="filter-term"><option value="">All Terms</option>@foreach($terms as $term)<option value="{{ $term }}" {{ request('term') == $term ? 'selected' : '' }}>{{ $term }}</option>@endforeach</select></th>
                                 <th>
                                     <select class="form-control form-control-sm" name="user">
                                         <option value="">All Users</option>
@@ -143,12 +143,15 @@
         </div>
     </div>
 
+    <script src="{{ asset('js/term-type-filter.js') }}"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
+            initTermTypeFilter('filter-type', 'filter-term', '{{ route("api.terms-by-type") }}', '{{ request("term") }}', 'filterForm');
             const form = document.getElementById('filterForm');
             const inputs = form.querySelectorAll('input, select');
             
             inputs.forEach(input => {
+                if (input.id === 'filter-type') return;
                 input.addEventListener('change', function() {
                     form.submit();
                 });

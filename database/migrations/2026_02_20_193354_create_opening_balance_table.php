@@ -15,10 +15,11 @@ return new class extends Migration
             $table->id();
             $table->decimal('amount', 15, 3)->default(0);
             $table->integer('year');
+            $table->integer('month')->default(1);
             $table->unsignedBigInteger('mekhala_id')->nullable();
             $table->timestamps();
             
-            $table->unique(['year', 'mekhala_id']);
+            $table->unique(['year', 'month', 'mekhala_id']);
         });
     }
 

@@ -124,6 +124,7 @@
                         <a class="nav-link" href="{{ route('admin.terms.index') }}">Collection Terms</a>
                         <a class="nav-link" href="{{ route('admin.types.index') }}">Collection Types</a>
                         <a class="nav-link" href="{{ route('admin.application-types.index') }}">Application Terms</a>
+                        <a class="nav-link" href="{{ route('admin.expense-types.index') }}">Expense Types</a>
                         <a class="nav-link" href="{{ route('admin.opening-balance') }}">Opening Balance</a>
                         
                         <div class="px-3 py-2">

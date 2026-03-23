@@ -91,6 +91,28 @@ class ReportController extends Controller
 
         $openingBalance = $obCollectionsTotal + $obIncomeTotal - $obExpensesTotal - $obApplicationsTotal - ($obInvestmentsTotal - $obReturnedTotal);
 
+        // Add manual opening balance (one-time entry - pick the latest one before dateFrom)
+        $manualObQuery = \App\Models\OpeningBalance::query();
+        if (is_array($scopeFilter)) {
+            $manualObQuery->whereIn('mekhala_id', $scopeFilter);
+        } elseif ($scopeFilter === 'mekhala') {
+            $manualObQuery->where('mekhala_id', auth()->user()->mekhala_id);
+        } elseif ($scopeFilter === 'center') {
+            $manualObQuery->where('mekhala_id', 0);
+        }
+        $manualObQuery->where(function($q) use ($dateFrom) {
+            $fromYear = (int) date('Y', strtotime($dateFrom));
+            $fromMonth = (int) date('m', strtotime($dateFrom));
+            $q->where('year', '<', $fromYear)
+              ->orWhere(function($q2) use ($fromYear, $fromMonth) {
+                  $q2->where('year', $fromYear)->where('month', '<=', $fromMonth);
+              });
+        });
+        $manualOb = $manualObQuery->orderBy('year', 'desc')->orderBy('month', 'desc')->first();
+        if ($manualOb) {
+            $openingBalance += $manualOb->amount;
+        }
+
         // Period totals (between dateFrom and dateTo)
         $collectionsQ = Collection::where('collection_status', $scopeFilter === 'center' ? 'center_received' : 'received')
             ->whereBetween('collection_date', [$dateFrom, $dateTo]);
@@ -199,22 +221,15 @@ class ReportController extends Controller
 
     public function collectionReport(Request $request)
     {
-        $currentYear = $request->get('year', date('Y'));
-        $currentMonth = $request->get('month', date('m'));
         $user = auth()->user();
         
         $query = Collection::with(['unit.area.mekhala', 'enteredBy']);
         
-        if ($request->filled('date_from') || $request->filled('date_to')) {
-            if ($request->filled('date_from')) {
-                $query->where('collection_date', '>=', $request->date_from);
-            }
-            if ($request->filled('date_to')) {
-                $query->where('collection_date', '<=', $request->date_to);
-            }
-        } else {
-            $query->whereYear('collection_date', $currentYear)
-                  ->whereMonth('collection_date', $currentMonth);
+        if ($request->filled('date_from')) {
+            $query->where('collection_date', '>=', $request->date_from);
+        }
+        if ($request->filled('date_to')) {
+            $query->where('collection_date', '<=', $request->date_to);
         }
         
         if ($user->isMekhalaUser()) {
@@ -288,7 +303,7 @@ class ReportController extends Controller
                 })->toArray();
         }
         
-        return view('reports.collection', compact('collections', 'totalAmount', 'mekhalaData', 'collectionsByArea', 'areas', 'terms', 'types', 'currentYear', 'currentMonth'));
+        return view('reports.collection', compact('collections', 'totalAmount', 'mekhalaData', 'collectionsByArea', 'areas', 'terms', 'types'));
     }
 
     public function applicationPaymentReport(Request $request)
@@ -468,8 +483,7 @@ class ReportController extends Controller
         $dateTo = $request->get('date_to', date('Y') . '-12-31');
         $user = auth()->user();
         
-        $filteredCollections = Collection::received()
-            ->with('unit.area')
+        $filteredCollections = Collection::with('unit.area')
             ->whereBetween('collection_date', [$dateFrom, $dateTo]);
             
         if ($user->isMekhalaUser()) {
@@ -479,6 +493,11 @@ class ReportController extends Controller
         }
         
         $filteredCollections = $filteredCollections->get();
+        
+        // Received by mekhala collections per area
+        $receivedByArea = $filteredCollections->where('collection_status', 'received')
+            ->groupBy(fn($c) => $c->unit->area->name ?? 'Unknown Area')
+            ->map(fn($items) => $items->sum('amount'));
         
         $expensesDetailQuery = Expense::whereBetween('expense_date', [$dateFrom, $dateTo])->orderBy('expense_date');
         if ($user->isMekhalaUser()) {
@@ -509,6 +528,9 @@ class ReportController extends Controller
                 'description' => 'Collection from ' . ($collection->unit->name ?? 'N/A'),
                 'collection' => $collection->amount,
                 'expense' => 0,
+                'term' => $collection->term,
+                'collection_type' => $collection->type,
+                'status' => $collection->collection_status,
             ]);
         }
         
@@ -521,6 +543,9 @@ class ReportController extends Controller
                 'description' => $expense->particulars,
                 'collection' => 0,
                 'expense' => $expense->amount,
+                'term' => '-',
+                'collection_type' => $expense->type ?? '-',
+                'status' => '-',
             ]);
         }
         
@@ -533,6 +558,9 @@ class ReportController extends Controller
                 'description' => 'Payment to ' . $application->name . ' (' . ucfirst($application->category) . ')',
                 'collection' => 0,
                 'expense' => $application->approved_amount,
+                'term' => '-',
+                'collection_type' => '-',
+                'status' => $application->status,
             ]);
         }
         
@@ -540,13 +568,19 @@ class ReportController extends Controller
             return $areaTransactions->sortBy('date');
         });
         
-        $areaSummary = $groupedTransactions->map(function($areaTransactions, $areaName) {
+        // Paid applications per area
+        $paidByArea = $applications->groupBy(fn($a) => $a->area->name ?? 'Unknown Area')
+            ->map(fn($items) => $items->sum('approved_amount'));
+        
+        $areaSummary = $groupedTransactions->map(function($areaTransactions, $areaName) use ($receivedByArea, $paidByArea) {
             $totalCollections = $areaTransactions->sum('collection');
             $totalExpenses = $areaTransactions->sum('expense');
             return [
                 'area' => $areaName,
                 'collections' => $totalCollections,
+                'received' => $receivedByArea->get($areaName, 0),
                 'expenses' => $totalExpenses,
+                'paid' => $paidByArea->get($areaName, 0),
                 'balance' => $totalCollections - $totalExpenses
             ];
         });

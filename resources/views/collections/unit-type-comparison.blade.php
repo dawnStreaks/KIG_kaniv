@@ -12,16 +12,16 @@
                         <option value="{{ $i }}" {{ $year == $i ? 'selected' : '' }}>{{ $i }}</option>
                     @endfor
                 </select>
-                <select name="term" class="form-select">
-                    <option value="">All Terms</option>
-                    @foreach($terms as $termOption)
-                        <option value="{{ $termOption }}" {{ $term == $termOption ? 'selected' : '' }}>{{ $termOption }}</option>
-                    @endforeach
-                </select>
-                <select name="type" class="form-select">
+                <select name="type" id="filter-type" class="form-select">
                     <option value="">All Types</option>
                     @foreach($types as $typeOption)
                         <option value="{{ $typeOption }}" {{ $type == $typeOption ? 'selected' : '' }}>{{ $typeOption }}</option>
+                    @endforeach
+                </select>
+                <select name="term" id="filter-term" class="form-select">
+                    <option value="">All Terms</option>
+                    @foreach($terms as $termOption)
+                        <option value="{{ $termOption }}" {{ $term == $termOption ? 'selected' : '' }}>{{ $termOption }}</option>
                     @endforeach
                 </select>
                 <button type="submit" class="btn btn-primary">Filter</button>
@@ -109,6 +109,7 @@
         </div>
     </div>
 
+    <script src="{{ asset('js/term-type-filter.js') }}"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
         let chartInstance;
@@ -116,6 +117,7 @@
         const unitData = @json($data);
         
         document.addEventListener('DOMContentLoaded', function() {
+            initTermTypeFilter('filter-type', 'filter-term', '{{ route("api.terms-by-type") }}', '{{ $term ?? '' }}');
             const ctx = document.getElementById('comparisonChart').getContext('2d');
             const data = unitData;
             
@@ -168,7 +170,7 @@
                         if (elements.length > 0) {
                             const index = elements[0].index;
                             const unitType = validData[index].type;
-                            showDrillDown(unitType);
+                            showDrillDown(unitType, index);
                         }
                     },
                     plugins: {
@@ -203,9 +205,9 @@
                                 const data = dataset.data[index];
                                 if (data > 0) {
                                     ctx.fillStyle = '#000';
-                                    ctx.font = 'bold 12px Arial';
+                                    ctx.font = 'bold 11px Arial';
                                     ctx.textAlign = 'center';
-                                    ctx.fillText('KWD ' + data.toLocaleString(), bar.x, bar.y - 5);
+                                    ctx.fillText(data.toLocaleString(), bar.x, bar.y - 5);
                                 }
                             });
                         });
@@ -214,7 +216,12 @@
             });
         });
         
-        function showDrillDown(unitType) {
+        const colorMap = {
+            bg: ['rgba(54, 162, 235, 0.8)', 'rgba(255, 99, 132, 0.8)', 'rgba(75, 192, 192, 0.8)', 'rgba(255, 206, 86, 0.8)'],
+            border: ['rgba(54, 162, 235, 1)', 'rgba(255, 99, 132, 1)', 'rgba(75, 192, 192, 1)', 'rgba(255, 206, 86, 1)']
+        };
+
+        function showDrillDown(unitType, colorIndex) {
             const term = '{{ $term ?? '' }}';
             const collectionType = '{{ $type ?? '' }}';
             
@@ -266,8 +273,8 @@
                             datasets: [{
                                 label: 'Collections (KWD)',
                                 data: validUnits.map(unit => parseFloat(unit.total_amount) || 0),
-                                backgroundColor: 'rgba(54, 162, 235, 0.8)',
-                                borderColor: 'rgba(54, 162, 235, 1)',
+                                backgroundColor: colorMap.bg[colorIndex % colorMap.bg.length],
+                                borderColor: colorMap.border[colorIndex % colorMap.border.length],
                                 borderWidth: 1
                             }]
                         },
@@ -312,9 +319,9 @@
                                         const data = dataset.data[index];
                                         if (data > 0) {
                                             ctx.fillStyle = '#000';
-                                            ctx.font = 'bold 12px Arial';
+                                            ctx.font = 'bold 11px Arial';
                                             ctx.textAlign = 'center';
-                                            ctx.fillText('KWD ' + data.toLocaleString(), bar.x, bar.y - 5);
+                                            ctx.fillText(data.toLocaleString(), bar.x, bar.y - 5);
                                         }
                                     });
                                 });

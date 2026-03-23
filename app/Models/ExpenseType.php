@@ -4,17 +4,12 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class CollectionType extends Model
+class ExpenseType extends Model
 {
     protected $fillable = ['name', 'is_active'];
-    
+
     protected $casts = ['is_active' => 'boolean'];
-    
-    public function terms()
-    {
-        return $this->hasMany(CollectionTerm::class);
-    }
-    
+
     public function scopeActive($query)
     {
         return $query->where('is_active', true);

@@ -5,7 +5,7 @@
 @section('content')
     <div>
         <div class="d-flex justify-content-between align-items-center mb-4">
-            <h2>Collection Report - {{ $currentYear ?? date('Y') }}/{{ $currentMonth ?? date('m') }}</h2>
+            <h2>Collection Report</h2>
             <button type="button" class="btn btn-secondary" onclick="clearFilters()">Clear Filters</button>
         </div>
         
@@ -13,7 +13,7 @@
             <div class="card-body">
                 <div class="row text-center">
                     <div class="col-md-4">
-                        <h5>Total Collections ({{ $currentYear ?? date('Y') }}/{{ $currentMonth ?? date('m') }})</h5>
+                        <h5>Total Collections</h5>
                         <h3 class="text-primary" id="yearlyTotal">KWD {{ number_format($totalAmount ?? $collections->sum('amount'), 3) }}</h3>
                     </div>
                     <div class="col-md-4">
@@ -35,21 +35,13 @@
             <div class="card-body">
                 <form method="GET" action="{{ route('reports.collection') }}">
                     <div class="row">
-                        <div class="col-md-1">
-                            <label for="year" class="form-label">Year</label>
-                            <select name="year" id="year" class="form-select">
-                                @for($i = date('Y'); $i >= 2020; $i--)
-                                    <option value="{{ $i }}" {{ ($currentYear ?? date('Y')) == $i ? 'selected' : '' }}>{{ $i }}</option>
-                                @endfor
-                            </select>
+                        <div class="col-md-2">
+                            <label for="date_from" class="form-label">Date From</label>
+                            <input type="date" name="date_from" id="date_from" class="form-control" value="{{ request('date_from') }}">
                         </div>
-                        <div class="col-md-1">
-                            <label for="month" class="form-label">Month</label>
-                            <select name="month" id="month" class="form-select">
-                                @for($i = 1; $i <= 12; $i++)
-                                    <option value="{{ sprintf('%02d', $i) }}" {{ ($currentMonth ?? date('m')) == sprintf('%02d', $i) ? 'selected' : '' }}>{{ date('M', mktime(0, 0, 0, $i, 1)) }}</option>
-                                @endfor
-                            </select>
+                        <div class="col-md-2">
+                            <label for="date_to" class="form-label">Date To</label>
+                            <input type="date" name="date_to" id="date_to" class="form-control" value="{{ request('date_to') }}">
                         </div>
                         <div class="col-md-2">
                             <label for="area_id" class="form-label">Area</label>
@@ -63,19 +55,8 @@
                             </select>
                         </div>
                         <div class="col-md-2">
-                            <label for="term" class="form-label">Term</label>
-                            <select name="term" id="term" class="form-select">
-                                <option value="">All Terms</option>
-                                @foreach($terms as $term)
-                                    <option value="{{ $term->name }}" {{ request('term') == $term->name ? 'selected' : '' }}>
-                                        {{ $term->name }}
-                                    </option>
-                                @endforeach
-                            </select>
-                        </div>
-                        <div class="col-md-2">
-                            <label for="type" class="form-label">Type</label>
-                            <select name="type" id="type" class="form-select">
+                            <label for="filter-type" class="form-label">Type</label>
+                            <select name="type" id="filter-type" class="form-select">
                                 <option value="">All Types</option>
                                 @foreach($types as $type)
                                     <option value="{{ $type->name }}" {{ request('type') == $type->name ? 'selected' : '' }}>
@@ -85,12 +66,15 @@
                             </select>
                         </div>
                         <div class="col-md-2">
-                            <label for="date_from" class="form-label">Date From</label>
-                            <input type="date" name="date_from" id="date_from" class="form-control" value="{{ request('date_from') }}">
-                        </div>
-                        <div class="col-md-2">
-                            <label for="date_to" class="form-label">Date To</label>
-                            <input type="date" name="date_to" id="date_to" class="form-control" value="{{ request('date_to') }}">
+                            <label for="filter-term" class="form-label">Term</label>
+                            <select name="term" id="filter-term" class="form-select">
+                                <option value="">All Terms</option>
+                                @foreach($terms as $term)
+                                    <option value="{{ $term->name }}" {{ request('term') == $term->name ? 'selected' : '' }}>
+                                        {{ $term->name }}
+                                    </option>
+                                @endforeach
+                            </select>
                         </div>
                         <div class="col-md-2 d-flex align-items-end">
                             <button type="submit" class="btn btn-primary me-2">Filter</button>
@@ -132,20 +116,21 @@
                         </thead>
                         <tbody>
                             @foreach($collectionsByArea as $index => $areaData)
+                            @php $loopId = $loop->index; @endphp
                             <tr>
                                 <td><strong>{{ $areaData['area'] }}</strong></td>
                                 <td colspan="2" class="text-center">All Terms & Types</td>
                                 <td class="text-end">KWD {{ number_format($areaData['total'], 3) }}</td>
                                 <td class="text-center">{{ $areaData['count'] }}</td>
                                 <td class="text-center">
-                                    <button class="btn btn-sm btn-outline-primary" type="button" data-bs-toggle="collapse" data-bs-target="#areaDetails{{ $index }}">
+                                    <button class="btn btn-sm btn-outline-primary" type="button" data-bs-toggle="collapse" data-bs-target="#areaDetails{{ $loopId }}">
                                         <i class="fas fa-eye"></i> View Details
                                     </button>
                                 </td>
                             </tr>
                             <tr>
                                 <td colspan="6" class="p-0">
-                                    <div class="collapse" id="areaDetails{{ $index }}">
+                                    <div class="collapse" id="areaDetails{{ $loopId }}">
                                         <div class="p-3 bg-light">
                                             <h6>{{ $areaData['area'] }} - Detailed Collections</h6>
                                             <div class="table-responsive">
@@ -246,9 +231,11 @@
         </div>
     </div>
 
+    <script src="{{ asset('js/term-type-filter.js') }}"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
+            initTermTypeFilter('filter-type', 'filter-term', '{{ route("api.terms-by-type") }}', '{{ request("term") }}');
             const filterInputs = document.querySelectorAll('.filter-input');
             const tableRows = document.querySelectorAll('tbody tr');
             

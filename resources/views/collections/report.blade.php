@@ -7,16 +7,13 @@
             <div class="card">
                 <div class="card-header">
                     <div class="d-flex justify-content-between align-items-center mb-3">
-                        <h3>Collection Report</h3>
+                        <h3>Collection Report
+                            @if(request('type') || request('term'))
+                                <small class="text-muted">— {{ request('type') }}{{ request('type') && request('term') ? ' / ' : '' }}{{ request('term') }}</small>
+                            @endif
+                        </h3>
                     </div>
                     <form method="GET" class="row g-2">
-                        <div class="col-md-2">
-                            <select name="year" class="form-select" onchange="this.form.submit()">
-                                @for($y = date('Y'); $y >= 2020; $y--)
-                                    <option value="{{ $y }}" {{ request('year', date('Y')) == $y ? 'selected' : '' }}>{{ $y }}</option>
-                                @endfor
-                            </select>
-                        </div>
                         <div class="col-md-2">
                             <input type="date" name="date_from" class="form-control" value="{{ request('date_from') }}" placeholder="From Date">
                         </div>
@@ -24,18 +21,18 @@
                             <input type="date" name="date_to" class="form-control" value="{{ request('date_to') }}" placeholder="To Date">
                         </div>
                         <div class="col-md-2">
-                            <select name="term" class="form-select">
-                                <option value="">All Terms</option>
-                                @foreach($terms as $term)
-                                    <option value="{{ $term }}" {{ request('term') == $term ? 'selected' : '' }}>{{ ucfirst($term) }}</option>
+                            <select name="type" id="filter-type" class="form-select">
+                                <option value="">All Types</option>
+                                @foreach($types as $type)
+                                    <option value="{{ $type }}" {{ request('type') == $type ? 'selected' : '' }}>{{ ucfirst($type) }}</option>
                                 @endforeach
                             </select>
                         </div>
                         <div class="col-md-2">
-                            <select name="type" class="form-select">
-                                <option value="">All Types</option>
-                                @foreach($types as $type)
-                                    <option value="{{ $type }}" {{ request('type') == $type ? 'selected' : '' }}>{{ ucfirst($type) }}</option>
+                            <select name="term" id="filter-term" class="form-select">
+                                <option value="">All Terms</option>
+                                @foreach($terms as $term)
+                                    <option value="{{ $term }}" {{ request('term') == $term ? 'selected' : '' }}>{{ ucfirst($term) }}</option>
                                 @endforeach
                             </select>
                         </div>
@@ -67,13 +64,16 @@
     </div>
 </div>
 
+<script src="{{ asset('js/term-type-filter.js') }}"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
 <script>
 Chart.register(ChartDataLabels);
 const chartData = @json($data);
 const userType = '{{ $user->user_type }}';
-const year = {{ $year }};
+const filterType = '{{ request('type') }}';
+const filterTerm = '{{ request('term') }}';
+const filterLabel = [filterType, filterTerm].filter(Boolean).join(' / ');
 
 let mainChart, drillDownChart;
 
@@ -91,7 +91,7 @@ function initMainChart() {
         data: {
             labels: labels,
             datasets: [{
-                label: 'Collection Amount (KWD)',
+                label: filterLabel ? filterLabel + ' (KWD)' : 'Collection Amount (KWD)',
                 data: amounts,
                 backgroundColor: 'rgba(54, 162, 235, 0.8)',
                 borderColor: 'rgba(54, 162, 235, 1)',
@@ -145,19 +145,22 @@ function initMainChart() {
 
 // Drill down function
 function drillDown(areaId, areaName) {
-    const dateFrom = '{{ request('date_from', $year . '-01-01') }}';
-    const dateTo = '{{ request('date_to', $year . '-12-31') }}';
+    const dateFrom = '{{ request('date_from') }}';
+    const dateTo = '{{ request('date_to') }}';
     const term = '{{ request('term') }}';
     const type = '{{ request('type') }}';
-    let url = '{{ url("/collections/report/drill-down") }}?area_id=' + areaId + '&date_from=' + dateFrom + '&date_to=' + dateTo;
+    let url = '{{ url("/collections/report/drill-down") }}?area_id=' + areaId;
+    if (dateFrom) url += '&date_from=' + dateFrom;
+    if (dateTo) url += '&date_to=' + dateTo;
     if (term) url += `&term=${term}`;
     if (type) url += `&type=${type}`;
     fetch(url)
         .then(response => response.json())
         .then(data => {
-            const dateFrom = '{{ request('date_from', $year . '-01-01') }}';
-            const dateTo = '{{ request('date_to', $year . '-12-31') }}';
-            document.getElementById('drillDownTitle').textContent = `Units in ${areaName} - ${dateFrom} to ${dateTo}`;
+            let title = `Units in ${areaName}`;
+            if (filterLabel) title += ` — ${filterLabel}`;
+            if (dateFrom || dateTo) title += ` (${dateFrom || '...'} to ${dateTo || '...'})`;
+            document.getElementById('drillDownTitle').textContent = title;
             document.getElementById('drillDownContainer').style.display = 'block';
             
             const ctx = document.getElementById('drillDownChart').getContext('2d');
@@ -171,7 +174,7 @@ function drillDown(areaId, areaName) {
                 data: {
                     labels: data.map(item => item.unit_name),
                     datasets: [{
-                        label: 'Collection Amount (KWD)',
+                        label: filterLabel ? filterLabel + ' (KWD)' : 'Collection Amount (KWD)',
                         data: data.map(item => parseFloat(item.total_amount)),
                         backgroundColor: 'rgba(255, 99, 132, 0.8)',
                         borderColor: 'rgba(255, 99, 132, 1)',
@@ -234,6 +237,7 @@ function clearFilters() {
 
 // Initialize chart on page load
 document.addEventListener('DOMContentLoaded', function() {
+    initTermTypeFilter('filter-type', 'filter-term', '{{ route("api.terms-by-type") }}', '{{ request("term") }}');
     initMainChart();
 });
 </script>

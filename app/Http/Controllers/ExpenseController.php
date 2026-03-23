@@ -40,7 +40,8 @@ class ExpenseController extends Controller
         }
         
         $expenses = $query->latest('expense_date')->paginate(10);
-        return view('expenses.index', compact('expenses'));
+        $expenseTypes = \App\Models\ExpenseType::active()->pluck('name')->toArray();
+        return view('expenses.index', compact('expenses', 'expenseTypes'));
     }
 
     public function create()
@@ -48,7 +49,7 @@ class ExpenseController extends Controller
         if (!auth()->user()->canAddExpenses()) {
             abort(403, 'Only treasurers can add expenses');
         }
-        $collectionTerms = \App\Models\CollectionTerm::active()->pluck('name')->toArray();
+        $expenseTypes = \App\Models\ExpenseType::active()->pluck('name')->toArray();
         
         // Get areas based on user type
         if (auth()->user()->isMekhalaUser()) {
@@ -57,7 +58,7 @@ class ExpenseController extends Controller
             $areas = \App\Models\Area::all();
         }
         
-        return view('expenses.create', compact('collectionTerms', 'areas'));
+        return view('expenses.create', compact('expenseTypes', 'areas'));
     }
 
     public function store(Request $request)
@@ -66,8 +67,7 @@ class ExpenseController extends Controller
             abort(403, 'Only treasurers can add expenses');
         }
 
-        $collectionTerms = \App\Models\CollectionTerm::active()->pluck('name')->toArray();
-        $allowedTypes = array_merge(['refreshment', 'miscellaneous'], $collectionTerms);
+        $allowedTypes = \App\Models\ExpenseType::active()->pluck('name')->toArray();
         
         $validated = $request->validate([
             'expense_date' => 'required|date',
@@ -97,7 +97,7 @@ class ExpenseController extends Controller
     public function edit(Expense $expense)
     {
         $applications = Application::approved()->get();
-        $collectionTerms = \App\Models\CollectionTerm::active()->pluck('name')->toArray();
+        $expenseTypes = \App\Models\ExpenseType::active()->pluck('name')->toArray();
         
         // Get areas based on user type
         if (auth()->user()->isMekhalaUser()) {
@@ -106,13 +106,12 @@ class ExpenseController extends Controller
             $areas = \App\Models\Area::all();
         }
         
-        return view('expenses.edit', compact('expense', 'applications', 'collectionTerms', 'areas'));
+        return view('expenses.edit', compact('expense', 'applications', 'expenseTypes', 'areas'));
     }
 
     public function update(Request $request, Expense $expense)
     {
-        $collectionTerms = \App\Models\CollectionTerm::active()->pluck('name')->toArray();
-        $allowedTypes = array_merge(['refreshment', 'miscellaneous'], $collectionTerms);
+        $allowedTypes = \App\Models\ExpenseType::active()->pluck('name')->toArray();
         
         $validated = $request->validate([
             'expense_date' => 'required|date',

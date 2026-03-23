@@ -75,6 +75,13 @@ Route::middleware('auth')->group(function () {
         Route::delete('/application-types/{id}', [AdminController::class, 'destroyApplicationType'])->name('application-types.destroy');
         Route::post('/application-types/{id}/toggle-status', [AdminController::class, 'toggleApplicationTypeStatus'])->name('application-types.toggle-status');
         
+        // Expense types
+        Route::get('/expense-types', [AdminController::class, 'expenseTypes'])->name('expense-types.index');
+        Route::post('/expense-types', [AdminController::class, 'storeExpenseType'])->name('expense-types.store');
+        Route::put('/expense-types/{id}', [AdminController::class, 'updateExpenseType'])->name('expense-types.update');
+        Route::delete('/expense-types/{id}', [AdminController::class, 'destroyExpenseType'])->name('expense-types.destroy');
+        Route::post('/expense-types/{id}/toggle-status', [AdminController::class, 'toggleExpenseTypeStatus'])->name('expense-types.toggle-status');
+        
         // Export routes
         Route::get('/users/export', [AdminController::class, 'exportUsers'])->name('users.export');
         Route::get('/areas/export', [AdminController::class, 'exportAreas'])->name('areas.export');
@@ -165,5 +172,16 @@ Route::middleware('auth')->group(function () {
         $units = \App\Models\Unit::where('area_id', $area)->active()->get(['id', 'name']);
         return response()->json($units);
     });
+    
+    Route::get('/api/terms-by-type', function(\Illuminate\Http\Request $request) {
+        $query = \App\Models\CollectionTerm::active();
+        if ($request->filled('type')) {
+            $typeId = \App\Models\CollectionType::where('name', $request->type)->value('id');
+            if ($typeId) {
+                $query->where('collection_type_id', $typeId);
+            }
+        }
+        return response()->json($query->pluck('name'));
+    })->name('api.terms-by-type');
 });
 

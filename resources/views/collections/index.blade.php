@@ -49,8 +49,8 @@
                             <th><input type="text" class="form-control form-control-sm" name="amount" placeholder="Filter Amount" value="{{ request('amount') }}"></th>
                             <th><div class="d-flex gap-1"><input type="date" class="form-control form-control-sm" name="date_from" value="{{ request('date_from') }}"><input type="date" class="form-control form-control-sm" name="date_to" value="{{ request('date_to') }}"></div></th>
                             <th><select class="form-control form-control-sm" name="unit"><option value="">All Units</option>@foreach($allUnits as $unit)<option value="{{ $unit }}" {{ request('unit') == $unit ? 'selected' : '' }}>{{ $unit }}</option>@endforeach</select></th>
-                            <th><select class="form-control form-control-sm" name="type"><option value="">All Types</option>@foreach($allTypes as $type)<option value="{{ $type }}" {{ request('type') == $type ? 'selected' : '' }}>{{ $type }}</option>@endforeach</select></th>
-                            <th><select class="form-control form-control-sm" name="term"><option value="">All Terms</option>@foreach($allTerms as $term)<option value="{{ $term }}" {{ request('term') == $term ? 'selected' : '' }}>{{ $term }}</option>@endforeach</select></th>
+                            <th><select class="form-control form-control-sm" name="type" id="filter-type"><option value="">All Types</option>@foreach($allTypes as $type)<option value="{{ $type }}" {{ request('type') == $type ? 'selected' : '' }}>{{ $type }}</option>@endforeach</select></th>
+                            <th><select class="form-control form-control-sm" name="term" id="filter-term"><option value="">All Terms</option>@foreach($allTerms as $term)<option value="{{ $term }}" {{ request('term') == $term ? 'selected' : '' }}>{{ $term }}</option>@endforeach</select></th>
                             <th><select class="form-control form-control-sm" name="status"><option value="">All Status</option><option value="payable" {{ request('status') == 'payable' ? 'selected' : '' }}>Payable</option><option value="received" {{ request('status') == 'received' ? 'selected' : '' }}>Received</option><option value="forwarded" {{ request('status') == 'forwarded' ? 'selected' : '' }}>Forwarded</option><option value="center_received" {{ request('status') == 'center_received' ? 'selected' : '' }}>Center Received</option></select></th>
                             <th><select class="form-control form-control-sm" name="user"><option value="">All Users</option>@foreach($allUsers as $user)<option value="{{ $user }}" {{ request('user') == $user ? 'selected' : '' }}>{{ $user }}</option>@endforeach</select></th>
                             <th></th>
@@ -111,12 +111,15 @@
         </div>
     </div>
 
+    <script src="{{ asset('js/term-type-filter.js') }}"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
+            initTermTypeFilter('filter-type', 'filter-term', '{{ route("api.terms-by-type") }}', '{{ request("term") }}', 'filterForm');
             const form = document.getElementById('filterForm');
             const inputs = form.querySelectorAll('input, select');
             
             inputs.forEach(input => {
+                if (input.id === 'filter-type') return;
                 input.addEventListener('change', function() {
                     form.submit();
                 });

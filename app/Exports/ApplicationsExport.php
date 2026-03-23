@@ -19,7 +19,7 @@ class ApplicationsExport implements FromQuery, WithHeadings, WithMapping
 
     public function query()
     {
-        $query = Application::with(['submitter', 'reviewer']);
+        $query = Application::with(['submitter', 'reviewer', 'applicationType', 'area', 'unit']);
         
         if (auth()->user()->isAreaUser()) {
             $query->where('submitted_by', auth()->id());
@@ -47,6 +47,9 @@ class ApplicationsExport implements FromQuery, WithHeadings, WithMapping
             'Civil ID',
             'Mobile Number',
             'Category',
+            'Term',
+            'Area',
+            'Unit',
             'Status',
             'Approved Amount',
             'Approved Date',
@@ -66,6 +69,9 @@ class ApplicationsExport implements FromQuery, WithHeadings, WithMapping
             $application->civil_id,
             $application->mobile_number,
             ucfirst(str_replace('_', ' ', $application->category)),
+            $application->applicationType->name ?? 'N/A',
+            $application->area->name ?? 'N/A',
+            $application->unit->name ?? 'N/A',
             ucfirst($application->status),
             $application->approved_amount,
             $application->approved_date,

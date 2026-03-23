@@ -15,11 +15,13 @@
                         <thead>
                             <tr>
                                 <th>Term Name</th>
+                                <th>Collection Type</th>
                                 <th>Status</th>
                                 <th>Actions</th>
                             </tr>
                             <tr>
                                 <th><input type="text" class="form-control form-control-sm" id="filterName" placeholder="Filter by name"></th>
+                                <th></th>
                                 <th>
                                     <select class="form-select form-select-sm" id="filterStatus">
                                         <option value="">All</option>
@@ -36,6 +38,15 @@
                                 <td>
                                     <span class="term-name" id="term-{{ $term->id }}">{{ $term->name }}</span>
                                     <input type="text" class="form-control form-control-sm d-none" id="edit-term-{{ $term->id }}" value="{{ $term->name }}">
+                                </td>
+                                <td>
+                                    <span class="term-type" id="term-type-display-{{ $term->id }}">{{ $term->collectionType->name ?? '-' }}</span>
+                                    <select class="form-select form-select-sm d-none" id="edit-term-type-{{ $term->id }}">
+                                        <option value="">-- None --</option>
+                                        @foreach($types as $type)
+                                            <option value="{{ $type->id }}" {{ $term->collection_type_id == $type->id ? 'selected' : '' }}>{{ $type->name }}</option>
+                                        @endforeach
+                                    </select>
                                 </td>
                                 <td>
                                     <div class="form-check form-switch">
@@ -71,6 +82,15 @@
                             <label for="name" class="form-label">Term Name</label>
                             <input type="text" class="form-control" id="name" name="name" required>
                         </div>
+                        <div class="mb-3">
+                            <label for="collection_type_id" class="form-label">Collection Type</label>
+                            <select class="form-select" id="collection_type_id" name="collection_type_id">
+                                <option value="">-- None --</option>
+                                @foreach($types as $type)
+                                    <option value="{{ $type->id }}">{{ $type->name }}</option>
+                                @endforeach
+                            </select>
+                        </div>
                         <button type="submit" class="btn btn-primary">Add Term</button>
                     </form>
                 </div>
@@ -79,7 +99,6 @@
     </div>
 
     <script>
-        // Filter functionality
         document.addEventListener('DOMContentLoaded', function() {
             const filterName = document.getElementById('filterName');
             const filterStatus = document.getElementById('filterStatus');
@@ -106,32 +125,42 @@
             filterStatus.addEventListener('change', filterTable);
         });
         
-        function editTerm(index) {
-            document.getElementById('term-' + index).classList.add('d-none');
-            document.getElementById('edit-term-' + index).classList.remove('d-none');
-            document.querySelector(`[onclick="editTerm(${index})"]`).classList.add('d-none');
-            document.querySelector(`[onclick="saveTerm(${index})"]`).classList.remove('d-none');
+        function editTerm(id) {
+            document.getElementById('term-' + id).classList.add('d-none');
+            document.getElementById('edit-term-' + id).classList.remove('d-none');
+            document.getElementById('term-type-display-' + id).classList.add('d-none');
+            document.getElementById('edit-term-type-' + id).classList.remove('d-none');
+            document.querySelector(`[onclick="editTerm(${id})"]`).classList.add('d-none');
+            document.querySelector(`[onclick="saveTerm(${id})"]`).classList.remove('d-none');
         }
         
-        function saveTerm(index) {
-            const newValue = document.getElementById('edit-term-' + index).value;
+        function saveTerm(id) {
+            const newName = document.getElementById('edit-term-' + id).value;
+            const newTypeId = document.getElementById('edit-term-type-' + id).value;
             
-            fetch(`{{ url('/admin/terms') }}/${index}`, {
+            fetch(`{{ url('/admin/terms') }}/${id}`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
                     'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
                 },
-                body: JSON.stringify({ name: newValue })
+                body: JSON.stringify({ name: newName, collection_type_id: newTypeId || null })
             })
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
-                    document.getElementById('term-' + index).textContent = newValue;
-                    document.getElementById('term-' + index).classList.remove('d-none');
-                    document.getElementById('edit-term-' + index).classList.add('d-none');
-                    document.querySelector(`[onclick="editTerm(${index})"]`).classList.remove('d-none');
-                    document.querySelector(`[onclick="saveTerm(${index})"]`).classList.add('d-none');
+                    document.getElementById('term-' + id).textContent = newName;
+                    document.getElementById('term-' + id).classList.remove('d-none');
+                    document.getElementById('edit-term-' + id).classList.add('d-none');
+                    
+                    const typeSelect = document.getElementById('edit-term-type-' + id);
+                    const selectedOption = typeSelect.options[typeSelect.selectedIndex];
+                    document.getElementById('term-type-display-' + id).textContent = newTypeId ? selectedOption.text : '-';
+                    document.getElementById('term-type-display-' + id).classList.remove('d-none');
+                    typeSelect.classList.add('d-none');
+                    
+                    document.querySelector(`[onclick="editTerm(${id})"]`).classList.remove('d-none');
+                    document.querySelector(`[onclick="saveTerm(${id})"]`).classList.add('d-none');
                 }
             })
             .catch(error => {

@@ -101,7 +101,24 @@ class InvestmentController extends Controller
         $yearlyReturned = $returnedQuery->sum('returned_amount');
         
         $investedAmount = $yearlyInvestments - $yearlyReturned;
-        $availableAmount = $yearlyCollections - $yearlyExpenses - $yearlyApplications - $investedAmount;
+        
+        // Add manual opening balance
+        $manualObQuery = \App\Models\OpeningBalance::query();
+        if ($user->isMekhalaUser()) {
+            $manualObQuery->where('mekhala_id', $user->mekhala_id);
+        } elseif ($user->isCenterUser()) {
+            $manualObQuery->where('mekhala_id', 0);
+        }
+        $manualObQuery->where(function($q) use ($currentYear) {
+            $currentMonth = (int) date('m');
+            $q->where('year', '<', $currentYear)
+              ->orWhere(function($q2) use ($currentYear, $currentMonth) {
+                  $q2->where('year', $currentYear)->where('month', '<=', $currentMonth);
+              });
+        });
+        $manualOb = $manualObQuery->orderBy('year', 'desc')->orderBy('month', 'desc')->value('amount') ?? 0;
+        
+        $availableAmount = $manualOb + $yearlyCollections - $yearlyExpenses - $yearlyApplications - $investedAmount;
         
         return view('investments.create', compact('availableAmount'));
     }

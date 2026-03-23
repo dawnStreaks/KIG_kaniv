@@ -34,10 +34,8 @@
                                 <label for="type" class="form-label">Type</label>
                                 <select class="form-control" id="type" name="type" required>
                                     <option value="">Select Type</option>
-                                    <option value="refreshment" {{ old('type', $expense->type) == 'refreshment' ? 'selected' : '' }}>Refreshment</option>
-                                    <option value="miscellaneous" {{ old('type', $expense->type) == 'miscellaneous' ? 'selected' : '' }}>Miscellaneous</option>
-                                    @foreach($collectionTerms as $term)
-                                        <option value="{{ $term }}" {{ old('type', $expense->type) == $term ? 'selected' : '' }}>{{ $term }}</option>
+                                    @foreach($expenseTypes as $type)
+                                        <option value="{{ $type }}" {{ old('type', $expense->type) == $type ? 'selected' : '' }}>{{ $type }}</option>
                                     @endforeach
                                 </select>
                             </div>

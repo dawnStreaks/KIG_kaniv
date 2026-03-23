@@ -7,6 +7,10 @@
         <h2>Opening Balance</h2>
     </div>
 
+    <div class="alert alert-info">
+        <strong>Note:</strong> Enter the opening balance for a specific month. This is a one-time entry that will be added to the calculated balance in financial reports. For example, entering KWD 1000 for January 2026 means that amount will be included in the opening balance for any report starting from February 2026 onwards.
+    </div>
+
     <div class="card">
         <div class="card-body">
             <div class="row">

@@ -38,29 +38,34 @@
                             <tr>
                                 <th>Area</th>
                                 <th class="text-end">Collections</th>
+                                <th class="text-end">Received</th>
                                 <th class="text-end">Expenses</th>
+                                <th class="text-end">Paid</th>
                                 <th class="text-end">Balance</th>
                                 <th class="text-center">Actions</th>
                             </tr>
                         </thead>
                         <tbody>
                             @foreach($areaSummary as $index => $summary)
+                            @php $loopId = $loop->index; @endphp
                             <tr>
                                 <td><strong>{{ $summary['area'] }}</strong></td>
                                 <td class="text-end">KWD {{ number_format($summary['collections'], 3) }}</td>
+                                <td class="text-end">KWD {{ number_format($summary['received'], 3) }}</td>
                                 <td class="text-end">KWD {{ number_format($summary['expenses'], 3) }}</td>
+                                <td class="text-end">KWD {{ number_format($summary['paid'], 3) }}</td>
                                 <td class="text-end {{ $summary['balance'] >= 0 ? 'text-success' : 'text-danger' }}">
                                     <strong>KWD {{ number_format($summary['balance'], 3) }}</strong>
                                 </td>
                                 <td class="text-center">
-                                    <button class="btn btn-sm btn-outline-primary" type="button" data-bs-toggle="collapse" data-bs-target="#areaDetails{{ $index }}">
+                                    <button class="btn btn-sm btn-outline-primary" type="button" data-bs-toggle="collapse" data-bs-target="#areaDetails{{ $loopId }}">
                                         <i class="fas fa-eye"></i> View Details
                                     </button>
                                 </td>
                             </tr>
                             <tr>
-                                <td colspan="5" class="p-0">
-                                    <div class="collapse" id="areaDetails{{ $index }}">
+                                <td colspan="7" class="p-0">
+                                    <div class="collapse" id="areaDetails{{ $loopId }}">
                                         <div class="p-3 bg-light">
                                             <h6>{{ $summary['area'] }} - Detailed Transactions</h6>
                                             @if(isset($groupedTransactions[$summary['area']]))
@@ -71,6 +76,9 @@
                                                             <th>Date</th>
                                                             <th>Type</th>
                                                             <th>Description</th>
+                                                            <th>Term</th>
+                                                            <th>Collection Type</th>
+                                                            <th>Status</th>
                                                             <th class="text-end">Collection</th>
                                                             <th class="text-end">Expense</th>
                                                         </tr>
@@ -85,6 +93,9 @@
                                                                 </span>
                                                             </td>
                                                             <td>{{ $transaction['description'] }}</td>
+                                                            <td>{{ $transaction['term'] }}</td>
+                                                            <td>{{ $transaction['collection_type'] }}</td>
+                                                            <td>{{ ucfirst(str_replace('_', ' ', $transaction['status'])) }}</td>
                                                             <td class="text-end">
                                                                 {{ $transaction['collection'] > 0 ? 'KWD ' . number_format($transaction['collection'], 3) : '-' }}
                                                             </td>

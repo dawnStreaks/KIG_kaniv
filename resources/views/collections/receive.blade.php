@@ -38,8 +38,8 @@
                             </select>
                         </div>
                         <div class="col-md-2">
-                            <label for="type" class="form-label">Type</label>
-                            <select name="type" id="type" class="form-select form-select-sm">
+                            <label for="filter-type" class="form-label">Type</label>
+                            <select name="type" id="filter-type" class="form-select form-select-sm">
                                 <option value="">All Types</option>
                                 @foreach($types as $type)
                                     <option value="{{ $type }}" {{ request('type') == $type ? 'selected' : '' }}>{{ $type }}</option>
@@ -47,8 +47,8 @@
                             </select>
                         </div>
                         <div class="col-md-2">
-                            <label for="term" class="form-label">Term</label>
-                            <select name="term" id="term" class="form-select form-select-sm">
+                            <label for="filter-term" class="form-label">Term</label>
+                            <select name="term" id="filter-term" class="form-select form-select-sm">
                                 <option value="">All Terms</option>
                                 @foreach($terms as $term)
                                     <option value="{{ $term }}" {{ request('term') == $term ? 'selected' : '' }}>{{ $term }}</option>
@@ -147,8 +147,10 @@
         </div>
     </div>
 
+    <script src="{{ asset('js/term-type-filter.js') }}"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
+            initTermTypeFilter('filter-type', 'filter-term', '{{ route("api.terms-by-type") }}', '{{ request("term") }}');
             const filterInputs = document.querySelectorAll('.filter-input');
             const tableRows = document.querySelectorAll('tbody tr');
             

@@ -78,8 +78,12 @@
     </div>
 
 
+    <script src="{{ asset('js/term-type-filter.js') }}"></script>
     <script>
-        document.getElementById('selectAll').addEventListener('change', function() {
+        document.addEventListener('DOMContentLoaded', function() {
+            initTermTypeFilter('type', 'term', '{{ route("api.terms-by-type") }}', '{{ old("term") }}');
+        });
+        document.getElementById('selectAll')?.addEventListener('change', function() {
             const checkboxes = document.querySelectorAll('.unit-checkbox');
             checkboxes.forEach(checkbox => {
                 checkbox.checked = this.checked;

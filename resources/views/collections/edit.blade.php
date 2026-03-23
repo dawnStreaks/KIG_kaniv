@@ -86,4 +86,11 @@
             </form>
         </div>
     </div>
+
+    <script src="{{ asset('js/term-type-filter.js') }}"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            initTermTypeFilter('type', 'term', '{{ route("api.terms-by-type") }}', '{{ old("term", $collection->term) }}');
+        });
+    </script>
 @endsection

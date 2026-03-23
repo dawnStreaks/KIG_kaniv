@@ -279,22 +279,29 @@ class AdminController extends Controller
 
     public function terms()
     {
-        $terms = CollectionTerm::all();
-        return view('admin.terms.index', compact('terms'));
+        $terms = CollectionTerm::with('collectionType')->get();
+        $types = CollectionType::active()->get();
+        return view('admin.terms.index', compact('terms', 'types'));
     }
 
     public function storeTerm(Request $request)
     {
-        $request->validate(['name' => 'required|string|max:255']);
-        CollectionTerm::create(['name' => $request->name]);
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'collection_type_id' => 'nullable|exists:collection_types,id',
+        ]);
+        CollectionTerm::create($request->only('name', 'collection_type_id'));
         return redirect()->route('admin.terms.index')->with('success', 'Term added successfully');
     }
 
     public function updateTerm(Request $request, $id)
     {
-        $request->validate(['name' => 'required|string|max:255']);
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'collection_type_id' => 'nullable|exists:collection_types,id',
+        ]);
         $term = CollectionTerm::findOrFail($id);
-        $term->update(['name' => $request->name]);
+        $term->update($request->only('name', 'collection_type_id'));
         return response()->json(['success' => true]);
     }
 
@@ -399,6 +406,42 @@ class AdminController extends Controller
         $request->validate(['is_active' => 'required|boolean']);
         $applicationType = \App\Models\ApplicationType::findOrFail($id);
         $applicationType->update(['is_active' => $request->is_active]);
+        return response()->json(['success' => true]);
+    }
+
+    // Expense Types
+    public function expenseTypes()
+    {
+        $expenseTypes = \App\Models\ExpenseType::all();
+        return view('admin.expense-types.index', compact('expenseTypes'));
+    }
+
+    public function storeExpenseType(Request $request)
+    {
+        $request->validate(['name' => 'required|string|max:255']);
+        \App\Models\ExpenseType::create(['name' => $request->name]);
+        return redirect()->route('admin.expense-types.index')->with('success', 'Expense type added successfully');
+    }
+
+    public function updateExpenseType(Request $request, $id)
+    {
+        $request->validate(['name' => 'required|string|max:255']);
+        $expenseType = \App\Models\ExpenseType::findOrFail($id);
+        $expenseType->update(['name' => $request->name]);
+        return response()->json(['success' => true]);
+    }
+
+    public function destroyExpenseType($id)
+    {
+        \App\Models\ExpenseType::findOrFail($id)->delete();
+        return redirect()->route('admin.expense-types.index')->with('success', 'Expense type deleted successfully');
+    }
+
+    public function toggleExpenseTypeStatus(Request $request, $id)
+    {
+        $request->validate(['is_active' => 'required|boolean']);
+        $expenseType = \App\Models\ExpenseType::findOrFail($id);
+        $expenseType->update(['is_active' => $request->is_active]);
         return response()->json(['success' => true]);
     }
     

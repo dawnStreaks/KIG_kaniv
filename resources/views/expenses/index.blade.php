@@ -33,7 +33,7 @@
                         <tr>
                             <th><input type="text" class="form-control form-control-sm filter-input" placeholder="Filter Amount" data-column="0"></th>
                             <th><input type="text" class="form-control form-control-sm filter-input" placeholder="Filter Particulars" data-column="1"></th>
-                            <th><select class="form-control form-control-sm filter-input" data-column="2"><option value="">All Types</option><option value="refreshment">Refreshment</option><option value="miscellaneous">Miscellaneous</option></select></th>
+                            <th><select class="form-control form-control-sm filter-input" data-column="2"><option value="">All Types</option>@foreach($expenseTypes as $type)<option value="{{ $type }}">{{ $type }}</option>@endforeach</select></th>
                             <th><input type="date" class="form-control form-control-sm filter-input" data-column="3"></th>
                             <th><input type="text" class="form-control form-control-sm filter-input" placeholder="Filter Beneficiary" data-column="4"></th>
                             <th><input type="text" class="form-control form-control-sm filter-input" placeholder="Filter Paid By" data-column="5"></th>
