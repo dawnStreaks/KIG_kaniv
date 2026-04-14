@@ -176,9 +176,9 @@ Route::middleware('auth')->group(function () {
     Route::get('/api/terms-by-type', function(\Illuminate\Http\Request $request) {
         $query = \App\Models\CollectionTerm::active();
         if ($request->filled('type')) {
-            $typeId = \App\Models\CollectionType::where('name', $request->type)->value('id');
-            if ($typeId) {
-                $query->where('collection_type_id', $typeId);
+            $type = \App\Models\CollectionType::where('name', $request->type)->first();
+            if ($type) {
+                $query->where('collection_type_id', $type->id);
             }
         }
         return response()->json($query->pluck('name'));

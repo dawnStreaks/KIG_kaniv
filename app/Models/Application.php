@@ -77,4 +77,9 @@ class Application extends Model
     {
         return $query->where('status', 'rejected');
     }
+
+    public function scopeApproved($query)
+    {
+        return $query->where('status', 'approved');
+    }
 }

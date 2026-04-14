@@ -74,7 +74,7 @@ class ExpenseController extends Controller
             'particulars' => 'required|string|max:255',
             'amount' => 'required|numeric|min:0',
             'type' => 'required|in:' . implode(',', $allowedTypes),
-            'bill' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:2048',
+            'bill' => 'nullable|file|mimes:pdf,jpg,jpeg,png,xlsx,xls|max:2048',
             'beneficiary' => 'nullable|string|max:255',
             'paid_by_area_id' => 'nullable|exists:areas,id',
         ]);
@@ -118,7 +118,7 @@ class ExpenseController extends Controller
             'particulars' => 'required|string|max:255',
             'amount' => 'required|numeric|min:0',
             'type' => 'required|in:' . implode(',', $allowedTypes),
-            'bill' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:2048',
+            'bill' => 'nullable|file|mimes:pdf,jpg,jpeg,png,xlsx,xls|max:2048',
             'beneficiary' => 'nullable|string|max:255',
             'paid_by_area_id' => 'nullable|exists:areas,id',
         ]);

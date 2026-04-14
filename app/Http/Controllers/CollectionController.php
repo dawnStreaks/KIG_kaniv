@@ -304,8 +304,8 @@ class CollectionController extends Controller
                 ->get();
         }
         
-        $terms = CollectionTerm::active()->pluck('name');
-        $types = CollectionType::active()->pluck('name');
+        $terms = Collection::distinct()->whereNotNull('term')->pluck('term');
+        $types = Collection::distinct()->whereNotNull('type')->pluck('type');
         
         return view('collections.report', compact('user', 'data', 'terms', 'types'));
     }

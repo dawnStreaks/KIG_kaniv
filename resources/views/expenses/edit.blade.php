@@ -64,8 +64,8 @@
                                         <a href="{{ asset('storage/' . $expense->bill_path) }}" target="_blank" class="btn btn-sm btn-info">View Current Bill</a>
                                     </div>
                                 @endif
-                                <input type="file" class="form-control" id="bill" name="bill" accept=".pdf,.jpg,.jpeg,.png">
-                                <small class="form-text text-muted">Accepted formats: PDF, JPG, JPEG, PNG. Max size: 2MB. Leave empty to keep current bill.</small>
+                                <input type="file" class="form-control" id="bill" name="bill" accept=".pdf,.jpg,.jpeg,.png,.xlsx,.xls">
+                                <small class="form-text text-muted">Accepted formats: PDF, JPG, JPEG, PNG, XLSX, XLS. Max size: 2MB. Leave empty to keep current bill.</small>
                             </div>
                             <div class="d-flex justify-content-between">
                                 <a href="{{ route('expenses.index') }}" class="btn btn-secondary">Cancel</a>

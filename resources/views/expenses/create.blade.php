@@ -57,8 +57,8 @@
                             </div>
                             <div class="mb-3">
                                 <label for="bill" class="form-label">Upload Bill (Optional)</label>
-                                <input type="file" class="form-control" id="bill" name="bill" accept=".pdf,.jpg,.jpeg,.png">
-                                <small class="form-text text-muted">Accepted formats: PDF, JPG, JPEG, PNG. Max size: 2MB</small>
+                                <input type="file" class="form-control" id="bill" name="bill" accept=".pdf,.jpg,.jpeg,.png,.xlsx,.xls">
+                                <small class="form-text text-muted">Accepted formats: PDF, JPG, JPEG, PNG, XLSX, XLS. Max size: 2MB</small>
                             </div>
                             <div class="d-flex justify-content-between">
                                 <a href="{{ route('expenses.index') }}" class="btn btn-secondary">Cancel</a>
