@@ -190,7 +190,7 @@
                             beginAtZero: true,
                             ticks: {
                                 callback: function(value) {
-                                    return 'KWD ' + value.toLocaleString();
+                                    return value.toLocaleString();
                                 }
                             }
                         }
@@ -298,7 +298,7 @@
                                     beginAtZero: true,
                                     ticks: {
                                         callback: function(value) {
-                                            return 'KWD ' + value.toLocaleString();
+                                            return value.toLocaleString();
                                         }
                                     }
                                 },

@@ -114,7 +114,7 @@ function initMainChart() {
                     beginAtZero: true,
                     ticks: {
                         callback: function(value) {
-                            return 'KWD ' + value.toFixed(3);
+                            return value.toFixed(3);
                         }
                     }
                 }
@@ -216,7 +216,7 @@ function drillDown(mekhalaId, mekhalaName, type) {
                             beginAtZero: true,
                             ticks: {
                                 callback: function(value) {
-                                    return 'KWD ' + value.toFixed(3);
+                                    return value.toFixed(3);
                                 }
                             }
                         }

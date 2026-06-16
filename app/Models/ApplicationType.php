@@ -10,6 +10,11 @@ class ApplicationType extends Model
 
     protected $casts = ['is_active' => 'boolean'];
 
+    public function applications()
+    {
+        return $this->hasMany(Application::class);
+    }
+
     public function scopeActive($query)
     {
         return $query->where('is_active', true);

@@ -76,7 +76,15 @@ class ApplicationController extends Controller
         }
         
         $applications = $query->latest()->paginate(10)->appends($request->query());
-        $applicationTypes = \App\Models\ApplicationType::active()->get();
+        $applicationTypes = \App\Models\ApplicationType::whereHas('applications', function($q) {
+            if (auth()->user()->isAreaUser()) {
+                $q->where('submitted_by', auth()->id());
+            } elseif (auth()->user()->isMekhalaUser()) {
+                $q->whereHas('submitter', function($subQ) {
+                    $subQ->where('mekhala_id', auth()->user()->mekhala_id);
+                });
+            }
+        })->get();
         
         // Get filter options based on user permissions
         if (auth()->user()->isAreaUser()) {

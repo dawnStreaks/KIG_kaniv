@@ -109,7 +109,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     beginAtZero: true,
                     ticks: {
                         callback: function(value) {
-                            return 'KWD ' + value.toFixed(3);
+                            return value.toFixed(3);
                         }
                     }
                 }
