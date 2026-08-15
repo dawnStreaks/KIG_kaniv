@@ -32,11 +32,11 @@
             <div class="col-md-8">
                 <div class="card">
                     <div class="card-header">
-                        <h5>Unit Type Comparison - {{ $year }}
+                        <h5>
                             @if($term || $type)
-                                <small class="text-muted">
-                                    ({{ $term ? 'Term: ' . $term : '' }}{{ $term && $type ? ', ' : '' }}{{ $type ? 'Type: ' . $type : '' }})
-                                </small>
+                                Unit Type Comparison - {{ $term }}{{ $term && $type ? ', ' : '' }}{{ $type }}
+                            @else
+                                Unit Type Comparison - {{ $year }}
                             @endif
                         </h5>
                         <div class="row mt-2">
@@ -239,9 +239,10 @@
                     };
                     
                     let titleHtml = '<img src="{{ url("/logos") }}/' + logoMap[unitType] + '" alt="' + unitType + ' Logo" style="height: 30px; margin-right: 10px;">';
-                    titleHtml += `${unitType} Units - {{ $year }}`;
                     if (term || collectionType) {
-                        titleHtml += ` (${term ? 'Term: ' + term : ''}${term && collectionType ? ', ' : ''}${collectionType ? 'Type: ' + collectionType : ''})`;
+                        titleHtml += `${unitType} ${term}${term && collectionType ? ', ' : ''}${collectionType}`;
+                    } else {
+                        titleHtml += `${unitType} Units - {{ $year }}`;
                     }
                     document.getElementById('drillDownTitle').innerHTML = titleHtml;
                     

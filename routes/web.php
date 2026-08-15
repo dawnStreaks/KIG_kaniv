@@ -6,6 +6,7 @@ use App\Http\Controllers\ApplicationController;
 use App\Http\Controllers\CollectionController;
 use App\Http\Controllers\ExpenseController;
 use App\Http\Controllers\ReportController;
+use App\Http\Controllers\HistoricalApplicationController;
 
 Route::get('/', function () {
     return redirect('/login');
@@ -81,7 +82,14 @@ Route::middleware('auth')->group(function () {
         Route::put('/expense-types/{id}', [AdminController::class, 'updateExpenseType'])->name('expense-types.update');
         Route::delete('/expense-types/{id}', [AdminController::class, 'destroyExpenseType'])->name('expense-types.destroy');
         Route::post('/expense-types/{id}/toggle-status', [AdminController::class, 'toggleExpenseTypeStatus'])->name('expense-types.toggle-status');
-        
+
+        // Beneficiaries
+        Route::get('/beneficiaries', [AdminController::class, 'beneficiaries'])->name('beneficiaries.index');
+        Route::post('/beneficiaries', [AdminController::class, 'storeBeneficiary'])->name('beneficiaries.store');
+        Route::put('/beneficiaries/{id}', [AdminController::class, 'updateBeneficiary'])->name('beneficiaries.update');
+        Route::delete('/beneficiaries/{id}', [AdminController::class, 'destroyBeneficiary'])->name('beneficiaries.destroy');
+        Route::post('/beneficiaries/{id}/toggle-status', [AdminController::class, 'toggleBeneficiaryStatus'])->name('beneficiaries.toggle-status');
+
         // Export routes
         Route::get('/users/export', [AdminController::class, 'exportUsers'])->name('users.export');
         Route::get('/areas/export', [AdminController::class, 'exportAreas'])->name('areas.export');
@@ -92,6 +100,13 @@ Route::middleware('auth')->group(function () {
         Route::get('/opening-balance', [AdminController::class, 'openingBalance'])->name('opening-balance');
         Route::post('/opening-balance', [AdminController::class, 'storeOpeningBalance'])->name('opening-balance.store');
         Route::delete('/opening-balance/{openingBalance}', [AdminController::class, 'destroyOpeningBalance'])->name('opening-balance.destroy');
+
+        // Historical Applications
+        Route::get('/historical-applications', [HistoricalApplicationController::class, 'index'])->name('historical-applications.index');
+        Route::post('/historical-applications/import', [HistoricalApplicationController::class, 'import'])->name('historical-applications.import');
+        Route::get('/historical-applications/template', [HistoricalApplicationController::class, 'downloadTemplate'])->name('historical-applications.template');
+        Route::delete('/historical-applications/destroy-all', [HistoricalApplicationController::class, 'destroyAll'])->name('historical-applications.destroy-all');
+        Route::delete('/historical-applications/{historicalApplication}', [HistoricalApplicationController::class, 'destroy'])->name('historical-applications.destroy');
     });
     
     // Application routes

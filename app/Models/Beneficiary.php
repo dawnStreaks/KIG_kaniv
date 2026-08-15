@@ -4,9 +4,9 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class ExpenseType extends Model
+class Beneficiary extends Model
 {
-    protected $fillable = ['name', 'category', 'is_active'];
+    protected $fillable = ['name', 'is_active'];
 
     protected $casts = ['is_active' => 'boolean'];
 

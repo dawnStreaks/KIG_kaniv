@@ -107,7 +107,7 @@ function initMainChart() {
                     beginAtZero: true,
                     ticks: {
                         callback: function(value) {
-                            return 'KWD ' + value.toLocaleString('en-US', {minimumFractionDigits: 3, maximumFractionDigits: 3});
+                            return value.toLocaleString('en-US', {minimumFractionDigits: 3, maximumFractionDigits: 3});
                         }
                     }
                 }
@@ -116,7 +116,7 @@ function initMainChart() {
                 tooltip: {
                     callbacks: {
                         label: function(context) {
-                            return 'Amount: KWD ' + context.parsed.y.toLocaleString('en-US', {minimumFractionDigits: 3, maximumFractionDigits: 3});
+                            return 'Amount: ' + context.parsed.y.toLocaleString('en-US', {minimumFractionDigits: 3, maximumFractionDigits: 3});
                         }
                     }
                 },
@@ -190,7 +190,7 @@ function drillDown(areaId, areaName) {
                             beginAtZero: true,
                             ticks: {
                                 callback: function(value) {
-                                    return 'KWD ' + value.toLocaleString('en-US', {minimumFractionDigits: 3, maximumFractionDigits: 3});
+                                    return value.toLocaleString('en-US', {minimumFractionDigits: 3, maximumFractionDigits: 3});
                                 }
                             }
                         }
@@ -199,7 +199,7 @@ function drillDown(areaId, areaName) {
                         tooltip: {
                             callbacks: {
                                 label: function(context) {
-                                    return 'Amount: KWD ' + context.parsed.y.toLocaleString('en-US', {minimumFractionDigits: 3, maximumFractionDigits: 3});
+                                    return 'Amount: ' + context.parsed.y.toLocaleString('en-US', {minimumFractionDigits: 3, maximumFractionDigits: 3});
                                 }
                             }
                         },

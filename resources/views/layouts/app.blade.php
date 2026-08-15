@@ -125,8 +125,10 @@
                         <a class="nav-link" href="{{ route('admin.types.index') }}">Collection Types</a>
                         <a class="nav-link" href="{{ route('admin.application-types.index') }}">Application Terms</a>
                         <a class="nav-link" href="{{ route('admin.expense-types.index') }}">Expense Types</a>
+                        <a class="nav-link" href="{{ route('admin.beneficiaries.index') }}">Beneficiaries</a>
                         <a class="nav-link" href="{{ route('admin.opening-balance') }}">Opening Balance</a>
-                        
+                        <a class="nav-link" href="{{ route('admin.historical-applications.index') }}">Historical Applications</a>
+
                         <div class="px-3 py-2">
                             <small class="text-muted">MAIN</small>
                         </div>

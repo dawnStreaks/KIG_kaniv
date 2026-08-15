@@ -31,12 +31,18 @@
                                 <textarea class="form-control" id="particulars" name="particulars" rows="3" required>{{ old('particulars', $expense->particulars) }}</textarea>
                             </div>
                             <div class="mb-3">
+                                <label for="category" class="form-label">Category</label>
+                                <select class="form-control" id="category">
+                                    <option value="">Select Category</option>
+                                    @foreach($categories as $category)
+                                        <option value="{{ $category }}" {{ $selectedCategory == $category ? 'selected' : '' }}>{{ $category }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                            <div class="mb-3">
                                 <label for="type" class="form-label">Type</label>
                                 <select class="form-control" id="type" name="type" required>
                                     <option value="">Select Type</option>
-                                    @foreach($expenseTypes as $type)
-                                        <option value="{{ $type }}" {{ old('type', $expense->type) == $type ? 'selected' : '' }}>{{ $type }}</option>
-                                    @endforeach
                                 </select>
                             </div>
                             <div class="mb-3">
@@ -45,16 +51,40 @@
                             </div>
                             <div class="mb-3">
                                 <label for="beneficiary" class="form-label">Beneficiary (Optional)</label>
-                                <input type="text" class="form-control" id="beneficiary" name="beneficiary" value="{{ old('beneficiary', $expense->beneficiary) }}">
+                                <select class="form-control" id="beneficiary" name="beneficiary">
+                                    <option value="">Select Beneficiary</option>
+                                    @php $currentBeneficiary = old('beneficiary', $expense->beneficiary); @endphp
+                                    @foreach($beneficiaries as $beneficiary)
+                                        <option value="{{ $beneficiary }}" {{ $currentBeneficiary == $beneficiary ? 'selected' : '' }}>{{ $beneficiary }}</option>
+                                    @endforeach
+                                    @if($currentBeneficiary && !$beneficiaries->contains($currentBeneficiary))
+                                        <option value="{{ $currentBeneficiary }}" selected>{{ $currentBeneficiary }}</option>
+                                    @endif
+                                </select>
                             </div>
                             <div class="mb-3">
-                                <label for="paid_by_area_id" class="form-label">Paid By (Optional)</label>
-                                <select class="form-control" id="paid_by_area_id" name="paid_by_area_id">
-                                    <option value="">Select Area</option>
-                                    @foreach($areas as $area)
-                                        <option value="{{ $area->id }}" {{ old('paid_by_area_id', $expense->paid_by_area_id) == $area->id ? 'selected' : '' }}>{{ $area->name }}</option>
+                                <label for="paid_by" class="form-label">Paid By (Optional)</label>
+                                @php
+                                    $knownPaidByValues = $mekhalas->flatMap(function ($mekhala) {
+                                        return $mekhala->areas->pluck('id')->map(fn($id) => 'area:' . $id)
+                                            ->push('mekhala:' . $mekhala->id);
+                                    });
+                                @endphp
+                                <select class="form-control" id="paid_by" name="paid_by">
+                                    <option value="">Select Mekhala / Area</option>
+                                    @foreach($mekhalas as $mekhala)
+                                        <optgroup label="{{ $mekhala->name }}">
+                                            <option value="mekhala:{{ $mekhala->id }}" {{ $selectedPaidBy == 'mekhala:' . $mekhala->id ? 'selected' : '' }}>{{ $mekhala->name }} (General)</option>
+                                            @foreach($mekhala->areas as $area)
+                                                <option value="area:{{ $area->id }}" {{ $selectedPaidBy == 'area:' . $area->id ? 'selected' : '' }}>{{ $area->name }}</option>
+                                            @endforeach
+                                        </optgroup>
                                     @endforeach
+                                    @if($selectedPaidBy && !$knownPaidByValues->contains($selectedPaidBy))
+                                        <option value="{{ $selectedPaidBy }}" selected>{{ $expense->paidByArea->name ?? $expense->paidByMekhala->name ?? $selectedPaidBy }}</option>
+                                    @endif
                                 </select>
+                                <small class="form-text text-muted">Pick the mekhala's general option if the expense isn't tied to a specific area.</small>
                             </div>
                             <div class="mb-3">
                                 <label for="bill" class="form-label">Upload Bill (Optional)</label>
@@ -77,4 +107,43 @@
             </div>
         </div>
     </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const expenseTypes = @json($expenseTypes);
+            const categorySelect = document.getElementById('category');
+            const typeSelect = document.getElementById('type');
+            const currentType = @json(old('type', $expense->type));
+
+            function populateTypes(category, selected) {
+                typeSelect.innerHTML = '<option value="">Select Type</option>';
+                expenseTypes
+                    .filter(t => !category || t.category === category)
+                    .forEach(t => {
+                        const option = document.createElement('option');
+                        option.value = t.name;
+                        option.textContent = t.name;
+                        if (t.name === selected) {
+                            option.selected = true;
+                        }
+                        typeSelect.appendChild(option);
+                    });
+
+                // Keep a deactivated/legacy type visible so editing doesn't silently change it
+                if (selected && ![...typeSelect.options].some(o => o.value === selected)) {
+                    const option = document.createElement('option');
+                    option.value = selected;
+                    option.textContent = selected;
+                    option.selected = true;
+                    typeSelect.appendChild(option);
+                }
+            }
+
+            categorySelect.addEventListener('change', function() {
+                populateTypes(this.value, null);
+            });
+
+            populateTypes(categorySelect.value, currentType);
+        });
+    </script>
 @endsection

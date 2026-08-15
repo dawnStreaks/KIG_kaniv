@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Application;
+use App\Models\HistoricalApplication;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use App\Exports\ApplicationsExport;
@@ -76,15 +77,7 @@ class ApplicationController extends Controller
         }
         
         $applications = $query->latest()->paginate(10)->appends($request->query());
-        $applicationTypes = \App\Models\ApplicationType::whereHas('applications', function($q) {
-            if (auth()->user()->isAreaUser()) {
-                $q->where('submitted_by', auth()->id());
-            } elseif (auth()->user()->isMekhalaUser()) {
-                $q->whereHas('submitter', function($subQ) {
-                    $subQ->where('mekhala_id', auth()->user()->mekhala_id);
-                });
-            }
-        })->get();
+        $applicationTypes = \App\Models\ApplicationType::where('is_active', true)->get();
         
         // Get filter options based on user permissions
         if (auth()->user()->isAreaUser()) {
@@ -290,38 +283,46 @@ class ApplicationController extends Controller
     {
         $field = $request->input('field');
         $value = $request->input('value');
-        $id = $request->input('id'); // For edit mode
-        
-        $exists = false;
-        
-        if ($field === 'civil_id') {
-            $query = Application::where('civil_id', $value);
-            if ($id) {
-                $query->where('id', '!=', $id);
-            }
-            $exists = $query->exists();
-        } elseif ($field === 'passport_no') {
-            $query = Application::where('passport_no', $value);
-            if ($id) {
-                $query->where('id', '!=', $id);
-            }
-            $exists = $query->exists();
+        $id = $request->input('id');
+
+        if (!in_array($field, ['civil_id', 'passport_no', 'mobile_number']) || !$value) {
+            return response()->json(['exists' => false]);
         }
-        
-        return response()->json(['exists' => $exists]);
+
+        $appQuery = Application::where($field, $value);
+        if ($id) {
+            $appQuery->where('id', '!=', $id);
+        }
+
+        if ($appQuery->exists()) {
+            return response()->json(['exists' => true, 'source' => 'current']);
+        }
+
+        if (HistoricalApplication::where($field, $value)->exists()) {
+            return response()->json(['exists' => true, 'source' => 'historical']);
+        }
+
+        return response()->json(['exists' => false]);
     }
 
     public function history(Application $application)
     {
         $duplicates = Application::where(function($query) use ($application) {
             $query->where('civil_id', $application->civil_id)
-                  ->orWhere('mobile_number', $application->mobile_number);
+                  ->orWhere('mobile_number', $application->mobile_number)
+                  ->orWhere('passport_no', $application->passport_no);
         })
         ->where('id', '!=', $application->id)
         ->with(['submitter', 'reviewer'])
         ->get();
-        
-        return view('applications.history', compact('application', 'duplicates'));
+
+        $historicalDuplicates = HistoricalApplication::where(function($query) use ($application) {
+            $query->where('civil_id', $application->civil_id)
+                  ->orWhere('mobile_number', $application->mobile_number)
+                  ->orWhere('passport_no', $application->passport_no);
+        })->get();
+
+        return view('applications.history', compact('application', 'duplicates', 'historicalDuplicates'));
     }
 
     public function export(Request $request)

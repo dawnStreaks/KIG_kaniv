@@ -128,7 +128,11 @@
             .then(response => response.json())
             .then(data => {
                 if (data.exists) {
-                    showError(inputElement, `This ${field.replace('_', ' ')} already exists`);
+                    const label = field.replace(/_/g, ' ');
+                    const msg = data.source === 'historical'
+                        ? `This ${label} was found in historical records — applicant may have applied before`
+                        : `This ${label} already exists in current applications`;
+                    showError(inputElement, msg);
                 } else {
                     showSuccess(inputElement);
                 }
@@ -176,10 +180,17 @@
             civilIdInput.addEventListener('blur', function() {
                 validateField('civil_id', this.value, this);
             });
-            
+
             passportInput.addEventListener('blur', function() {
                 validateField('passport_no', this.value, this);
             });
+
+            const mobileInput = document.getElementById('mobile_number');
+            if (mobileInput) {
+                mobileInput.addEventListener('blur', function() {
+                    validateField('mobile_number', this.value, this);
+                });
+            }
             
             areaSelect.addEventListener('change', function() {
                 const areaId = this.value;

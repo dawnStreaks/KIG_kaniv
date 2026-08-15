@@ -50,7 +50,7 @@
                             <td>{{ ucfirst($expense->type) }}</td>
                             <td>{{ $expense->expense_date }}</td>
                             <td>{{ $expense->beneficiary ?? '-' }}</td>
-                            <td>{{ $expense->paidByArea->name ?? '-' }}</td>
+                            <td>{{ $expense->paidByArea->name ?? ($expense->paidByMekhala ? $expense->paidByMekhala->name . ' (General)' : '-') }}</td>
                             <td>
                                 @if($expense->bill_path)
                                     <a href="{{ route('expenses.view-bill', $expense) }}" target="_blank" class="btn btn-sm btn-info">View Bill</a>

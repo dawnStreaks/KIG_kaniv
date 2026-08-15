@@ -30,7 +30,7 @@
         </div>
 
         @if($duplicates->count() > 0)
-            <div class="card">
+            <div class="card mb-4">
                 <div class="card-header">
                     <h5>Related Applications ({{ $duplicates->count() }})</h5>
                 </div>
@@ -42,6 +42,7 @@
                                     <th>ID</th>
                                     <th>Name</th>
                                     <th>Civil ID</th>
+                                    <th>Passport No</th>
                                     <th>Mobile</th>
                                     <th>Category</th>
                                     <th>Status</th>
@@ -55,6 +56,7 @@
                                         <td>{{ $duplicate->id }}</td>
                                         <td>{{ $duplicate->name }}</td>
                                         <td>{{ $duplicate->civil_id }}</td>
+                                        <td>{{ $duplicate->passport_no }}</td>
                                         <td>{{ $duplicate->mobile_number }}</td>
                                         <td>{{ ucfirst($duplicate->category) }}</td>
                                         <td>
@@ -73,9 +75,57 @@
                     </div>
                 </div>
             </div>
-        @else
+        @endif
+
+        @if($historicalDuplicates->count() > 0)
+            <div class="card mb-4">
+                <div class="card-header bg-warning-subtle">
+                    <h5 class="mb-0">Historical Records ({{ $historicalDuplicates->count() }}) <small class="text-muted fw-normal">— matched from imported historical data</small></h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Civil ID</th>
+                                    <th>Passport No</th>
+                                    <th>Mobile</th>
+                                    <th>Category</th>
+                                    <th>Application Type</th>
+                                    <th>Area</th>
+                                    <th>Unit</th>
+                                    <th>Status</th>
+                                    <th>Amount</th>
+                                    <th>Applied Date</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach($historicalDuplicates as $h)
+                                    <tr>
+                                        <td>{{ $h->name }}</td>
+                                        <td>{{ $h->civil_id ?? '-' }}</td>
+                                        <td>{{ $h->passport_no ?? '-' }}</td>
+                                        <td>{{ $h->mobile_number ?? '-' }}</td>
+                                        <td>{{ $h->category ?? '-' }}</td>
+                                        <td>{{ $h->application_type ?? '-' }}</td>
+                                        <td>{{ $h->area_name ?? '-' }}</td>
+                                        <td>{{ $h->unit_name ?? '-' }}</td>
+                                        <td>{{ $h->status ?? '-' }}</td>
+                                        <td>{{ $h->approved_amount ? number_format($h->approved_amount, 3) : '-' }}</td>
+                                        <td>{{ $h->applied_date ? $h->applied_date->format('Y-m-d') : '-' }}</td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        @endif
+
+        @if($duplicates->count() === 0 && $historicalDuplicates->count() === 0)
             <div class="alert alert-info">
-                No related applications found with the same Civil ID or Mobile Number.
+                No related applications found with the same Civil ID, Passport No, or Mobile Number.
             </div>
         @endif
     </div>

@@ -30,12 +30,18 @@
                                 <textarea class="form-control" id="particulars" name="particulars" rows="3" required>{{ old('particulars') }}</textarea>
                             </div>
                             <div class="mb-3">
+                                <label for="category" class="form-label">Category</label>
+                                <select class="form-control" id="category">
+                                    <option value="">Select Category</option>
+                                    @foreach($categories as $category)
+                                        <option value="{{ $category }}" {{ old('category') == $category ? 'selected' : '' }}>{{ $category }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                            <div class="mb-3">
                                 <label for="type" class="form-label">Type</label>
                                 <select class="form-control" id="type" name="type" required>
                                     <option value="">Select Type</option>
-                                    @foreach($expenseTypes as $type)
-                                        <option value="{{ $type }}" {{ old('type') == $type ? 'selected' : '' }}>{{ $type }}</option>
-                                    @endforeach
                                 </select>
                             </div>
                             <div class="mb-3">
@@ -44,16 +50,27 @@
                             </div>
                             <div class="mb-3">
                                 <label for="beneficiary" class="form-label">Beneficiary (Optional)</label>
-                                <input type="text" class="form-control" id="beneficiary" name="beneficiary" value="{{ old('beneficiary') }}">
-                            </div>
-                            <div class="mb-3">
-                                <label for="paid_by_area_id" class="form-label">Paid By (Optional)</label>
-                                <select class="form-control" id="paid_by_area_id" name="paid_by_area_id">
-                                    <option value="">Select Area</option>
-                                    @foreach($areas as $area)
-                                        <option value="{{ $area->id }}" {{ old('paid_by_area_id') == $area->id ? 'selected' : '' }}>{{ $area->name }}</option>
+                                <select class="form-control" id="beneficiary" name="beneficiary">
+                                    <option value="">Select Beneficiary</option>
+                                    @foreach($beneficiaries as $beneficiary)
+                                        <option value="{{ $beneficiary }}" {{ old('beneficiary') == $beneficiary ? 'selected' : '' }}>{{ $beneficiary }}</option>
                                     @endforeach
                                 </select>
+                            </div>
+                            <div class="mb-3">
+                                <label for="paid_by" class="form-label">Paid By (Optional)</label>
+                                <select class="form-control" id="paid_by" name="paid_by">
+                                    <option value="">Select Mekhala / Area</option>
+                                    @foreach($mekhalas as $mekhala)
+                                        <optgroup label="{{ $mekhala->name }}">
+                                            <option value="mekhala:{{ $mekhala->id }}" {{ old('paid_by') == 'mekhala:' . $mekhala->id ? 'selected' : '' }}>{{ $mekhala->name }} (General)</option>
+                                            @foreach($mekhala->areas as $area)
+                                                <option value="area:{{ $area->id }}" {{ old('paid_by') == 'area:' . $area->id ? 'selected' : '' }}>{{ $area->name }}</option>
+                                            @endforeach
+                                        </optgroup>
+                                    @endforeach
+                                </select>
+                                <small class="form-text text-muted">Pick the mekhala's general option if the expense isn't tied to a specific area.</small>
                             </div>
                             <div class="mb-3">
                                 <label for="bill" class="form-label">Upload Bill (Optional)</label>
@@ -70,4 +87,34 @@
             </div>
         </div>
     </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const expenseTypes = @json($expenseTypes);
+            const categorySelect = document.getElementById('category');
+            const typeSelect = document.getElementById('type');
+            const oldType = @json(old('type'));
+
+            function populateTypes(category, selected) {
+                typeSelect.innerHTML = '<option value="">Select Type</option>';
+                expenseTypes
+                    .filter(t => !category || t.category === category)
+                    .forEach(t => {
+                        const option = document.createElement('option');
+                        option.value = t.name;
+                        option.textContent = t.name;
+                        if (t.name === selected) {
+                            option.selected = true;
+                        }
+                        typeSelect.appendChild(option);
+                    });
+            }
+
+            categorySelect.addEventListener('change', function() {
+                populateTypes(this.value, null);
+            });
+
+            populateTypes(categorySelect.value, oldType);
+        });
+    </script>
 @endsection

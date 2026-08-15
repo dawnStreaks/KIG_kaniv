@@ -1,78 +1,62 @@
 @extends('layouts.app')
 
-@section('title', 'Expense Types')
+@section('title', 'Beneficiaries')
 
 @section('content')
     <div>
         <div class="d-flex justify-content-between align-items-center mb-3">
-            <h2>Expense Types</h2>
+            <h2>Beneficiaries</h2>
         </div>
 
         <div class="card">
             <div class="card-body">
-                <form method="POST" action="{{ route('admin.expense-types.store') }}" class="mb-4">
+                <form method="POST" action="{{ route('admin.beneficiaries.store') }}" class="mb-4">
                     @csrf
                     <div class="row">
-                        <div class="col-md-5">
-                            <input type="text" class="form-control" name="name" placeholder="Enter expense type name" required>
+                        <div class="col-md-8">
+                            <input type="text" class="form-control" name="name" placeholder="Enter beneficiary name" required>
                         </div>
                         <div class="col-md-4">
-                            <input type="text" class="form-control" name="category" list="category-list" placeholder="Category (optional)">
-                            <datalist id="category-list">
-                                @foreach($categories as $category)
-                                    <option value="{{ $category }}">
-                                @endforeach
-                            </datalist>
-                        </div>
-                        <div class="col-md-3">
-                            <button type="submit" class="btn btn-primary">Add Type</button>
+                            <button type="submit" class="btn btn-primary">Add Beneficiary</button>
                         </div>
                     </div>
                 </form>
 
-                @foreach($expenseTypes as $category => $types)
-                <h5 class="mt-4">{{ $category }}</h5>
                 <table class="table">
                     <thead>
                         <tr>
                             <th>Name</th>
-                            <th>Category</th>
                             <th>Status</th>
                             <th>Actions</th>
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach($types as $type)
+                        @foreach($beneficiaries as $beneficiary)
                         <tr>
                             <td>
-                                <span class="type-name">{{ $type->name }}</span>
-                                <input type="text" class="form-control edit-input d-none" value="{{ $type->name }}" data-id="{{ $type->id }}">
-                            </td>
-                            <td>
-                                <span class="type-category">{{ $type->category }}</span>
-                                <input type="text" class="form-control edit-category-input d-none" value="{{ $type->category }}" list="category-list" data-id="{{ $type->id }}">
+                                <span class="type-name">{{ $beneficiary->name }}</span>
+                                <input type="text" class="form-control edit-input d-none" value="{{ $beneficiary->name }}" data-id="{{ $beneficiary->id }}">
                             </td>
                             <td>
                                 <div class="form-check form-switch">
-                                    <input class="form-check-input status-toggle" type="checkbox" data-id="{{ $type->id }}" {{ $type->is_active ? 'checked' : '' }}>
-                                    <label class="form-check-label">{{ $type->is_active ? 'Active' : 'Inactive' }}</label>
+                                    <input class="form-check-input status-toggle" type="checkbox" data-id="{{ $beneficiary->id }}" {{ $beneficiary->is_active ? 'checked' : '' }}>
+                                    <label class="form-check-label">{{ $beneficiary->is_active ? 'Active' : 'Inactive' }}</label>
                                 </div>
                             </td>
                             <td>
-                                <button class="btn btn-sm btn-warning edit-btn" data-id="{{ $type->id }}">Edit</button>
-                                <button class="btn btn-sm btn-success save-btn d-none" data-id="{{ $type->id }}">Save</button>
+                                <button class="btn btn-sm btn-warning edit-btn" data-id="{{ $beneficiary->id }}">Edit</button>
+                                <button class="btn btn-sm btn-success save-btn d-none" data-id="{{ $beneficiary->id }}">Save</button>
                                 <button class="btn btn-sm btn-secondary cancel-btn d-none">Cancel</button>
-                                <form method="POST" action="{{ route('admin.expense-types.destroy', $type->id) }}" style="display: inline;">
+                                <form method="POST" action="{{ route('admin.beneficiaries.destroy', $beneficiary->id) }}" style="display: inline;">
                                     @csrf
                                     @method('DELETE')
-                                    <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Delete this type?')">Delete</button>
+                                    <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Delete this beneficiary?')">Delete</button>
                                 </form>
                             </td>
                         </tr>
                         @endforeach
                     </tbody>
                 </table>
-                @endforeach
             </div>
         </div>
     </div>
@@ -84,8 +68,6 @@
                     const row = this.closest('tr');
                     row.querySelector('.type-name').classList.add('d-none');
                     row.querySelector('.edit-input').classList.remove('d-none');
-                    row.querySelector('.type-category').classList.add('d-none');
-                    row.querySelector('.edit-category-input').classList.remove('d-none');
                     row.querySelector('.edit-btn').classList.add('d-none');
                     row.querySelector('.save-btn').classList.remove('d-none');
                     row.querySelector('.cancel-btn').classList.remove('d-none');
@@ -97,8 +79,6 @@
                     const row = this.closest('tr');
                     row.querySelector('.type-name').classList.remove('d-none');
                     row.querySelector('.edit-input').classList.add('d-none');
-                    row.querySelector('.type-category').classList.remove('d-none');
-                    row.querySelector('.edit-category-input').classList.add('d-none');
                     row.querySelector('.edit-btn').classList.remove('d-none');
                     row.querySelector('.save-btn').classList.add('d-none');
                     row.querySelector('.cancel-btn').classList.add('d-none');
@@ -110,34 +90,32 @@
                     const id = this.dataset.id;
                     const row = this.closest('tr');
                     const newName = row.querySelector('.edit-input').value;
-                    const newCategory = row.querySelector('.edit-category-input').value;
 
-                    fetch(`{{ url('/admin/expense-types') }}/${id}`, {
+                    fetch(`{{ url('/admin/beneficiaries') }}/${id}`, {
                         method: 'PUT',
                         headers: {
                             'Content-Type': 'application/json',
                             'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
                         },
-                        body: JSON.stringify({ name: newName, category: newCategory })
+                        body: JSON.stringify({ name: newName })
                     })
                     .then(response => response.json())
                     .then(data => {
                         if (data.success) {
                             row.querySelector('.type-name').textContent = newName;
-                            row.querySelector('.type-category').textContent = newCategory;
                             row.querySelector('.cancel-btn').click();
                         }
                     });
                 });
             });
-            
+
             document.querySelectorAll('.status-toggle').forEach(toggle => {
                 toggle.addEventListener('change', function() {
                     const id = this.dataset.id;
                     const isActive = this.checked;
                     const label = this.nextElementSibling;
-                    
-                    fetch(`{{ url('/admin/expense-types') }}/${id}/toggle-status`, {
+
+                    fetch(`{{ url('/admin/beneficiaries') }}/${id}/toggle-status`, {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',

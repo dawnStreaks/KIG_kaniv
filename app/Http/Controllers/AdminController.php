@@ -412,22 +412,31 @@ class AdminController extends Controller
     // Expense Types
     public function expenseTypes()
     {
-        $expenseTypes = \App\Models\ExpenseType::all();
-        return view('admin.expense-types.index', compact('expenseTypes'));
+        $expenseTypes = \App\Models\ExpenseType::orderByRaw('category IS NULL, category')->orderBy('name')->get()->groupBy(function ($type) {
+            return $type->category ?: 'Uncategorized';
+        });
+        $categories = \App\Models\ExpenseType::whereNotNull('category')->distinct()->orderBy('category')->pluck('category');
+        return view('admin.expense-types.index', compact('expenseTypes', 'categories'));
     }
 
     public function storeExpenseType(Request $request)
     {
-        $request->validate(['name' => 'required|string|max:255']);
-        \App\Models\ExpenseType::create(['name' => $request->name]);
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'category' => 'nullable|string|max:255',
+        ]);
+        \App\Models\ExpenseType::create(['name' => $request->name, 'category' => $request->category]);
         return redirect()->route('admin.expense-types.index')->with('success', 'Expense type added successfully');
     }
 
     public function updateExpenseType(Request $request, $id)
     {
-        $request->validate(['name' => 'required|string|max:255']);
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'category' => 'nullable|string|max:255',
+        ]);
         $expenseType = \App\Models\ExpenseType::findOrFail($id);
-        $expenseType->update(['name' => $request->name]);
+        $expenseType->update($request->only(['name', 'category']));
         return response()->json(['success' => true]);
     }
 
@@ -444,7 +453,43 @@ class AdminController extends Controller
         $expenseType->update(['is_active' => $request->is_active]);
         return response()->json(['success' => true]);
     }
-    
+
+    // Beneficiaries
+    public function beneficiaries()
+    {
+        $beneficiaries = \App\Models\Beneficiary::orderBy('name')->get();
+        return view('admin.beneficiaries.index', compact('beneficiaries'));
+    }
+
+    public function storeBeneficiary(Request $request)
+    {
+        $request->validate(['name' => 'required|string|max:255']);
+        \App\Models\Beneficiary::create(['name' => $request->name]);
+        return redirect()->route('admin.beneficiaries.index')->with('success', 'Beneficiary added successfully');
+    }
+
+    public function updateBeneficiary(Request $request, $id)
+    {
+        $request->validate(['name' => 'required|string|max:255']);
+        $beneficiary = \App\Models\Beneficiary::findOrFail($id);
+        $beneficiary->update(['name' => $request->name]);
+        return response()->json(['success' => true]);
+    }
+
+    public function destroyBeneficiary($id)
+    {
+        \App\Models\Beneficiary::findOrFail($id)->delete();
+        return redirect()->route('admin.beneficiaries.index')->with('success', 'Beneficiary deleted successfully');
+    }
+
+    public function toggleBeneficiaryStatus(Request $request, $id)
+    {
+        $request->validate(['is_active' => 'required|boolean']);
+        $beneficiary = \App\Models\Beneficiary::findOrFail($id);
+        $beneficiary->update(['is_active' => $request->is_active]);
+        return response()->json(['success' => true]);
+    }
+
     public function openingBalance()
     {
         $eastBalances = OpeningBalance::where('mekhala_id', 1)->orderBy('year', 'desc')->orderBy('month', 'desc')->get();
