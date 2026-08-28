@@ -107,58 +107,73 @@
                     <a class="nav-link" href="{{ route('reports.collection') }}">Collection Report</a>
                     <a class="nav-link" href="{{ route('collections.report') }}">Collection Chart Report</a>
                     <a class="nav-link" href="{{ route('collections.unit-type-comparison') }}">Unit Type Comparison</a>
-                @else
-                    @if(auth()->user()->user_type == 'admin' || auth()->user()->user_type == 'center')
-                        <div class="px-3 py-2">
-                            <small class="text-muted">{{ strtoupper(auth()->user()->user_type) }}</small>
-                        </div>
-                        <a class="nav-link" href="{{ route('admin.dashboard') }}">Admin Dashboard</a>
-                        <a class="nav-link" href="{{ route('admin.users.index') }}">Users</a>
-                        <a class="nav-link" href="{{ route('admin.areas.index') }}">Areas</a>
-                        <a class="nav-link" href="{{ route('admin.mekhalas.index') }}">Mekhalas</a>
-                        <a class="nav-link" href="{{ route('admin.units.index') }}">Units</a>
-                        
-                        <div class="px-3 py-2">
-                            <small class="text-muted">SETTINGS</small>
-                        </div>
-                        <a class="nav-link" href="{{ route('admin.terms.index') }}">Collection Terms</a>
-                        <a class="nav-link" href="{{ route('admin.types.index') }}">Collection Types</a>
-                        <a class="nav-link" href="{{ route('admin.application-types.index') }}">Application Terms</a>
-                        <a class="nav-link" href="{{ route('admin.expense-types.index') }}">Expense Types</a>
-                        <a class="nav-link" href="{{ route('admin.beneficiaries.index') }}">Beneficiaries</a>
-                        <a class="nav-link" href="{{ route('admin.opening-balance') }}">Opening Balance</a>
-                        <a class="nav-link" href="{{ route('admin.historical-applications.index') }}">Historical Applications</a>
+                @elseif(auth()->user()->user_type == 'admin')
+                    <div class="px-3 py-2">
+                        <small class="text-muted">ADMIN</small>
+                    </div>
+                    <a class="nav-link" href="{{ route('admin.dashboard') }}">Admin Dashboard</a>
+                    <a class="nav-link" href="{{ route('admin.users.index') }}">Users</a>
+                    <a class="nav-link" href="{{ route('admin.areas.index') }}">Areas</a>
+                    <a class="nav-link" href="{{ route('admin.mekhalas.index') }}">Mekhalas</a>
+                    <a class="nav-link" href="{{ route('admin.units.index') }}">Units</a>
 
-                        <div class="px-3 py-2">
-                            <small class="text-muted">MAIN</small>
-                        </div>
-                        <a class="nav-link" href="{{ route('applications.index') }}">Applications</a>
-                        <a class="nav-link" href="{{ route('collections.index') }}">Collections</a>
-                        <a class="nav-link" href="{{ route('collections.center-receive') }}">Center Receive Collections</a>
-                        @if(auth()->user()->user_type !== 'center')
-                            <a class="nav-link" href="{{ route('applications.review') }}">Review Applications</a>
-                        @endif
-                        <a class="nav-link" href="{{ route('expenses.index') }}">Expenses</a>
-                        @if(auth()->user()->canAddInvestments())
-                            <a class="nav-link" href="{{ route('investments.index') }}">Investments</a>
-                        @endif
-                        
-                        <div class="px-3 py-2">
-                            <small class="text-muted">REPORTS</small>
-                        </div>
-                        <a class="nav-link" href="{{ route('reports.east-financial') }}">East Mekhala Financial</a>
-                        <a class="nav-link" href="{{ route('reports.west-financial') }}">West Mekhala Financial</a>
-                        <a class="nav-link" href="{{ route('reports.combined-financial') }}">Combined Financial</a>
-                        <a class="nav-link" href="{{ route('reports.center-financial') }}">Center Financial</a>
-                        <a class="nav-link" href="{{ route('reports.area-summary') }}">Area Summary</a>
-                        <a class="nav-link" href="{{ route('reports.collection') }}">Collection Report</a>
-                        <a class="nav-link" href="{{ route('collections.report') }}">Collection Chart Report</a>
-                        <a class="nav-link" href="{{ route('collections.unit-type-comparison') }}">Unit Type Comparison</a>
-                        <a class="nav-link" href="{{ route('reports.mekhala') }}">Mekhala Report</a>
-                        @if(auth()->user()->user_type !== 'center')
-                            <a class="nav-link" href="{{ route('reports.application-payment') }}">Application Payment</a>
-                        @endif
+                    <div class="px-3 py-2">
+                        <small class="text-muted">SETTINGS</small>
+                    </div>
+                    <a class="nav-link" href="{{ route('admin.terms.index') }}">Collection Terms</a>
+                    <a class="nav-link" href="{{ route('admin.types.index') }}">Collection Types</a>
+                    <a class="nav-link" href="{{ route('admin.application-types.index') }}">Application Terms</a>
+                    <a class="nav-link" href="{{ route('admin.expense-types.index') }}">Expense Types</a>
+                    <a class="nav-link" href="{{ route('admin.beneficiaries.index') }}">Beneficiaries</a>
+                    <a class="nav-link" href="{{ route('admin.opening-balance') }}">Opening Balance</a>
+                    <a class="nav-link" href="{{ route('admin.historical-applications.index') }}">Historical Applications</a>
+
+                    <div class="px-3 py-2">
+                        <small class="text-muted">MAIN</small>
+                    </div>
+                    <a class="nav-link" href="{{ route('applications.index') }}">Applications</a>
+                    <a class="nav-link" href="{{ route('collections.index') }}">Collections</a>
+                    <a class="nav-link" href="{{ route('collections.center-receive') }}">Center Receive Collections</a>
+                    <a class="nav-link" href="{{ route('applications.review') }}">Review Applications</a>
+                    <a class="nav-link" href="{{ route('expenses.index') }}">Expenses</a>
+                    @if(auth()->user()->canAddInvestments())
+                        <a class="nav-link" href="{{ route('investments.index') }}">Investments</a>
                     @endif
+
+                    <div class="px-3 py-2">
+                        <small class="text-muted">REPORTS</small>
+                    </div>
+                    <a class="nav-link" href="{{ route('reports.east-financial') }}">East Mekhala Financial</a>
+                    <a class="nav-link" href="{{ route('reports.west-financial') }}">West Mekhala Financial</a>
+                    <a class="nav-link" href="{{ route('reports.combined-financial') }}">Combined Financial</a>
+                    <a class="nav-link" href="{{ route('reports.center-financial') }}">Center Financial</a>
+                    <a class="nav-link" href="{{ route('reports.area-summary') }}">Area Summary</a>
+                    <a class="nav-link" href="{{ route('reports.collection') }}">Collection Report</a>
+                    <a class="nav-link" href="{{ route('collections.report') }}">Collection Chart Report</a>
+                    <a class="nav-link" href="{{ route('collections.unit-type-comparison') }}">Unit Type Comparison</a>
+                    <a class="nav-link" href="{{ route('reports.mekhala') }}">Mekhala Report</a>
+                    <a class="nav-link" href="{{ route('reports.application-payment') }}">Application Payment</a>
+                @elseif(auth()->user()->user_type == 'center')
+                    <div class="px-3 py-2">
+                        <small class="text-muted">CENTER</small>
+                    </div>
+                    <a class="nav-link" href="{{ route('applications.index') }}">Applications</a>
+                    <a class="nav-link" href="{{ route('collections.index') }}">Collections</a>
+                    <a class="nav-link" href="{{ route('collections.center-receive') }}">Center Receive Collections</a>
+                    <a class="nav-link" href="{{ route('expenses.index') }}">Expenses</a>
+                    @if(auth()->user()->canAddInvestments())
+                        <a class="nav-link" href="{{ route('investments.index') }}">Investments</a>
+                    @endif
+
+                    <div class="px-3 py-2">
+                        <small class="text-muted">REPORTS</small>
+                    </div>
+                    <a class="nav-link" href="{{ route('reports.center-financial') }}">Center Financial</a>
+                    <a class="nav-link" href="{{ route('reports.area-summary') }}">Area Summary</a>
+                    <a class="nav-link" href="{{ route('reports.collection') }}">Collection Report</a>
+                    <a class="nav-link" href="{{ route('collections.report') }}">Collection Chart Report</a>
+                    <a class="nav-link" href="{{ route('collections.unit-type-comparison') }}">Unit Type Comparison</a>
+                    <a class="nav-link" href="{{ route('reports.mekhala') }}">Mekhala Report</a>
                 @endif
             @endauth
             

@@ -232,6 +232,10 @@ class ReportController extends Controller
 
     private function getMekhalaFinancialStatement(Request $request, $type)
     {
+        if (auth()->user()->isCenterUser()) {
+            abort(403, 'Center users cannot view mekhala-level financial statements');
+        }
+
         $mekhalaIds = match($type) {
             'east' => [1],
             'west' => [2],
