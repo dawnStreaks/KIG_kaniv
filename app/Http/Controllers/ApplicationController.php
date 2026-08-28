@@ -109,6 +109,10 @@ class ApplicationController extends Controller
 
     public function create()
     {
+        if (!auth()->user()->canCreateApplications()) {
+            abort(403, 'Only area users can submit new applications');
+        }
+
         $applicationTypes = \App\Models\ApplicationType::active()->get();
         
         // Filter areas based on user type
@@ -125,6 +129,10 @@ class ApplicationController extends Controller
 
     public function store(Request $request)
     {
+        if (!auth()->user()->canCreateApplications()) {
+            abort(403, 'Only area users can submit new applications');
+        }
+
         $validated = $request->validate([
             'front_page_photo' => 'required|image|max:2048',
             'name' => 'required|string|max:255',
@@ -200,7 +208,7 @@ class ApplicationController extends Controller
 
     public function destroy(Application $application)
     {
-        if ($application->submitted_by !== auth()->id() && !auth()->user()->isMekhalaUser()) {
+        if ($application->submitted_by !== auth()->id() && !auth()->user()->isMekhalaUser() && !auth()->user()->isCenterUser()) {
             abort(403);
         }
 

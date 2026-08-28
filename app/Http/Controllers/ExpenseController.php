@@ -15,18 +15,11 @@ class ExpenseController extends Controller
     {
         $query = Expense::with(['application', 'enteredBy', 'paidByArea', 'paidByMekhala']);
         
-        // Filter by mekhala for mekhala users
+        // Filter by mekhala for mekhala users; center/admin see all expenses (same as applications)
         if (auth()->user()->isMekhalaUser()) {
             $query->where('entered_by', auth()->id());
         }
-        
-        // Filter by center users for center login
-        if (auth()->user()->isCenterUser()) {
-            $query->whereHas('enteredBy', function($q) {
-                $q->where('user_type', 'center');
-            });
-        }
-        
+
         if ($request->filled('type')) {
             $query->where('type', $request->type);
         }
@@ -38,10 +31,23 @@ class ExpenseController extends Controller
         if ($request->filled('date_to')) {
             $query->where('expense_date', '<=', $request->date_to);
         }
-        
+
+        // Option lists for the column filters, drawn from the same (unpaginated) scope
+        $filterScope = clone $query;
+        $beneficiaryOptions = (clone $filterScope)->whereNotNull('beneficiary')->distinct()->orderBy('beneficiary')->pluck('beneficiary');
+        $enteredByIds = (clone $filterScope)->pluck('entered_by')->unique();
+        $enteredByOptions = \App\Models\User::whereIn('id', $enteredByIds)->orderBy('name')->pluck('name');
+
         $expenses = $query->latest('expense_date')->paginate(10);
         $expenseTypes = \App\Models\ExpenseType::active()->pluck('name')->toArray();
-        return view('expenses.index', compact('expenses', 'expenseTypes'));
+        $expenseTypeCategories = \App\Models\ExpenseType::pluck('category', 'name');
+        $categories = $expenseTypeCategories->filter()->unique()->sort()->values();
+        $paidByOptions = $this->paidByFilterOptions();
+
+        return view('expenses.index', compact(
+            'expenses', 'expenseTypes', 'expenseTypeCategories', 'categories',
+            'beneficiaryOptions', 'enteredByOptions', 'paidByOptions'
+        ));
     }
 
     public function create()
@@ -53,8 +59,9 @@ class ExpenseController extends Controller
         $categories = $expenseTypes->pluck('category')->filter()->unique()->sort()->values();
         $beneficiaries = \App\Models\Beneficiary::active()->orderBy('name')->pluck('name');
         $mekhalas = $this->paidByMekhalas();
+        $canPayByCenter = $this->canPayByCenter();
 
-        return view('expenses.create', compact('expenseTypes', 'categories', 'beneficiaries', 'mekhalas'));
+        return view('expenses.create', compact('expenseTypes', 'categories', 'beneficiaries', 'mekhalas', 'canPayByCenter'));
     }
 
     public function store(Request $request)
@@ -72,7 +79,11 @@ class ExpenseController extends Controller
             'type' => 'required|in:' . implode(',', $allowedTypes),
             'bill' => 'nullable|file|mimes:pdf,jpg,jpeg,png,xlsx,xls|max:2048',
             'beneficiary' => 'nullable|string|max:255',
+            'custom_beneficiary' => 'nullable|string|max:255|required_if:beneficiary,__other__',
         ]);
+
+        $validated['beneficiary'] = $this->resolveBeneficiary($request);
+        unset($validated['custom_beneficiary']);
 
         $validated = array_merge($validated, $this->resolvePaidBy($request));
 
@@ -103,11 +114,18 @@ class ExpenseController extends Controller
         $selectedCategory = old('category', $currentType->category ?? '');
 
         $mekhalas = $this->paidByMekhalas();
+        $canPayByCenter = $this->canPayByCenter();
         $selectedPaidBy = old('paid_by', $expense->paid_by_area_id
             ? 'area:' . $expense->paid_by_area_id
-            : ($expense->paid_by_mekhala_id ? 'mekhala:' . $expense->paid_by_mekhala_id : ''));
+            : ($expense->paid_by_mekhala_id
+                ? 'mekhala:' . $expense->paid_by_mekhala_id
+                : ($expense->paid_by_center ? 'center:1' : '')));
 
-        return view('expenses.edit', compact('expense', 'applications', 'expenseTypes', 'categories', 'beneficiaries', 'selectedCategory', 'mekhalas', 'selectedPaidBy'));
+        $isOtherBeneficiary = $expense->beneficiary && !$beneficiaries->contains($expense->beneficiary);
+        $selectedBeneficiary = old('beneficiary', $isOtherBeneficiary ? '__other__' : $expense->beneficiary);
+        $customBeneficiaryValue = old('custom_beneficiary', $isOtherBeneficiary ? $expense->beneficiary : '');
+
+        return view('expenses.edit', compact('expense', 'applications', 'expenseTypes', 'categories', 'beneficiaries', 'selectedCategory', 'mekhalas', 'canPayByCenter', 'selectedPaidBy', 'selectedBeneficiary', 'customBeneficiaryValue'));
     }
 
     public function update(Request $request, Expense $expense)
@@ -121,7 +139,11 @@ class ExpenseController extends Controller
             'type' => 'required|in:' . implode(',', $allowedTypes),
             'bill' => 'nullable|file|mimes:pdf,jpg,jpeg,png,xlsx,xls|max:2048',
             'beneficiary' => 'nullable|string|max:255',
+            'custom_beneficiary' => 'nullable|string|max:255|required_if:beneficiary,__other__',
         ]);
+
+        $validated['beneficiary'] = $this->resolveBeneficiary($request);
+        unset($validated['custom_beneficiary']);
 
         $validated = array_merge($validated, $this->resolvePaidBy($request));
 
@@ -168,13 +190,56 @@ class ExpenseController extends Controller
     }
 
     /**
-     * Parse the combined "paid_by" select ("area:{id}" or "mekhala:{id}") into the
-     * expense's paid_by_area_id / paid_by_mekhala_id columns, scoped to what the
-     * current user is allowed to select.
+     * Every label paid_by_label can produce, for the "Paid By" column filter dropdown.
+     */
+    private function paidByFilterOptions()
+    {
+        $options = collect();
+
+        if ($this->canPayByCenter()) {
+            $options->push('Center (General)');
+        }
+
+        foreach ($this->paidByMekhalas() as $mekhala) {
+            $options->push($mekhala->name . ' (General)');
+            foreach ($mekhala->areas as $area) {
+                $options->push($area->name);
+            }
+        }
+
+        return $options;
+    }
+
+    /**
+     * Resolve the "beneficiary" select into a plain name: when "__other__" is
+     * chosen, use the free-typed custom_beneficiary value instead.
+     */
+    private function resolveBeneficiary(Request $request): ?string
+    {
+        if ($request->input('beneficiary') === '__other__') {
+            return trim($request->input('custom_beneficiary')) ?: null;
+        }
+
+        return $request->input('beneficiary') ?: null;
+    }
+
+    /**
+     * Only non-mekhala users (admin/center) may tag an expense as paid by the
+     * center itself, since it isn't tied to any mekhala/area.
+     */
+    private function canPayByCenter(): bool
+    {
+        return !auth()->user()->isMekhalaUser();
+    }
+
+    /**
+     * Parse the combined "paid_by" select ("area:{id}", "mekhala:{id}", or "center:1")
+     * into the expense's paid_by_area_id / paid_by_mekhala_id / paid_by_center columns,
+     * scoped to what the current user is allowed to select.
      */
     private function resolvePaidBy(Request $request): array
     {
-        $result = ['paid_by_area_id' => null, 'paid_by_mekhala_id' => null];
+        $result = ['paid_by_area_id' => null, 'paid_by_mekhala_id' => null, 'paid_by_center' => false];
 
         if (!$request->filled('paid_by')) {
             return $result;
@@ -194,6 +259,11 @@ class ExpenseController extends Controller
                 throw \Illuminate\Validation\ValidationException::withMessages(['paid_by' => 'Invalid paid by selection.']);
             }
             $result['paid_by_mekhala_id'] = (int) $id;
+        } elseif ($kind === 'center') {
+            if (!$this->canPayByCenter()) {
+                throw \Illuminate\Validation\ValidationException::withMessages(['paid_by' => 'Invalid paid by selection.']);
+            }
+            $result['paid_by_center'] = true;
         } else {
             throw \Illuminate\Validation\ValidationException::withMessages(['paid_by' => 'Invalid paid by selection.']);
         }

@@ -53,14 +53,12 @@
                                 <label for="beneficiary" class="form-label">Beneficiary (Optional)</label>
                                 <select class="form-control" id="beneficiary" name="beneficiary">
                                     <option value="">Select Beneficiary</option>
-                                    @php $currentBeneficiary = old('beneficiary', $expense->beneficiary); @endphp
                                     @foreach($beneficiaries as $beneficiary)
-                                        <option value="{{ $beneficiary }}" {{ $currentBeneficiary == $beneficiary ? 'selected' : '' }}>{{ $beneficiary }}</option>
+                                        <option value="{{ $beneficiary }}" {{ $selectedBeneficiary == $beneficiary ? 'selected' : '' }}>{{ $beneficiary }}</option>
                                     @endforeach
-                                    @if($currentBeneficiary && !$beneficiaries->contains($currentBeneficiary))
-                                        <option value="{{ $currentBeneficiary }}" selected>{{ $currentBeneficiary }}</option>
-                                    @endif
+                                    <option value="__other__" {{ $selectedBeneficiary == '__other__' ? 'selected' : '' }}>Other</option>
                                 </select>
+                                <input type="text" class="form-control mt-2 {{ $selectedBeneficiary == '__other__' ? '' : 'd-none' }}" id="custom_beneficiary" name="custom_beneficiary" placeholder="Enter custom beneficiary name" value="{{ $customBeneficiaryValue }}">
                             </div>
                             <div class="mb-3">
                                 <label for="paid_by" class="form-label">Paid By (Optional)</label>
@@ -69,9 +67,17 @@
                                         return $mekhala->areas->pluck('id')->map(fn($id) => 'area:' . $id)
                                             ->push('mekhala:' . $mekhala->id);
                                     });
+                                    if ($canPayByCenter) {
+                                        $knownPaidByValues->push('center:1');
+                                    }
                                 @endphp
                                 <select class="form-control" id="paid_by" name="paid_by">
                                     <option value="">Select Mekhala / Area</option>
+                                    @if($canPayByCenter)
+                                        <optgroup label="Center">
+                                            <option value="center:1" {{ $selectedPaidBy == 'center:1' ? 'selected' : '' }}>Center General</option>
+                                        </optgroup>
+                                    @endif
                                     @foreach($mekhalas as $mekhala)
                                         <optgroup label="{{ $mekhala->name }}">
                                             <option value="mekhala:{{ $mekhala->id }}" {{ $selectedPaidBy == 'mekhala:' . $mekhala->id ? 'selected' : '' }}>{{ $mekhala->name }} (General)</option>
@@ -81,7 +87,7 @@
                                         </optgroup>
                                     @endforeach
                                     @if($selectedPaidBy && !$knownPaidByValues->contains($selectedPaidBy))
-                                        <option value="{{ $selectedPaidBy }}" selected>{{ $expense->paidByArea->name ?? $expense->paidByMekhala->name ?? $selectedPaidBy }}</option>
+                                        <option value="{{ $selectedPaidBy }}" selected>{{ $expense->paid_by_label ?? $selectedPaidBy }}</option>
                                     @endif
                                 </select>
                                 <small class="form-text text-muted">Pick the mekhala's general option if the expense isn't tied to a specific area.</small>
@@ -144,6 +150,18 @@
             });
 
             populateTypes(categorySelect.value, currentType);
+
+            const beneficiarySelect = document.getElementById('beneficiary');
+            const customBeneficiaryInput = document.getElementById('custom_beneficiary');
+
+            function toggleCustomBeneficiary() {
+                const isOther = beneficiarySelect.value === '__other__';
+                customBeneficiaryInput.classList.toggle('d-none', !isOther);
+                customBeneficiaryInput.required = isOther;
+            }
+
+            beneficiarySelect.addEventListener('change', toggleCustomBeneficiary);
+            toggleCustomBeneficiary();
         });
     </script>
 @endsection

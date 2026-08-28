@@ -10,7 +10,7 @@
                     <form method="GET" class="d-flex gap-2">
                         <select name="year" class="form-select" onchange="this.form.submit()">
                             @for($y = date('Y'); $y >= 2020; $y--)
-                                <option value="{{ $y }}" {{ $year == $y ? 'selected' : '' }}>{{ $y }}</option>
+                                <option value="MM{{ $y }}" {{ $year == $y ? 'selected' : '' }}>{{ $y }}</option>
                             @endfor
                         </select>
                         <select name="month" class="form-select" onchange="this.form.submit()">

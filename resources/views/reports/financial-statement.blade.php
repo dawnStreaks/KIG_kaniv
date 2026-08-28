@@ -15,6 +15,9 @@
                     <button type="submit" class="btn btn-primary btn-sm">Filter</button>
                 </form>
                 <a href="{{ route('reports.export-financial') }}" class="btn btn-success btn-sm">Export</a>
+                @if($showBreakdowns ?? false)
+                    <a href="{{ request()->fullUrlWithQuery(['format' => 'pdf']) }}" class="btn btn-outline-danger btn-sm">Export PDF</a>
+                @endif
             </div>
         </div>
 
@@ -34,21 +37,77 @@
             </div>
             <div class="col-md-4">
                 <div class="card">
-                    <div class="card-header">
+                    <div class="card-header d-flex justify-content-between align-items-center">
                         <h5>Collections</h5>
+                        @if($showBreakdowns ?? false)
+                        <button class="btn btn-sm btn-outline-primary" type="button" data-bs-toggle="collapse" data-bs-target="#collectionsDetails">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                        @endif
                     </div>
                     <div class="card-body">
                         <h3 class="text-center text-success">KWD {{ number_format($totalCollections ?? 0, 3) }}</h3>
+                        @if($showBreakdowns ?? false)
+                        <div class="collapse mt-3" id="collectionsDetails">
+                            <table class="table table-sm mb-0">
+                                @forelse($collectionsByType ?? [] as $type => $total)
+                                <tr>
+                                    <td>{{ ucfirst($type) }}</td>
+                                    <td class="text-end">KWD {{ number_format($total, 3) }}</td>
+                                </tr>
+                                @empty
+                                <tr><td class="text-muted text-center">No collections in this period</td></tr>
+                                @endforelse
+                            </table>
+                        </div>
+                        @endif
                     </div>
                 </div>
             </div>
             <div class="col-md-4">
                 <div class="card">
-                    <div class="card-header">
+                    <div class="card-header d-flex justify-content-between align-items-center">
                         <h5>Expenses</h5>
+                        @if($showBreakdowns ?? false)
+                        <button class="btn btn-sm btn-outline-primary" type="button" data-bs-toggle="collapse" data-bs-target="#expensesDetails">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                        @endif
                     </div>
                     <div class="card-body">
                         <h3 class="text-center text-danger">KWD {{ number_format($totalExpenses ?? 0, 3) }}</h3>
+                        @if($showBreakdowns ?? false)
+                        <div class="collapse mt-3" id="expensesDetails">
+                            <table class="table table-sm mb-0">
+                                @forelse($expensesByCategory ?? [] as $category => $categoryData)
+                                <tr>
+                                    <td>
+                                        <button class="btn btn-sm btn-link p-0 text-decoration-none" type="button" data-bs-toggle="collapse" data-bs-target="#expenseCategory{{ $loop->index }}">
+                                            <i class="fas fa-caret-right"></i> {{ $category }}
+                                        </button>
+                                    </td>
+                                    <td class="text-end">KWD {{ number_format($categoryData['total'], 3) }}</td>
+                                </tr>
+                                <tr>
+                                    <td colspan="2" class="p-0 border-0">
+                                        <div class="collapse" id="expenseCategory{{ $loop->index }}">
+                                            <table class="table table-sm mb-0 ms-3">
+                                                @foreach($categoryData['types'] as $type => $amount)
+                                                <tr>
+                                                    <td>{{ $type }}</td>
+                                                    <td class="text-end">KWD {{ number_format($amount, 3) }}</td>
+                                                </tr>
+                                                @endforeach
+                                            </table>
+                                        </div>
+                                    </td>
+                                </tr>
+                                @empty
+                                <tr><td colspan="2" class="text-muted text-center">No expenses in this period</td></tr>
+                                @endforelse
+                            </table>
+                        </div>
+                        @endif
                     </div>
                 </div>
             </div>
@@ -57,11 +116,30 @@
         <div class="row mt-4">
             <div class="col-md-4">
                 <div class="card">
-                    <div class="card-header">
+                    <div class="card-header d-flex justify-content-between align-items-center">
                         <h5>Applications</h5>
+                        @if($showBreakdowns ?? false)
+                        <button class="btn btn-sm btn-outline-primary" type="button" data-bs-toggle="collapse" data-bs-target="#applicationsDetails">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                        @endif
                     </div>
                     <div class="card-body">
                         <h3 class="text-center text-danger">KWD {{ number_format($totalApplications ?? 0, 3) }}</h3>
+                        @if($showBreakdowns ?? false)
+                        <div class="collapse mt-3" id="applicationsDetails">
+                            <table class="table table-sm mb-0">
+                                @forelse($applicationsByCategory ?? [] as $category => $total)
+                                <tr>
+                                    <td>{{ $category }}</td>
+                                    <td class="text-end">KWD {{ number_format($total, 3) }}</td>
+                                </tr>
+                                @empty
+                                <tr><td class="text-muted text-center">No paid applications in this period</td></tr>
+                                @endforelse
+                            </table>
+                        </div>
+                        @endif
                     </div>
                 </div>
             </div>

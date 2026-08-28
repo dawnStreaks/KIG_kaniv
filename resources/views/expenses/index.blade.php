@@ -22,6 +22,7 @@
                         <tr>
                             <th>Amount</th>
                             <th>Particulars</th>
+                            <th>Category</th>
                             <th>Type</th>
                             <th>Expense Date</th>
                             <th>Beneficiary</th>
@@ -33,12 +34,13 @@
                         <tr>
                             <th><input type="text" class="form-control form-control-sm filter-input" placeholder="Filter Amount" data-column="0"></th>
                             <th><input type="text" class="form-control form-control-sm filter-input" placeholder="Filter Particulars" data-column="1"></th>
-                            <th><select class="form-control form-control-sm filter-input" data-column="2"><option value="">All Types</option>@foreach($expenseTypes as $type)<option value="{{ $type }}">{{ $type }}</option>@endforeach</select></th>
-                            <th><input type="date" class="form-control form-control-sm filter-input" data-column="3"></th>
-                            <th><input type="text" class="form-control form-control-sm filter-input" placeholder="Filter Beneficiary" data-column="4"></th>
-                            <th><input type="text" class="form-control form-control-sm filter-input" placeholder="Filter Paid By" data-column="5"></th>
+                            <th><select class="form-control form-control-sm filter-input" data-column="2"><option value="">All Categories</option>@foreach($categories as $category)<option value="{{ $category }}">{{ $category }}</option>@endforeach</select></th>
+                            <th><select class="form-control form-control-sm filter-input" data-column="3"><option value="">All Types</option>@foreach($expenseTypes as $type)<option value="{{ $type }}">{{ $type }}</option>@endforeach</select></th>
+                            <th><input type="date" class="form-control form-control-sm filter-input" data-column="4"></th>
+                            <th><select class="form-control form-control-sm filter-input" data-column="5"><option value="">All Beneficiaries</option>@foreach($beneficiaryOptions as $beneficiary)<option value="{{ $beneficiary }}">{{ $beneficiary }}</option>@endforeach</select></th>
+                            <th><select class="form-control form-control-sm filter-input" data-column="6"><option value="">All Paid By</option>@foreach($paidByOptions as $paidBy)<option value="{{ $paidBy }}">{{ $paidBy }}</option>@endforeach</select></th>
                             <th></th>
-                            <th><input type="text" class="form-control form-control-sm filter-input" placeholder="Filter User" data-column="7"></th>
+                            <th><select class="form-control form-control-sm filter-input" data-column="8"><option value="">All Users</option>@foreach($enteredByOptions as $user)<option value="{{ $user }}">{{ $user }}</option>@endforeach</select></th>
                             <th></th>
                         </tr>
                     </thead>
@@ -47,10 +49,11 @@
                         <tr>
                             <td>KWD {{ number_format($expense->amount, 3) }}</td>
                             <td>{{ $expense->particulars }}</td>
+                            <td>{{ $expenseTypeCategories[$expense->type] ?? '-' }}</td>
                             <td>{{ ucfirst($expense->type) }}</td>
                             <td>{{ $expense->expense_date }}</td>
                             <td>{{ $expense->beneficiary ?? '-' }}</td>
-                            <td>{{ $expense->paidByArea->name ?? ($expense->paidByMekhala ? $expense->paidByMekhala->name . ' (General)' : '-') }}</td>
+                            <td>{{ $expense->paid_by_label ?? '-' }}</td>
                             <td>
                                 @if($expense->bill_path)
                                     <a href="{{ route('expenses.view-bill', $expense) }}" target="_blank" class="btn btn-sm btn-info">View Bill</a>

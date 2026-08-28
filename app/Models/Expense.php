@@ -17,11 +17,13 @@ class Expense extends Model
         'beneficiary',
         'paid_by_area_id',
         'paid_by_mekhala_id',
+        'paid_by_center',
     ];
 
     protected $casts = [
         'amount' => 'decimal:3',
         'expense_date' => 'date',
+        'paid_by_center' => 'boolean',
     ];
 
     public function application()
@@ -42,6 +44,20 @@ class Expense extends Model
     public function paidByMekhala()
     {
         return $this->belongsTo(Mekhala::class, 'paid_by_mekhala_id');
+    }
+
+    public function getPaidByLabelAttribute()
+    {
+        if ($this->paidByArea) {
+            return $this->paidByArea->name;
+        }
+        if ($this->paidByMekhala) {
+            return $this->paidByMekhala->name . ' (General)';
+        }
+        if ($this->paid_by_center) {
+            return 'Center (General)';
+        }
+        return null;
     }
 
     public function scopeApplicationExpenses($query)

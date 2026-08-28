@@ -55,12 +55,19 @@
                                     @foreach($beneficiaries as $beneficiary)
                                         <option value="{{ $beneficiary }}" {{ old('beneficiary') == $beneficiary ? 'selected' : '' }}>{{ $beneficiary }}</option>
                                     @endforeach
+                                    <option value="__other__" {{ old('beneficiary') == '__other__' ? 'selected' : '' }}>Other</option>
                                 </select>
+                                <input type="text" class="form-control mt-2 d-none" id="custom_beneficiary" name="custom_beneficiary" placeholder="Enter custom beneficiary name" value="{{ old('custom_beneficiary') }}">
                             </div>
                             <div class="mb-3">
                                 <label for="paid_by" class="form-label">Paid By (Optional)</label>
                                 <select class="form-control" id="paid_by" name="paid_by">
                                     <option value="">Select Mekhala / Area</option>
+                                    @if($canPayByCenter)
+                                        <optgroup label="Center">
+                                            <option value="center:1" {{ old('paid_by') == 'center:1' ? 'selected' : '' }}>Center General</option>
+                                        </optgroup>
+                                    @endif
                                     @foreach($mekhalas as $mekhala)
                                         <optgroup label="{{ $mekhala->name }}">
                                             <option value="mekhala:{{ $mekhala->id }}" {{ old('paid_by') == 'mekhala:' . $mekhala->id ? 'selected' : '' }}>{{ $mekhala->name }} (General)</option>
@@ -115,6 +122,18 @@
             });
 
             populateTypes(categorySelect.value, oldType);
+
+            const beneficiarySelect = document.getElementById('beneficiary');
+            const customBeneficiaryInput = document.getElementById('custom_beneficiary');
+
+            function toggleCustomBeneficiary() {
+                const isOther = beneficiarySelect.value === '__other__';
+                customBeneficiaryInput.classList.toggle('d-none', !isOther);
+                customBeneficiaryInput.required = isOther;
+            }
+
+            beneficiarySelect.addEventListener('change', toggleCustomBeneficiary);
+            toggleCustomBeneficiary();
         });
     </script>
 @endsection

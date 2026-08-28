@@ -8,6 +8,7 @@ use App\Models\Application;
 use App\Models\Investment;
 use Illuminate\Http\Request;
 use Maatwebsite\Excel\Facades\Excel;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class ReportController extends Controller
 {
@@ -145,10 +146,45 @@ class ReportController extends Controller
         $investmentScope($returnedQ);
         $totalReturned = $returnedQ->sum('returned_amount');
 
+        // Breakdowns for the period, scoped the same way as the totals above
+        $collectionsByTypeQ = Collection::where('collection_status', $scopeFilter === 'center' ? 'center_received' : 'received')
+            ->whereBetween('collection_date', [$dateFrom, $dateTo]);
+        $collectionScope($collectionsByTypeQ);
+        $collectionsByType = $collectionsByTypeQ->selectRaw('type, SUM(amount) as total')
+            ->groupBy('type')->orderBy('type')->pluck('total', 'type');
+
+        $expensesByTypeQ = Expense::whereBetween('expense_date', [$dateFrom, $dateTo]);
+        $userScope($expensesByTypeQ, 'enteredBy');
+        $expensesByType = $expensesByTypeQ->selectRaw('type, SUM(amount) as total')
+            ->groupBy('type')->pluck('total', 'type');
+
+        $expenseTypeCategories = \App\Models\ExpenseType::pluck('category', 'name');
+        $expensesByCategoryRaw = [];
+        foreach ($expensesByType as $type => $total) {
+            $category = $expenseTypeCategories[$type] ?? 'Uncategorized';
+            if (!isset($expensesByCategoryRaw[$category])) {
+                $expensesByCategoryRaw[$category] = ['total' => 0, 'types' => []];
+            }
+            $expensesByCategoryRaw[$category]['total'] += $total;
+            $expensesByCategoryRaw[$category]['types'][$type] = $total;
+        }
+        ksort($expensesByCategoryRaw);
+        $expensesByCategory = collect($expensesByCategoryRaw)->map(fn($data) => [
+            'total' => $data['total'],
+            'types' => collect($data['types']),
+        ]);
+
+        $applicationsByCategoryQ = Application::where('status', 'paid')
+            ->whereBetween('approved_date', [$dateFrom, $dateTo]);
+        $userScope($applicationsByCategoryQ, 'submitter');
+        $applicationsByCategory = $applicationsByCategoryQ->selectRaw('category, SUM(approved_amount) as total')
+            ->groupBy('category')->orderBy('category')->pluck('total', 'category');
+
         return compact(
             'dateFrom', 'dateTo', 'openingBalance',
             'totalCollections', 'totalForwarded', 'totalExpenses',
-            'totalApplications', 'totalInvestments', 'totalIncome', 'totalReturned'
+            'totalApplications', 'totalInvestments', 'totalIncome', 'totalReturned',
+            'collectionsByType', 'expensesByCategory', 'applicationsByCategory'
         );
     }
 
@@ -208,10 +244,18 @@ class ReportController extends Controller
         $reportType = $type === 'combined' ? 'Combined' : ucfirst($type) . ' Mekhala';
         $mekhalaName = $type !== 'combined' ? ucfirst($type) . ' Mekhala' : null;
 
-        return view('reports.financial-statement', array_merge($data, [
+        $viewData = array_merge($data, [
             'reportType' => $reportType,
             'mekhalaName' => $mekhalaName,
-        ]));
+            'showBreakdowns' => true,
+        ]);
+
+        if ($request->get('format') === 'pdf') {
+            $pdf = Pdf::loadView('reports.pdf.financial-statement', $viewData)->setPaper('a4', 'portrait');
+            return $pdf->download(\Illuminate\Support\Str::slug($reportType . ' Statement ' . $data['dateFrom'] . ' to ' . $data['dateTo']) . '.pdf');
+        }
+
+        return view('reports.financial-statement', $viewData);
     }
 
     public function centerFinancialStatement(Request $request)

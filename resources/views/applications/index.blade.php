@@ -9,7 +9,9 @@
             <div>
                 <button type="button" class="btn btn-secondary me-2" onclick="clearFilters()">Clear Filters</button>
                 <a href="{{ route('applications.export') }}" class="btn btn-success me-2">Export Excel</a>
-                <a href="{{ route('applications.create') }}" class="btn btn-primary">New Application</a>
+                @if(auth()->user()->canCreateApplications())
+                    <a href="{{ route('applications.create') }}" class="btn btn-primary">New Application</a>
+                @endif
             </div>
         </div>
 
@@ -88,6 +90,11 @@
                                         <a href="{{ route('applications.show', $application) }}" class="btn btn-sm btn-outline-primary">View</a>
                                         @if($application->status == 'pending' && ($application->submitted_by == auth()->id() || auth()->user()->isMekhalaUser() || auth()->user()->isCenterUser()))
                                             <a href="{{ route('applications.edit', $application) }}" class="btn btn-sm btn-outline-secondary">Edit</a>
+                                            <form method="POST" action="{{ route('applications.destroy', $application) }}" class="d-inline">
+                                                @csrf
+                                                @method('DELETE')
+                                                <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Delete this application?')">Delete</button>
+                                            </form>
                                         @endif
                                         @if($application->status == 'pending' && auth()->user()->canApproveApplications())
                                             <button type="button" class="btn btn-sm btn-success" data-bs-toggle="modal" data-bs-target="#approveModal{{ $application->id }}">Approve</button>

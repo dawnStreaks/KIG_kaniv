@@ -127,6 +127,11 @@ class User extends Authenticatable
         return $this->isAdmin() || $this->isTreasurer();
     }
 
+    public function canCreateApplications()
+    {
+        return $this->isAreaUser() || $this->isAdmin();
+    }
+
     public function canAddInvestments()
     {
         return $this->isTreasurer() || $this->isCenterUser();
