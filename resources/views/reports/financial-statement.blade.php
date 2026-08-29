@@ -5,7 +5,11 @@
 @section('content')
     <div>
         <div class="d-flex justify-content-between align-items-center mb-3">
-            <h2>{{ $reportType ?? 'Financial' }} Statement</h2>
+            <div class="d-flex align-items-center gap-3">
+                <img src="{{ asset('logos/kig_logo_sm.jpeg') }}" alt="KIG" style="max-height: 50px;">
+                <h2 class="mb-0">{{ $reportType ?? 'Financial' }} Statement</h2>
+                <img src="{{ asset('logos/kaniv.png') }}" alt="Kaniv" style="max-height: 50px;">
+            </div>
             <div class="d-flex gap-2">
                 <form method="GET" class="d-flex gap-2 align-items-center">
                     <label class="small text-nowrap mb-0">From:</label>

@@ -200,9 +200,19 @@ class ReportController extends Controller
             $mekhalaName = $user->mekhala->name;
         }
 
-        return view('reports.financial-statement', array_merge($data, [
+        $viewData = array_merge($data, [
             'mekhalaName' => $mekhalaName,
-        ]));
+            'showBreakdowns' => true,
+        ]);
+
+        if ($request->get('format') === 'pdf') {
+            $viewData['kigLogo'] = $this->logoDataUri('logos/kig_logo_sm.jpeg');
+            $viewData['kanivLogo'] = $this->logoDataUri('logos/kaniv.png');
+            $pdf = Pdf::loadView('reports.pdf.financial-statement', $viewData)->setPaper('a4', 'portrait');
+            return $pdf->download(\Illuminate\Support\Str::slug(($mekhalaName ?: 'Financial') . ' Statement ' . $data['dateFrom'] . ' to ' . $data['dateTo']) . '.pdf');
+        }
+
+        return view('reports.financial-statement', $viewData);
     }
 
     public function centerFinancial(Request $request)
@@ -255,11 +265,28 @@ class ReportController extends Controller
         ]);
 
         if ($request->get('format') === 'pdf') {
+            $viewData['kigLogo'] = $this->logoDataUri('logos/kig_logo_sm.jpeg');
+            $viewData['kanivLogo'] = $this->logoDataUri('logos/kaniv.png');
             $pdf = Pdf::loadView('reports.pdf.financial-statement', $viewData)->setPaper('a4', 'portrait');
             return $pdf->download(\Illuminate\Support\Str::slug($reportType . ' Statement ' . $data['dateFrom'] . ' to ' . $data['dateTo']) . '.pdf');
         }
 
         return view('reports.financial-statement', $viewData);
+    }
+
+    /**
+     * Read a public/ image and return it as a base64 data URI, so dompdf can
+     * embed it without touching the filesystem directly (its chroot/local-file
+     * handling varies across server setups and can silently drop plain paths).
+     */
+    private function logoDataUri(string $relativePath): ?string
+    {
+        $path = public_path($relativePath);
+        if (!file_exists($path)) {
+            return null;
+        }
+        $mime = mime_content_type($path) ?: 'image/png';
+        return 'data:' . $mime . ';base64,' . base64_encode(file_get_contents($path));
     }
 
     public function centerFinancialStatement(Request $request)

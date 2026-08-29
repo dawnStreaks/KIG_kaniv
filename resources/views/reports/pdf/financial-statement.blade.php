@@ -41,14 +41,18 @@
     <table class="header-table">
         <tr>
             <td class="header-logo" style="text-align: left;">
-                <img src="{{ public_path('logos/kig_logo_sm.jpeg') }}">
+                @if($kigLogo ?? null)
+                    <img src="{{ $kigLogo }}">
+                @endif
             </td>
             <td class="header-title">
                 <h1>{{ $reportType ?? 'Financial' }} Statement</h1>
                 <p>{{ \Carbon\Carbon::parse($dateFrom)->format('d M Y') }} to {{ \Carbon\Carbon::parse($dateTo)->format('d M Y') }}</p>
             </td>
             <td class="header-logo" style="text-align: right;">
-                <img src="{{ public_path('logos/kaniv.png') }}">
+                @if($kanivLogo ?? null)
+                    <img src="{{ $kanivLogo }}">
+                @endif
             </td>
         </tr>
     </table>
