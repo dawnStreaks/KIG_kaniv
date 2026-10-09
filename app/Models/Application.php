@@ -58,6 +58,11 @@ class Application extends Model
         return $this->belongsTo(Area::class);
     }
 
+    public function editLogs()
+    {
+        return $this->hasMany(ApplicationEditLog::class)->latest();
+    }
+
     public function scopePending($query)
     {
         return $query->where('status', 'pending');

@@ -83,5 +83,33 @@
                 </div>
             </div>
         </div>
+
+        @if($application->editLogs->isNotEmpty())
+        <div class="card mt-3">
+            <div class="card-header">
+                <h5 class="mb-0">Edit History</h5>
+            </div>
+            <div class="card-body">
+                <table class="table table-sm mb-0">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Edited By</th>
+                            <th>Reason</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach($application->editLogs as $log)
+                        <tr>
+                            <td>{{ $log->created_at->format('Y-m-d H:i:s') }}</td>
+                            <td>{{ $log->editor->name ?? 'N/A' }}</td>
+                            <td>{{ $log->reason }}</td>
+                        </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        @endif
     </div>
 @endsection

@@ -88,8 +88,10 @@
                                     <td>{{ $application->submitter->name }}</td>
                                     <td>
                                         <a href="{{ route('applications.show', $application) }}" class="btn btn-sm btn-outline-primary">View</a>
-                                        @if($application->status == 'pending' && ($application->submitted_by == auth()->id() || auth()->user()->isMekhalaUser() || auth()->user()->isCenterUser()))
+                                        @if($application->status != 'paid' && ($application->submitted_by == auth()->id() || auth()->user()->isMekhalaUser() || auth()->user()->isCenterUser()))
                                             <a href="{{ route('applications.edit', $application) }}" class="btn btn-sm btn-outline-secondary">Edit</a>
+                                        @endif
+                                        @if($application->status == 'pending' && ($application->submitted_by == auth()->id() || auth()->user()->isMekhalaUser() || auth()->user()->isCenterUser()))
                                             <form method="POST" action="{{ route('applications.destroy', $application) }}" class="d-inline">
                                                 @csrf
                                                 @method('DELETE')

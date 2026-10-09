@@ -96,7 +96,13 @@
                                 <label for="description" class="form-label">Description</label>
                                 <textarea class="form-control" id="description" name="description" rows="3">{{ old('description', $application->description) }}</textarea>
                             </div>
-                            
+
+                            <div class="mb-3">
+                                <label for="edit_reason" class="form-label">Reason for Edit</label>
+                                <textarea class="form-control" id="edit_reason" name="edit_reason" rows="2" required>{{ old('edit_reason') }}</textarea>
+                                <small class="form-text text-muted">Required — recorded with your name and today's date in this application's edit history.</small>
+                            </div>
+
                             <div class="d-flex justify-content-between">
                                 <a href="{{ route('applications.index') }}" class="btn btn-secondary">Cancel</a>
                                 <button type="submit" class="btn btn-primary">Update Application</button>

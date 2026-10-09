@@ -2,7 +2,7 @@
 <html>
 <head>
     <meta charset="utf-8">
-    <title>{{ $reportType ?? 'Financial' }} Statement</title>
+    <title>{{ $reportType ? $reportType . ' Financial Statement' : 'Financial Statement' }}</title>
     <style>
         body { font-family: 'Helvetica', Arial, sans-serif; font-size: 12px; color: #212529; }
         .header-table { width: 100%; margin-bottom: 6px; }
@@ -46,7 +46,7 @@
                 @endif
             </td>
             <td class="header-title">
-                <h1>{{ $reportType ?? 'Financial' }} Statement</h1>
+                <h1>{{ $reportType ? $reportType . ' Financial Statement' : 'Financial Statement' }}</h1>
                 <p>{{ \Carbon\Carbon::parse($dateFrom)->format('d M Y') }} to {{ \Carbon\Carbon::parse($dateTo)->format('d M Y') }}</p>
             </td>
             <td class="header-logo" style="text-align: right;">
@@ -149,12 +149,12 @@
                         <div class="card-total text-warning">KWD {{ number_format($totalForwarded ?? 0, 3) }}</div>
                         <table class="detail">
                             <tr class="subtotal">
-                                <td>Pending Receipt</td>
-                                <td class="amount">KWD {{ number_format(($totalForwarded ?? 0) - ($totalCollections ?? 0), 3) }}</td>
+                                <td>Total Forwarded</td>
+                                <td class="amount">KWD {{ number_format($totalForwarded ?? 0, 3) }}</td>
                             </tr>
                             <tr class="subtotal">
-                                <td>Receipt Rate</td>
-                                <td class="amount">{{ ($totalForwarded ?? 0) > 0 ? number_format((($totalCollections ?? 0) / ($totalForwarded ?? 0)) * 100, 1) : 0 }}%</td>
+                                <td>Remaining Collection</td>
+                                <td class="amount">KWD {{ number_format(($totalCollections ?? 0) - ($totalForwarded ?? 0), 3) }}</td>
                             </tr>
                         </table>
                     </div>

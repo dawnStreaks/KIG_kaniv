@@ -7,7 +7,7 @@
         <div class="d-flex justify-content-between align-items-center mb-3">
             <div class="d-flex align-items-center gap-3">
                 <img src="{{ asset('logos/kig_logo_sm.jpeg') }}" alt="KIG" style="max-height: 50px;">
-                <h2 class="mb-0">{{ $reportType ?? 'Financial' }} Statement</h2>
+                <h2 class="mb-0">{{ $reportType ? $reportType . ' Financial Statement' : 'Financial Statement' }}</h2>
                 <img src="{{ asset('logos/kaniv.png') }}" alt="Kaniv" style="max-height: 50px;">
             </div>
             <div class="d-flex gap-2">
@@ -160,12 +160,12 @@
                         <div class="collapse mt-3" id="forwardedDetails">
                             <table class="table table-sm">
                                 <tr class="table-warning">
-                                    <td><strong>Pending Receipt</strong></td>
-                                    <td class="text-end"><strong>KWD {{ number_format(($totalForwarded ?? 0) - ($totalCollections ?? 0), 3) }}</strong></td>
+                                    <td><strong>Total Forwarded</strong></td>
+                                    <td class="text-end"><strong>KWD {{ number_format($totalForwarded ?? 0, 3) }}</strong></td>
                                 </tr>
                                 <tr class="table-info">
-                                    <td><strong>Receipt Rate</strong></td>
-                                    <td class="text-end"><strong>{{ ($totalForwarded ?? 0) > 0 ? number_format((($totalCollections ?? 0) / ($totalForwarded ?? 0)) * 100, 1) : 0 }}%</strong></td>
+                                    <td><strong>Remaining Collection</strong></td>
+                                    <td class="text-end"><strong>KWD {{ number_format(($totalCollections ?? 0) - ($totalForwarded ?? 0), 3) }}</strong></td>
                                 </tr>
                             </table>
                         </div>

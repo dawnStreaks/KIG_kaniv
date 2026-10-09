@@ -157,13 +157,14 @@ class ApplicationController extends Controller
 
     public function show(Application $application)
     {
+        $application->load('editLogs.editor');
         return view('applications.show', compact('application'));
     }
 
     public function edit(Application $application)
     {
-        if ($application->status !== 'pending') {
-            abort(403, 'Only pending applications can be edited');
+        if ($application->status === 'paid') {
+            abort(403, 'Paid applications can no longer be edited');
         }
         if (auth()->user()->isAreaUser() && $application->submitted_by !== auth()->id()) {
             abort(403);
@@ -176,8 +177,8 @@ class ApplicationController extends Controller
 
     public function update(Request $request, Application $application)
     {
-        if ($application->status !== 'pending') {
-            abort(403, 'Only pending applications can be edited');
+        if ($application->status === 'paid') {
+            abort(403, 'Paid applications can no longer be edited');
         }
         if (auth()->user()->isAreaUser() && $application->submitted_by !== auth()->id()) {
             abort(403);
@@ -194,7 +195,11 @@ class ApplicationController extends Controller
             'unit_id' => 'required|exists:units,id',
             'area_id' => 'required|exists:areas,id',
             'description' => 'nullable|string',
+            'edit_reason' => 'required|string|max:1000',
         ]);
+
+        $editReason = $validated['edit_reason'];
+        unset($validated['edit_reason']);
 
         if ($request->hasFile('front_page_photo')) {
             Storage::disk('public')->delete($application->front_page_photo);
@@ -203,6 +208,12 @@ class ApplicationController extends Controller
         }
 
         $application->update($validated);
+
+        $application->editLogs()->create([
+            'edited_by' => auth()->id(),
+            'reason' => $editReason,
+        ]);
+
         return redirect()->route('applications.index')->with('success', 'Application updated successfully');
     }
 

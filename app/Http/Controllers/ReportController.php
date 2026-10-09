@@ -48,6 +48,61 @@ class ReportController extends Controller
             }
         };
 
+        // Expenses carry an explicit "Paid By" attribution (paid_by_area_id /
+        // paid_by_mekhala_id / paid_by_center) set by whoever recorded them,
+        // which may differ from the mekhala of the user who entered it (e.g.
+        // a center user paying on behalf of a specific mekhala). Scope by that
+        // attribution when it's set; only fall back to the entering user's own
+        // mekhala for legacy expenses recorded before this attribution existed.
+        $noPaidByAttribution = function($q) {
+            $q->whereNull('paid_by_area_id')
+              ->whereNull('paid_by_mekhala_id')
+              ->where(function($q2) {
+                  $q2->whereNull('paid_by_center')->orWhere('paid_by_center', false);
+              });
+        };
+
+        $expenseScope = function($query) use ($scopeFilter, $noPaidByAttribution) {
+            if ($scopeFilter === 'center') {
+                $query->where(function($q) use ($noPaidByAttribution) {
+                    $q->where('paid_by_center', true)
+                      ->orWhere(function($q2) use ($noPaidByAttribution) {
+                          $noPaidByAttribution($q2);
+                          $q2->whereHas('enteredBy', function($q3) {
+                              $q3->where('user_type', 'center');
+                          });
+                      });
+                });
+            } elseif (is_array($scopeFilter)) {
+                $query->where(function($q) use ($scopeFilter, $noPaidByAttribution) {
+                    $q->whereIn('paid_by_mekhala_id', $scopeFilter)
+                      ->orWhereHas('paidByArea', function($q2) use ($scopeFilter) {
+                          $q2->whereIn('mekhala_id', $scopeFilter);
+                      })
+                      ->orWhere(function($q2) use ($scopeFilter, $noPaidByAttribution) {
+                          $noPaidByAttribution($q2);
+                          $q2->whereHas('enteredBy', function($q3) use ($scopeFilter) {
+                              $q3->whereIn('mekhala_id', $scopeFilter);
+                          });
+                      });
+                });
+            } elseif ($scopeFilter === 'mekhala') {
+                $userMekhalaId = auth()->user()->mekhala_id;
+                $query->where(function($q) use ($userMekhalaId, $noPaidByAttribution) {
+                    $q->where('paid_by_mekhala_id', $userMekhalaId)
+                      ->orWhereHas('paidByArea', function($q2) use ($userMekhalaId) {
+                          $q2->where('mekhala_id', $userMekhalaId);
+                      })
+                      ->orWhere(function($q2) use ($userMekhalaId, $noPaidByAttribution) {
+                          $noPaidByAttribution($q2);
+                          $q2->whereHas('enteredBy', function($q3) use ($userMekhalaId) {
+                              $q3->where('mekhala_id', $userMekhalaId);
+                          });
+                      });
+                });
+            }
+        };
+
         $investmentScope = function($query) use ($scopeFilter) {
             if ($scopeFilter === 'center') {
                 $query->whereHas('creator', function($q) {
@@ -71,7 +126,7 @@ class ReportController extends Controller
         $obCollectionsTotal = $obCollections->sum('amount');
 
         $obExpenses = Expense::where('expense_date', '<', $dateFrom);
-        $userScope($obExpenses, 'enteredBy');
+        $expenseScope($obExpenses);
         $obExpensesTotal = $obExpenses->sum('amount');
 
         $obApplications = Application::where('status', 'paid')->where('approved_date', '<', $dateFrom);
@@ -126,7 +181,7 @@ class ReportController extends Controller
         $totalForwarded = $forwardedQ->sum('amount');
 
         $expensesQ = Expense::whereBetween('expense_date', [$dateFrom, $dateTo]);
-        $userScope($expensesQ, 'enteredBy');
+        $expenseScope($expensesQ);
         $totalExpenses = $expensesQ->sum('amount');
 
         $applicationsQ = Application::where('status', 'paid')
@@ -154,7 +209,7 @@ class ReportController extends Controller
             ->groupBy('type')->orderBy('type')->pluck('total', 'type');
 
         $expensesByTypeQ = Expense::whereBetween('expense_date', [$dateFrom, $dateTo]);
-        $userScope($expensesByTypeQ, 'enteredBy');
+        $expenseScope($expensesByTypeQ);
         $expensesByType = $expensesByTypeQ->selectRaw('type, SUM(amount) as total')
             ->groupBy('type')->pluck('total', 'type');
 
@@ -574,7 +629,8 @@ class ReportController extends Controller
             ->groupBy(fn($c) => $c->unit->area->name ?? 'Unknown Area')
             ->map(fn($items) => $items->sum('amount'));
         
-        $expensesDetailQuery = Expense::whereBetween('expense_date', [$dateFrom, $dateTo])->orderBy('expense_date');
+        $expensesDetailQuery = Expense::with(['paidByArea', 'paidByMekhala', 'enteredBy.area'])
+            ->whereBetween('expense_date', [$dateFrom, $dateTo])->orderBy('expense_date');
         if ($user->isMekhalaUser()) {
             $expensesDetailQuery->whereHas('enteredBy', function($q) use ($user) {
                 $q->where('mekhala_id', $user->mekhala_id);
@@ -610,7 +666,7 @@ class ReportController extends Controller
         }
         
         foreach ($expenses as $expense) {
-            $areaName = $expense->enteredBy->area->name ?? 'General';
+            $areaName = $expense->paid_by_label ?? ($expense->enteredBy->area->name ?? 'General');
             $transactionsByArea->push([
                 'area' => $areaName,
                 'date' => $expense->expense_date,
